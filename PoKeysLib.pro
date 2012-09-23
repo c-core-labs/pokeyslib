@@ -35,3 +35,6 @@ unix {
 }
 
 TARGET = ../lib/PoKeysLib
+
+OTHER_FILES += \
+    ReadMe.txt
