@@ -43,6 +43,7 @@ It is meant as a replacement and enhancement of the original .NET-based communic
 ---- Credits ----
 Author: Matevž Bošnak (matevz@poscope.com)
 
+
 ---- Change log ----
 23.9.2012: Initial Windows+Linux library
 
