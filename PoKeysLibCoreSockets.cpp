@@ -21,7 +21,7 @@
 #include "PoKeysLib.h"
 #include <vector>
 
-//#define DEBUG_PoKeysLibSockets
+#define DEBUG_PoKeysLibSockets
 
 #ifdef DEBUG_PoKeysLibSockets
     #define debug_printf printf
@@ -124,52 +124,12 @@ std::vector<uint32> GetBroadcastAddresses()
       {
          const MIB_IPADDRROW & row = ipTable->table[i];
 
-         /*
-         // Now lookup the appropriate adaptor-name in the pAdaptorInfos, if we can find it
-         const char * name = NULL;
-         const char * desc = NULL;
-         if (pAdapterInfo)
-         {
-            IP_ADAPTER_INFO * next = pAdapterInfo;
-            while((next)&&(name==NULL))
-            {
-               IP_ADDR_STRING * ipAddr = &next->IpAddressList;
-               while(ipAddr)
-               {
-
-                  if (Inet_AtoN(ipAddr->IpAddress.String) == ntohl(row.dwAddr))
-                  {
-                     name = next->AdapterName;
-                     desc = next->Description;
-                     break;
-                  }
-
-                  ipAddr = ipAddr->Next;
-               }
-               next = next->Next;
-            }
-         }
-         */
-         /*
-         char buf[128];
-         if (name == NULL)
-         {
-            sprintf(buf, "unnamed-%i", i);
-            name = buf;
-         }*/
-
-         uint32 ipAddr  = ntohl(row.dwAddr);
-         uint32 netmask = ntohl(row.dwMask);
+         uint32 ipAddr  = (row.dwAddr);
+         uint32 netmask = (row.dwMask);
          uint32 baddr   = ipAddr & netmask;
          if (row.dwBCastAddr) baddr |= ~netmask;
 
          list.push_back(baddr);
-         /*
-         char ifaAddrStr[32];  Inet_NtoA(ipAddr,  ifaAddrStr);
-         char maskAddrStr[32]; Inet_NtoA(netmask, maskAddrStr);
-         char dstAddrStr[32];  Inet_NtoA(baddr,   dstAddrStr);
-         printf("  Found interface:  name=[%s] desc=[%s] address=[%s] netmask=[%s] broadcastAddr=[%s]\n", name, desc?desc:"unavailable", ifaAddrStr, maskAddrStr, dstAddrStr);
-        */
       }
 
       free(pAdapterInfo);
@@ -177,7 +137,7 @@ std::vector<uint32> GetBroadcastAddresses()
    }
 #else
    // Dunno what we're running on here!
-#  error "Don't know how to implement PrintNetworkInterfaceInfos() on this OS!"
+#  error "Don't know how to implement GetBroadcastAddresses() on this OS!"
 #endif
 
     return list;
