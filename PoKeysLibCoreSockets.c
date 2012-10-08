@@ -20,7 +20,7 @@
 #include <sys/stat.h>
 #include "PoKeysLib.h"
 
-#define DEBUG_PoKeysLibSockets
+//#define DEBUG_PoKeysLibSockets
 
 #ifdef DEBUG_PoKeysLibSockets
     #define debug_printf printf
@@ -231,6 +231,7 @@ int PK_EnumerateNetworkDevices(sPoKeysNetworkDeviceSummary * devices, int timeou
     debug_printf("Sending discovery request...\n");
 
     uint32 * addr = GetBroadcastAddresses();
+    uint32 * addrPtr = addr;
     while(*addr)
     {
         uint32 a = *addr;
@@ -255,7 +256,7 @@ int PK_EnumerateNetworkDevices(sPoKeysNetworkDeviceSummary * devices, int timeou
         debug_printf(" done\n");
         addr++;
     }
-    free(addr);
+    free(addrPtr);
 
 
     debug_printf("Waiting for responses...\n");
@@ -353,6 +354,8 @@ sPoKeysDevice* PK_ConnectToNetworkDevice(sPoKeysNetworkDeviceSummary * device)
     int t = 500; // 500 ms timeout
     // Create target endpoint
     struct sockaddr_in remoteEP;
+    int result;
+    int prot = 0;
 
     debug_printf("\nConnecting to PoKeys device ... ");
     // Create temporary device object
@@ -368,16 +371,24 @@ sPoKeysDevice* PK_ConnectToNetworkDevice(sPoKeysNetworkDeviceSummary * device)
     remoteEP.sin_addr.s_addr = addr;
 
     //debug_printf(" %lu", addr);
-
+    
     // Create socket
 #ifdef WIN32
     if ((SOCKET)(tmpDevice->devHandle = (void*)socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
 #else
     tmpDevice->devHandle = malloc(sizeof(int));
-    if ((*(int *)tmpDevice->devHandle = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
+    if (tmpDevice->devHandle == NULL) return NULL;
+    
+    if (prot == 0)    
+		*(int *)tmpDevice->devHandle = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	else 
+		*(int *)tmpDevice->devHandle = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	
+	if ((*(int *)tmpDevice->devHandle) == -1)
 #endif
     {
         CleanDevice(tmpDevice);
+        free(tmpDevice->devHandle);
         free(tmpDevice);
 
         return NULL; // Couldn't create the socket
@@ -394,11 +405,18 @@ sPoKeysDevice* PK_ConnectToNetworkDevice(sPoKeysNetworkDeviceSummary * device)
 #ifdef WIN32
     if (connect((SOCKET)tmpDevice->devHandle, (SOCKADDR *)&remoteEP, sizeof(remoteEP)) == -1)
 #else
-    if (connect(*(int *)tmpDevice->devHandle, (struct sockaddr *)&remoteEP, sizeof(remoteEP)) == -1)
+	result = 0;
+    if (prot == 0)    
+		result = connect(*(int *)tmpDevice->devHandle, (struct sockaddr *)&remoteEP, sizeof(remoteEP));
+	else
+		result = -1;
+		
+	if (result == -1)
 #endif
     {
 		debug_printf(" ERROR");
 		CleanDevice(tmpDevice);
+		free(tmpDevice->devHandle);
 		free(tmpDevice);
 
         return NULL; // Couldn't connect

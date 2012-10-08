@@ -172,6 +172,10 @@ sPoKeysDevice* PK_ConnectToDevice(int deviceIndex)
 				if (tmpDevice->devHandle != NULL)
 				{
 					InitializeNewDevice(tmpDevice);
+				} else
+				{
+					free(tmpDevice);
+					tmpDevice = NULL;
 				}
                 //hid_set_nonblocking(devHandle);
                 hid_free_enumeration(devs);
@@ -229,6 +233,10 @@ sPoKeysDevice* PK_ConnectToDeviceWSerial(long serialNumber, int checkForNetworkD
 					if (tmpDevice->devHandle != NULL)
 					{
 						InitializeNewDevice(tmpDevice);
+					} else
+					{
+						free(tmpDevice);
+						tmpDevice = NULL;
 					}
 					//hid_set_nonblocking(devHandle);
 					hid_free_enumeration(devs);
@@ -243,6 +251,12 @@ sPoKeysDevice* PK_ConnectToDeviceWSerial(long serialNumber, int checkForNetworkD
 				if (tmpDevice->devHandle != NULL)
 				{
 					InitializeNewDevice(tmpDevice);
+				} else
+				{
+					free(tmpDevice);
+					tmpDevice = NULL;
+					hid_free_enumeration(devs);
+					return NULL;
 				}
                 hid_free_enumeration(devs);
 
