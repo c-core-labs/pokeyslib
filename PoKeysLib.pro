@@ -8,7 +8,7 @@ TEMPLATE = lib
 CONFIG += staticlib warn_on debug
 
 SOURCES += PoKeysLibCore.cpp \
-    sPoKeysLibEncoders.cpp \
+    PoKeysLibEncoders.cpp \
     PoKeysLibPulseEngine.cpp \
     PoKeysLibMatrixLED.cpp \
     PoKeysLibMatrixKB.cpp \
