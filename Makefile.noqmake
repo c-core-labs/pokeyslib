@@ -1,0 +1,47 @@
+CC = gcc
+
+CFLAGS = -shared -fPIC -L/usr/lib/ -L/usr/lib/arm-linux-gnueabihf/ -lusb-1.0 -I/usr/include/libusb-1.0/
+OBJECTS = PoKeysLibCore.o sPoKeysLibEncoders.o PoKeysLibPulseEngine.o PoKeysLibMatrixLED.o PoKeysLibMatrixKB.o PoKeysLibLCD.o PoKeysLibIO.o PoKeysLibDeviceData.o PoKeysLibCoreSockets.o hid-libusb.o
+
+install: all
+	cp libPoKeys.so /usr/lib
+	cp PoKeysLib.h /usr/include
+
+all: libPoKeys.so
+
+libPoKeys.so: $(OBJECTS)
+	$(CC) $(CFLAGS) $(OBJECTS) -o libPoKeys.so 
+	
+PoKeysLibCore.o: PoKeysLibCore.c
+	$(CC) $(CFLAGS) -c PoKeysLibCore.c
+
+sPoKeysLibEncoders.o: sPoKeysLibEncoders.c
+	$(CC) $(CFLAGS) -c sPoKeysLibEncoders.c
+	
+PoKeysLibPulseEngine.o: PoKeysLibPulseEngine.c
+	$(CC) $(CFLAGS) -c PoKeysLibPulseEngine.c
+	
+PoKeysLibMatrixLED.o: PoKeysLibMatrixLED.c
+	$(CC) $(CFLAGS) -c PoKeysLibMatrixLED.c
+	
+PoKeysLibMatrixKB.o: PoKeysLibMatrixKB.c
+	$(CC) $(CFLAGS) -c PoKeysLibMatrixKB.c
+	
+PoKeysLibLCD.o: PoKeysLibLCD.c
+	$(CC) $(CFLAGS) -c PoKeysLibLCD.c
+	
+PoKeysLibIO.o: PoKeysLibIO.c
+	$(CC) $(CFLAGS) -c PoKeysLibIO.c
+	
+PoKeysLibDeviceData.o: PoKeysLibDeviceData.c
+	$(CC) $(CFLAGS) -c PoKeysLibDeviceData.c
+	
+PoKeysLibCoreSockets.o: PoKeysLibCoreSockets.c
+	$(CC) $(CFLAGS) -c PoKeysLibCoreSockets.c
+	
+hid-libusb.o: hid-libusb.c
+	$(CC) $(CFLAGS) -c hid-libusb.c
+	
+clean:
+	rm *.o
+	rm *.so

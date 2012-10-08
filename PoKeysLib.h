@@ -9,12 +9,14 @@
 	#else
 		#define POKEYSDECL __declspec(dllimport)
 	#endif
-extern "C"
-{
 #else
 	#define POKEYSDECL
 #endif
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 	// Pin capabilities / configuration
 	enum ePK_PinCap
 	{
@@ -387,7 +389,7 @@ extern "C"
 	// Get digital counter values
 	POKEYSDECL int PK_DigitalCounterGet(sPoKeysDevice* device);
 	// Check whether digital counter is available for the specified pin. Return True if digital counter is supported.
-	POKEYSDECL bool PK_IsCounterAvailable(sPoKeysDevice* device, unsigned char pinID);
+	POKEYSDECL int PK_IsCounterAvailable(sPoKeysDevice* device, unsigned char pinID);
 
 	// Get analog input values
 	POKEYSDECL int PK_AnalogIOGet(sPoKeysDevice* device);
@@ -456,7 +458,9 @@ extern "C"
 	POKEYSDECL int PK_PEMPGJogConfigurationGet(sPoKeysDevice* device);
 	// Set configuration for MPG internal jogging
 	POKEYSDECL int PK_PEMPGJogConfigurationSet(sPoKeysDevice* device);
-#ifdef POKEYSDLL
+
+
+#ifdef __cplusplus
 }
 #endif
 
