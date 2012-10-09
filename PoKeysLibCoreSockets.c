@@ -48,7 +48,9 @@ uint32 * GetBroadcastAddresses()
 {
     uint32 * list = malloc(sizeof(uint32) * 100);
     uint32* ptr = list;
+#if defined(WIN32)
     uint32 i;
+#endif
     uint32 tmp;
     
     *ptr = 0;
@@ -176,7 +178,9 @@ uint32 * GetBroadcastAddresses()
 int PK_EnumerateNetworkDevices(sPoKeysNetworkDeviceSummary * devices, int timeout)
 {
     //Broadcast the message
+#ifdef WIN32
     int t = timeout; // 100 ms timeout
+#endif
     int UDPbroadcast = 1;
     int status = 0;
     int BufLen = 0;
@@ -351,7 +355,9 @@ int PK_EnumerateNetworkDevices(sPoKeysNetworkDeviceSummary * devices, int timeou
 
 sPoKeysDevice* PK_ConnectToNetworkDevice(sPoKeysNetworkDeviceSummary * device)
 {
+#ifdef WIN32
     int t = 500; // 500 ms timeout
+#endif
     // Create target endpoint
     struct sockaddr_in remoteEP;
     int result;

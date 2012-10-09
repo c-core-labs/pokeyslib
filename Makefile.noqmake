@@ -1,4 +1,5 @@
 CC = gcc
+AR = ar
 
 CFLAGS = -shared -fPIC -L/usr/lib/ -L/usr/lib/arm-linux-gnueabihf/ -lusb-1.0 -I/usr/include/libusb-1.0/
 OBJECTS = PoKeysLibCore.o PoKeysLibEncoders.o PoKeysLibPulseEngine.o PoKeysLibMatrixLED.o PoKeysLibMatrixKB.o PoKeysLibLCD.o PoKeysLibIO.o PoKeysLibDeviceData.o PoKeysLibCoreSockets.o hid-libusb.o
@@ -8,6 +9,11 @@ install: all
 	cp PoKeysLib.h /usr/include
 
 all: libPoKeys.so
+
+static: libPoKeys.a
+
+libPoKeys.a: $(OBJECTS)
+	$(AR) rcs libPoKeys.a $(OBJECTS)
 
 libPoKeys.so: $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) -o libPoKeys.so 
@@ -43,5 +49,6 @@ hid-libusb.o: hid-libusb.c
 	$(CC) $(CFLAGS) -c hid-libusb.c
 	
 clean:
+	rm *.a
 	rm *.o
 	rm *.so

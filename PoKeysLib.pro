@@ -7,15 +7,15 @@ TEMPLATE = lib
 
 CONFIG += staticlib warn_on debug
 
-SOURCES += PoKeysLibCore.cpp \
-    PoKeysLibEncoders.cpp \
-    PoKeysLibPulseEngine.cpp \
-    PoKeysLibMatrixLED.cpp \
-    PoKeysLibMatrixKB.cpp \
-    PoKeysLibLCD.cpp \
-    PoKeysLibIO.cpp \
-    PoKeysLibDeviceData.cpp \
-    PoKeysLibCoreSockets.cpp
+SOURCES += PoKeysLibCore.c \
+    PoKeysLibEncoders.c \
+    PoKeysLibPulseEngine.c \
+    PoKeysLibMatrixLED.c \
+    PoKeysLibMatrixKB.c \
+    PoKeysLibLCD.c \
+    PoKeysLibIO.c \
+    PoKeysLibDeviceData.c \
+    PoKeysLibCoreSockets.c
 
 win32: SOURCES += hid.c
 unix: SOURCES += hid-libusb.c
@@ -34,7 +34,7 @@ unix {
     HEADERS += /usr/include/libusb-1.0/libusb.h
 }
 
-TARGET = ../lib/PoKeysLib
+TARGET = PoKeys
 
 OTHER_FILES += \
     ReadMe.txt
