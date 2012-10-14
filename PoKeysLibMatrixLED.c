@@ -37,9 +37,8 @@ int PK_MatrixLEDConfigurationGet(sPoKeysDevice* device)
 int PK_MatrixLEDUpdate(sPoKeysDevice* device)
 {
 	int i, j;
-	if (device->info.iMatrixLED == 0) return PK_ERR_GENERIC;
-
-	int displayCode[] = {1, 11};
+    int displayCode[] = {1, 11};
+    if (device->info.iMatrixLED == 0) return PK_ERR_GENERIC;
 
 	// Update matrix LEDs
 	for (i = 0; i < device->info.iMatrixLED; i++)

@@ -50,9 +50,22 @@ uint32 * GetBroadcastAddresses()
     uint32* ptr = list;
 #if defined(WIN32)
     uint32 i;
+    MIB_IPADDRTABLE * ipTable = NULL;
+    IP_ADAPTER_INFO * pAdapterInfo = NULL;
+    ULONG bufLen = 0;
+    uint32 ipRet;
+    uint32 apRet;
+
+    MIB_IPADDRROW * row;
+
+    uint32 ipAddr;
+    uint32 netmask;
+    uint32 baddr;
+
 #endif
     uint32 tmp;
     
+
     *ptr = 0;
     
 
@@ -81,12 +94,10 @@ uint32 * GetBroadcastAddresses()
     // Adapted from example code at http://msdn2.microsoft.com/en-us/library/aa365917.aspx
     // Now get Windows' IPv4 addresses table.  Once again, we gotta call GetIpAddrTable()
     // multiple times in order to deal with potential race conditions properly.
-    MIB_IPADDRTABLE * ipTable = NULL;
     {
-      ULONG bufLen = 0;
-      for (int i=0; i<5; i++)
+      for (i=0; i<5; i++)
       {
-         uint32 ipRet = GetIpAddrTable(ipTable, &bufLen, false);
+         ipRet = GetIpAddrTable(ipTable, &bufLen, 0);
          if (ipRet == ERROR_INSUFFICIENT_BUFFER)
          {
             free(ipTable);  // in case we had previously allocated it
@@ -108,12 +119,10 @@ uint32 * GetBroadcastAddresses()
       // addresses we are returning.  Gotta call GetAdaptersInfo() up to 5 times to handle
       // the potential race condition between the size-query call and the get-data call.
       // I love a well-designed API :^P
-      IP_ADAPTER_INFO * pAdapterInfo = NULL;
       {
-         ULONG bufLen = 0;
-         for (int i=0; i<5; i++)
+         for (i=0; i<5; i++)
          {
-            uint32 apRet = GetAdaptersInfo(pAdapterInfo, &bufLen);
+            apRet = GetAdaptersInfo(pAdapterInfo, &bufLen);
             if (apRet == ERROR_BUFFER_OVERFLOW)
             {
                free(pAdapterInfo);  // in case we had previously allocated it
@@ -129,14 +138,16 @@ uint32 * GetBroadcastAddresses()
          }
       }
 
-      for (i=0; i<ipTable->dwNumEntries; i++)
+      for (i=0; i < ipTable->dwNumEntries; i++)
       {
-         const MIB_IPADDRROW & row = ipTable->table[i];
+          // -----------------------------------------------------------------------------------------
+         row = &ipTable->table[i];
+         // -----------------------------------------------------------------------------------------
 
-         uint32 ipAddr  = (row.dwAddr);
-         uint32 netmask = (row.dwMask);
-         uint32 baddr   = ipAddr & netmask;
-         if (row.dwBCastAddr) baddr |= ~netmask;
+         ipAddr  = (row->dwAddr);
+         netmask = (row->dwMask);
+         baddr   = ipAddr & netmask;
+         if (row->dwBCastAddr) baddr |= ~netmask;
 
 		 if (baddr) *(ptr++) = baddr;
       }
@@ -179,31 +190,36 @@ int PK_EnumerateNetworkDevices(sPoKeysNetworkDeviceSummary * devices, int timeou
 {
     //Broadcast the message
 #ifdef WIN32
-    int t = timeout; // 100 ms timeout
-#endif
-    int UDPbroadcast = 1;
-    int status = 0;
-    int BufLen = 0;
-    char SendBuf[1];
-
-
-    debug_printf("Enumerating network PoKeys devices...\n");
-
-#ifdef WIN32
+    struct sockaddr_in remoteEP;
+    int t; // 100 ms timeout
     SOCKET txSocket;
-    sockaddr_in remoteEP;
-
-	if (InitWinsock() != 0) 
-	{
-		debug_printf("InitWinsock error!");
-		return 0;
-    }
 #else
     int txSocket;
     struct sockaddr_in remoteEP;
     fd_set fds;
     struct timeval stimeout;
+#endif
+    int UDPbroadcast = 1;
+    int status = 0;
+    int BufLen = 0;
+    char SendBuf[1];
+    uint32 * addr;
+    uint32 * addrPtr;
+    uint32 a;
+    unsigned char rcvbuf[500];
+    int nrOfDetectedBoards = 0;
+    sPoKeysNetworkDeviceSummary * device;
 
+    t = timeout;
+
+    debug_printf("Enumerating network PoKeys devices...\n");
+
+#ifdef WIN32
+	if (InitWinsock() != 0) 
+	{
+		debug_printf("InitWinsock error!");
+		return 0;
+    }
 #endif
 	
     // Create socket for discovery packet
@@ -234,11 +250,12 @@ int PK_EnumerateNetworkDevices(sPoKeysNetworkDeviceSummary * devices, int timeou
 
     debug_printf("Sending discovery request...\n");
 
-    uint32 * addr = GetBroadcastAddresses();
-    uint32 * addrPtr = addr;
+    addr = GetBroadcastAddresses();
+    addrPtr = addr;
+
     while(*addr)
     {
-        uint32 a = *addr;
+        a = *addr;
         debug_printf("Sending request to %d.%d.%d.%d... ", (a&0xFF),(a>>8)&0xFF, (a>>16)&0xFF, (a>>24)&0xFF);
 
         // Send discovery request...
@@ -264,10 +281,7 @@ int PK_EnumerateNetworkDevices(sPoKeysNetworkDeviceSummary * devices, int timeou
 
 
     debug_printf("Waiting for responses...\n");
-    unsigned char rcvbuf[500];
-    int nrOfDetectedBoards = 0;
 
-    sPoKeysNetworkDeviceSummary * device;
 
 
 #ifdef WIN32
@@ -362,15 +376,15 @@ sPoKeysDevice* PK_ConnectToNetworkDevice(sPoKeysNetworkDeviceSummary * device)
     struct sockaddr_in remoteEP;
     int result;
     int prot = 0;
+    uint32 addr ;
 
-    debug_printf("\nConnecting to PoKeys device ... ");
     // Create temporary device object
     sPoKeysDevice * tmpDevice = (sPoKeysDevice*)malloc(sizeof(sPoKeysDevice));
 
     tmpDevice->connectionType = PK_DeviceType_NetworkDevice; // Network device
 
 
-    uint32 addr = (uint32)device->IPaddress[0] + ((uint32)device->IPaddress[1] << 8) + ((uint32)device->IPaddress[2] << 16) + ((uint32)device->IPaddress[3] << 24);
+    addr = (uint32)device->IPaddress[0] + ((uint32)device->IPaddress[1] << 8) + ((uint32)device->IPaddress[2] << 16) + ((uint32)device->IPaddress[3] << 24);
     // Set up the RecvAddr structure with the broadcast ip address and correct port number
     remoteEP.sin_family = AF_INET;
     remoteEP.sin_port = htons(20055);

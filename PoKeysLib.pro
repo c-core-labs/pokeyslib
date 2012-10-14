@@ -22,16 +22,18 @@ win32: SOURCES += hid.c
 HEADERS += PoKeysLibCoreSockets.h \
     PoKeysLibCore.h \
     hidapi.h \
-    ../include/PoKeysLib.h \
+    PoKeysLib.h \
 
 win32 {
     LIBS += -lsetupapi -lWs2_32
+    TARGET = ../../lib/PoKeysLib
 }
 unix:!macx {
     SOURCES += hid-libusb.c
     INCLUDEPATH += /usr/include/libusb-1.0
     LIBS += -L/usr/lib/ -lusb-1.0
     HEADERS += /usr/include/libusb-1.0/libusb.h
+    TARGET = PoKeys
 }
 
 macx {
@@ -46,10 +48,8 @@ macx {
 
     # The following line defines for which architectures we build.
     CONFIG += x86
+    TARGET = PoKeys
 }
-
-
-TARGET = PoKeys
 
 OTHER_FILES += \
     ReadMe.txt

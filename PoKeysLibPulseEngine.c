@@ -4,9 +4,9 @@
 // Read pulse engine info
 int PK_PEInfoGet(sPoKeysDevice* device)
 {
-	if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
+    sPoKeysPEinfo * info = &device->PulseEngine->info;
 
-	sPoKeysPEinfo * info = &device->PulseEngine->info;
+    if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
 
 	CreateRequest(device->request, 0x80, 0x30, 0, 0, 0);
 	if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
@@ -22,9 +22,9 @@ int PK_PEInfoGet(sPoKeysDevice* device)
 // Read Pulse engine status
 int PK_PEStatusGet(sPoKeysDevice* device)
 {
-	if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
+    sPoKeysPE * PE = device->PulseEngine;
 
-	sPoKeysPE * PE = device->PulseEngine;
+    if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
 
 	CreateRequest(device->request, 0x80, 0, 0, 0, 0);
 	if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
@@ -51,9 +51,9 @@ int PK_PEStatusGet(sPoKeysDevice* device)
 // Set Pulse engine status
 int PK_PEStatusSet(sPoKeysDevice* device)
 {
-	if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
+    sPoKeysPE * PE = device->PulseEngine;
 
-	sPoKeysPE * PE = device->PulseEngine;
+    if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
 
 	CreateRequest(device->request, 0x80, 0x06, PE->PulseEngineEnabled, PE->ChargePumpEnabled, 0);
 	if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
@@ -64,9 +64,9 @@ int PK_PEStatusSet(sPoKeysDevice* device)
 // Set current position
 int PK_PECurrentPositionSet(sPoKeysDevice* device)
 {
-	if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
+    sPoKeysPE * PE = device->PulseEngine;
 
-	sPoKeysPE * PE = device->PulseEngine;
+    if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
 
 	CreateRequest(device->request, 0x80, 0x01, 0, 0, 0);
 	memcpy(&(device->request[8]), &PE->CurrentPosition[0], 4);
@@ -80,9 +80,9 @@ int PK_PECurrentPositionSet(sPoKeysDevice* device)
 // Read Pulse engine axis configuration
 int PK_PEAxisConfigurationGet(sPoKeysDevice* device)
 {
-	if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
+    sPoKeysPE * PE = device->PulseEngine;
 
-	sPoKeysPE * PE = device->PulseEngine;
+    if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
 
 	CreateRequest(device->request, 0x80, 0x12, 0, 0, 0);
 	if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
@@ -100,9 +100,9 @@ int PK_PEAxisConfigurationGet(sPoKeysDevice* device)
 // Set Pulse engine axis configuration
 int PK_PEAxisConfigurationSet(sPoKeysDevice* device)
 {
-	if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
+    sPoKeysPE * PE = device->PulseEngine;
 
-	sPoKeysPE * PE = device->PulseEngine;
+    if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
 
 	CreateRequest(device->request, 0x80, 0x13, 0, 0, 0);
 
@@ -122,9 +122,9 @@ int PK_PEAxisConfigurationSet(sPoKeysDevice* device)
 // Read Pulse engine keyboard configuration
 int PK_PEKeyboardConfigurationGet(sPoKeysDevice* device)
 {
-	if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
+    sPoKeysPE * PE = device->PulseEngine;
 
-	sPoKeysPE * PE = device->PulseEngine;
+    if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
 
 	CreateRequest(device->request, 0x80, 0x14, 0, 0, 0);
 	if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
@@ -137,9 +137,9 @@ int PK_PEKeyboardConfigurationGet(sPoKeysDevice* device)
 // Set Pulse engine keyboard configuration
 int PK_PEKeyboardConfigurationSet(sPoKeysDevice* device)
 {
-	if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
+    sPoKeysPE * PE = device->PulseEngine;
 
-	sPoKeysPE * PE = device->PulseEngine;
+    if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
 
 	CreateRequest(device->request, 0x80, 0x15, 0, 0, 0);
 	device->request[8] = PE->kb48CNCenabled;
@@ -152,9 +152,9 @@ int PK_PEKeyboardConfigurationSet(sPoKeysDevice* device)
 // Set Pulse engine state
 int PK_PEStateSet(sPoKeysDevice* device)
 {
-	if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
+    sPoKeysPE * PE = device->PulseEngine;
 
-	sPoKeysPE * PE = device->PulseEngine;
+    if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
 
 	CreateRequest(device->request, 0x80, 0x02, 0, 0, 0);
 	device->request[8] = PE->PulseEngineState;
@@ -167,9 +167,9 @@ int PK_PEStateSet(sPoKeysDevice* device)
 // Execute homing
 int PK_PEHomingStart(sPoKeysDevice* device)
 {
-	if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
+    sPoKeysPE * PE = device->PulseEngine;
 
-	sPoKeysPE * PE = device->PulseEngine;
+    if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
 
 	CreateRequest(device->request, 0x80, 0x20, 0, 0, 0);
 	device->request[8] = (PE->AxesHomingFlags & 1) > 0 ? 1 : 0;
@@ -183,9 +183,9 @@ int PK_PEHomingStart(sPoKeysDevice* device)
 // Get parameters
 int PK_PEParametersGet(sPoKeysDevice* device)
 {
-	if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
+    sPoKeysPE * PE = device->PulseEngine;
 
-	sPoKeysPE * PE = device->PulseEngine;
+    if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
 
 	CreateRequest(device->request, 0x80, 0x10, 0, 0, 0);
 	if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
@@ -212,9 +212,9 @@ int PK_PEParametersGet(sPoKeysDevice* device)
 // Set parameters
 int PK_PEParametersSet(sPoKeysDevice* device)
 {
-	if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
+    sPoKeysPE * PE = device->PulseEngine;
 
-	sPoKeysPE * PE = device->PulseEngine;
+    if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
 
 	CreateRequest(device->request, 0x80, 0x11, 0, 0, 0);
 
@@ -242,9 +242,9 @@ int PK_PEParametersSet(sPoKeysDevice* device)
 // Execute move
 int PK_PEMove(sPoKeysDevice* device)
 {
-	if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
+    sPoKeysPE * PE = device->PulseEngine;
 
-	sPoKeysPE * PE = device->PulseEngine;
+    if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
 
 	CreateRequest(device->request, 0x80, 0x05, 0, 0, 0);
 
@@ -258,13 +258,13 @@ int PK_PEMove(sPoKeysDevice* device)
 // Fill motion buffer and read pulse engine status
 int PK_PEBufferFill(sPoKeysDevice* device)
 {
-	if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
+    sPoKeysPE * PE = device->PulseEngine;
+    int bufferSize = PE->info.bufferDepth;
 
-	sPoKeysPE * PE = device->PulseEngine;
+    if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
 
 	CreateRequest(device->request, 0x80, 0x35, PE->buffer.newEntries, 0, 0);	
 
-	int bufferSize = PE->info.bufferDepth;
 	if (bufferSize > 55) bufferSize = 55;
 	memcpy(&device->request[8], PE->buffer.buffer, bufferSize);
 
@@ -315,9 +315,9 @@ int PK_PEBufferFreeSizeGet(sPoKeysDevice* device)
 // Get MPG jog configuration
 int PK_PEMPGJogConfigurationGet(sPoKeysDevice* device)
 {
-	if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
+    sPoKeysPE * PE = device->PulseEngine;
 
-	sPoKeysPE * PE = device->PulseEngine;
+    if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
 
 	CreateRequest(device->request, 0x80, 0x03, 0, 0, 0);	
 	if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
@@ -338,9 +338,9 @@ int PK_PEMPGJogConfigurationGet(sPoKeysDevice* device)
 // Set MPG jog configuration
 int PK_PEMPGJogConfigurationSet(sPoKeysDevice* device)
 {
-	if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
+    sPoKeysPE * PE = device->PulseEngine;
 
-	sPoKeysPE * PE = device->PulseEngine;
+    if (device->info.iPulseEngine == 0) return PK_ERR_GENERIC;
 
 	CreateRequest(device->request, 0x80, 0x03, 10, 0, 0);
 

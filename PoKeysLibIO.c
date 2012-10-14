@@ -247,9 +247,6 @@ int PK_PinConfigurationSet(sPoKeysDevice* device)
 
 int PK_IsCounterAvailable(sPoKeysDevice* device, unsigned char pinID)
 {
-	if ((device->DeviceData.DeviceType != 10) && (device->DeviceData.DeviceType != 11)) return 0;
-    if (pinID >= 55) return 0;
-
     //                        1   2   3   4   5   6   7   8   9   10
     int counterSupported[] = {1,  1,  0 , 0 , 1,  1,  0 , 0 , 1,  0 ,
                               1,  0 , 0 , 0 , 1,  1,  0 , 0 , 1,  1,
@@ -257,6 +254,9 @@ int PK_IsCounterAvailable(sPoKeysDevice* device, unsigned char pinID)
                               0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
                               1,  1,  1,  1,  0 , 1,  0 , 1,  1,  0 ,
                               0 , 0 , 0 , 0 , 0 , 0 , 0 };
+
+    if ((device->DeviceData.DeviceType != 10) && (device->DeviceData.DeviceType != 11)) return 0;
+    if (pinID >= 55) return 0;
 
     return counterSupported[pinID];
 }
