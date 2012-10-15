@@ -5,10 +5,17 @@
 int PK_DeviceDataGet(sPoKeysDevice* device)
 {
 	int i;
-	if (device == NULL) return PK_ERR_NOT_CONNECTED;
+    sPoKeysDevice_Data * data = &device->DeviceData;
+    sPoKeysDevice_Info * info = &device->info;
 
-	sPoKeysDevice_Data * data = &device->DeviceData;
-	sPoKeysDevice_Info * info = &device->info;
+    int devSeries55 = 0;
+    int devSeries56 = 0;
+    int devSeries27 = 0;
+    int devUSB = 0;
+    int devEth = 0;
+    int devBootloader = 0;
+
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
 	memset(info, 0, sizeof(sPoKeysDevice_Info));
 
@@ -31,14 +38,6 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
     {
         data->UserID = device->response[2];
 	} else return PK_ERR_TRANSFER;
-
-
-	int devSeries55 = 0;
-	int devSeries56 = 0;
-	int devSeries27 = 0;
-	int devUSB = 0;
-	int devEth = 0;
-	int devBootloader = 0;
 
 
 	// Resolve device type

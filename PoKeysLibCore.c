@@ -145,11 +145,10 @@ sPoKeysDevice* PK_ConnectToDevice(int deviceIndex)
 {
     int numDevices = 0;
     struct hid_device_info *devs, *cur_dev;
+    sPoKeysDevice* tmpDevice;
 
     devs = hid_enumerate(0x1DC3, 0x1001);
     cur_dev = devs;
-
-	sPoKeysDevice* tmpDevice;
 
     while (cur_dev)
     {
@@ -195,13 +194,12 @@ sPoKeysDevice* PK_ConnectToDeviceWSerial(long serialNumber, int checkForNetworkD
     int numDevices = 0;
     struct hid_device_info *devs, *cur_dev;
     int k;
+    sPoKeysDevice* tmpDevice;
+    char serialSearch[8];
 
     devs = hid_enumerate(0x1DC3, 0x1001);
     cur_dev = devs;
 
-	sPoKeysDevice* tmpDevice;
-
-	char serialSearch[8];
     sprintf(serialSearch, "2.%05lu", serialNumber);
 
     while (cur_dev)
@@ -355,24 +353,25 @@ unsigned char getChecksum(unsigned char * data)
 //#define PK_COM_DEBUG
 int SendRequest(sPoKeysDevice* device)
 {
-	if (device == NULL) return PK_ERR_GENERIC;
-	if (device->connectionType == PK_DeviceType_NetworkDevice)
-	{
-		return SendEthRequest(device);
-	}
-
-	hid_device * devHandle = (hid_device*)device->devHandle;
-
-    if (devHandle == NULL) return PK_ERR_GENERIC;
-
     // Initialize variables
     int waits = 0;
     int retries = 0;
     int result = 0;
     unsigned char bufferOut[65] = {0};
     #ifdef PK_COM_DEBUG
-            int i;
+        int i;
     #endif
+    hid_device * devHandle = (hid_device*)device->devHandle;
+
+    if (device == NULL) return PK_ERR_GENERIC;
+	if (device->connectionType == PK_DeviceType_NetworkDevice)
+	{
+		return SendEthRequest(device);
+	}
+
+
+    if (devHandle == NULL) return PK_ERR_GENERIC;
+
 
     // Request sending loop
     while (retries++ < 2)
