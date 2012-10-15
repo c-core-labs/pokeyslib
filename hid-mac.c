@@ -471,7 +471,10 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 			cur_dev->release_number = get_int_property(dev, CFSTR(kIOHIDVersionNumberKey));
 
 			/* Interface Number (Unsupported on Mac)*/
-			cur_dev->interface_number = -1;
+            if (get_max_report_length(dev) == 64)
+                cur_dev->interface_number = 1;
+            else
+                cur_dev->interface_number = -1;
 		}
 	}
 
