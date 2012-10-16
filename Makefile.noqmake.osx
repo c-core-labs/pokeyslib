@@ -2,7 +2,8 @@ CC = gcc
 AR = ar
 
 
-CFLAGS = -shared -fPIC -L/usr/lib/ -L/opt/local/lib/ -lusb-1.0 -I/opt/local/include/libusb-1.0/
+CFLAGS = -shared -fPIC -I/opt/local/include/libusb-1.0/
+LIBS = -framework IOKit -framework CoreFoundation -L/usr/lib/ -L/opt/local/lib/ -lusb-1.0 
 OBJECTS = PoKeysLibCore.o PoKeysLibEncoders.o PoKeysLibPulseEngine.o PoKeysLibMatrixLED.o PoKeysLibMatrixKB.o PoKeysLibLCD.o PoKeysLibIO.o PoKeysLibDeviceData.o PoKeysLibCoreSockets.o hid-mac.o
 
 install: all
@@ -17,7 +18,7 @@ libPoKeys.a: $(OBJECTS)
 	$(AR) rcs libPoKeys.a $(OBJECTS)
 
 libPoKeys.so: $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) -o libPoKeys.so 
+	$(CC) $(CFLAGS) $(LIBS) $(OBJECTS) -o libPoKeys.so 
 	
 PoKeysLibCore.o: PoKeysLibCore.c
 	$(CC) $(CFLAGS) -c PoKeysLibCore.c
@@ -50,6 +51,6 @@ hid-mac.o: hid-mac.c
 	$(CC) $(CFLAGS) -c hid-mac.c
 	
 clean:
-	rm *.a
 	rm *.o
+	rm *.a
 	rm *.so
