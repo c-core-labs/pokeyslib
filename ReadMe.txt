@@ -9,11 +9,11 @@ It is meant as a replacement and enhancement of the original .NET-based communic
 
 ---- Verified commands ----
 [Windows Linux OSX]
-[xx ] Enumerating USB devices
+[xxx] Enumerating USB devices
 [xx ] Enumerating network devices
-[xx ] Connecting to USB devices
+[xxx] Connecting to USB devices
 [xx ] Connecting to network devices
-[xx ] Reading device data
+[xxx] Reading device data
 [x  ] Reading digital inputs
 [x  ] Writing digital outputs
 [xx ] PoExtBus writing
@@ -45,6 +45,7 @@ Author: Matevž Bošnak (matevz@poscope.com)
 
 
 ---- Change log ----
-8.10.2012: Updated library - pure C, tested on Raspberry Pi
-23.9.2012: Initial Windows+Linux library
+16.10.2012: OS X version of the library tested
+08.10.2012: Updated library - pure C, tested on Raspberry Pi
+23.09.2012: Initial Windows+Linux library
 
