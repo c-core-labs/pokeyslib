@@ -45,7 +45,6 @@ Author: Matevž Bošnak (matevz@poscope.com)
 
 
 ---- Change log ----
-24.10.2012: Public release
 16.10.2012: OS X version of the library tested
 08.10.2012: Updated library - pure C, tested on Raspberry Pi
 23.09.2012: Initial Windows+Linux library
