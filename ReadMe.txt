@@ -33,7 +33,7 @@ This library uses sources from HIDAPI library.
 [   ] Pulse engine operations
 [   ] Matrix keyboard setup
 [   ] Matrix keyboard reading
-[   ]
+[xxx] Using encoders
 [   ]
 [   ]
 [   ]

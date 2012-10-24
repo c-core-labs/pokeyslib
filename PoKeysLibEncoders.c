@@ -112,7 +112,7 @@ int PK_EncoderConfigurationSet(sPoKeysDevice* device)
 		if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
 
 		// Set channel mappings
-		CreateRequest(device->request, 0xC5, 0, 0, 0, 0);
+		CreateRequest(device->request, 0xC5, 1, 0, 0, 0);
 		for (i = 0; i < device->info.iBasicEncoderCount; i++)
 		{
 			device->request[8 + i] = device->Encoders[i].channelApin;
@@ -123,7 +123,7 @@ int PK_EncoderConfigurationSet(sPoKeysDevice* device)
 		if (device->info.iKeyMapping)
 		{
 			// Direction A key mapping
-			CreateRequest(device->request, 0xC6, 0, 0, 0, 0);
+			CreateRequest(device->request, 0xC6, 1, 0, 0, 0);
 			for (i = 0; i < device->info.iBasicEncoderCount; i++)
 			{
 				device->request[8 + i] = device->Encoders[i].dirAkeyCode;
@@ -132,7 +132,7 @@ int PK_EncoderConfigurationSet(sPoKeysDevice* device)
 			if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
 
 			// Direction B key mapping
-			CreateRequest(device->request, 0xC7, 0, 0, 0, 0);
+			CreateRequest(device->request, 0xC7, 1, 0, 0, 0);
 			for (i = 0; i < device->info.iBasicEncoderCount; i++)
 			{
 				device->request[8 + i] = device->Encoders[i].dirBkeyCode;

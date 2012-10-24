@@ -5,7 +5,7 @@ QT -= core gui
 
 TEMPLATE = lib
 
-CONFIG += staticlib warn_on debug
+CONFIG += staticlib warn_on #debug
 
 SOURCES += PoKeysLibCore.c \
     PoKeysLibEncoders.c \
