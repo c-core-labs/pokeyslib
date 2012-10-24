@@ -189,9 +189,9 @@ uint32 * GetBroadcastAddresses()
 int PK_EnumerateNetworkDevices(sPoKeysNetworkDeviceSummary * devices, int timeout)
 {
     //Broadcast the message
+    int t; // 100 ms timeout
 #ifdef WIN32
     struct sockaddr_in remoteEP;
-    int t; // 100 ms timeout
     SOCKET txSocket;
 #else
     int txSocket;
