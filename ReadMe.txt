@@ -5,8 +5,11 @@ PoKeysLib
 PoKeysLib is a multi-platform library which allows an application to interface PoKeys55, PoKeys56U and PoKeys56E devices.
 It is meant as a replacement and enhancement of the original .NET-based communication library for Windows.
 
+
 ---- License ----
 This library is released under GNU Lesser General Public License (LGPL). By using this library in any way, you agree with the terms described in License.txt
+
+This library uses sources from HIDAPI library.
 
 
 ---- Library status - verified commands ----
