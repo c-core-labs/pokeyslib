@@ -25,6 +25,8 @@ qmake can be used to build the librray using the attached project file PoKeysLib
 ---- Usage ----
 PoKeysLib library has to be linked or included in the client application. On Linux and OS X, it depends on libusb-1.0 library that must be installed before compiling PoKeysLib.
 
+Example code: http://www.mypokeys.com/new-cross-platform-library-for-all-pokeys-devices
+
 ---- PoKeys56U device rules setup (Linux) ----
 (coming soon)
 
