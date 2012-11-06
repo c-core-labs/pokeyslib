@@ -444,7 +444,7 @@ extern "C"
 
 	// Get pulse engine information
 	POKEYSDECL int PK_PEInfoGet(sPoKeysDevice* device);
-	// Get pulse engine status
+    // Get pulse engine status (current position, limit/home status, axes status)
 	POKEYSDECL int PK_PEStatusGet(sPoKeysDevice* device);
 	// Set pulse engine status (to enable/disable the pulse engine and the charge pump)
 	POKEYSDECL int PK_PEStatusSet(sPoKeysDevice* device);
@@ -480,6 +480,8 @@ extern "C"
 	POKEYSDECL int PK_PEMPGJogConfigurationSet(sPoKeysDevice* device);
 
 
+    extern int LastRetryCount;
+    extern int LastWaitCount;
 #ifdef __cplusplus
 }
 #endif

@@ -290,6 +290,8 @@ int PK_PEBufferFill(sPoKeysDevice* device)
 
 	if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
 
+
+
 	PE->buffer.entriesAccepted = device->response[8];
 
 	memcpy(&PE->CurrentPosition[0], &(device->response[9]), 4);

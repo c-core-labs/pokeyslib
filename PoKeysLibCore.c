@@ -369,6 +369,9 @@ unsigned char getChecksum(unsigned char * data)
     return temp;
 }
 
+int LastRetryCount = 0;
+int LastWaitCount = 0;
+
 
 //#define PK_COM_DEBUG
 int SendRequest(sPoKeysDevice* device)
@@ -423,7 +426,7 @@ int SendRequest(sPoKeysDevice* device)
             waits = 0;
 
             // Request receiving loop
-            while (waits++ < 20)
+            while (waits++ < 100)
             {
                 result = hid_read(devHandle, device->response, 65);
 
@@ -447,8 +450,11 @@ int SendRequest(sPoKeysDevice* device)
                 // Check the header and the request ID
                 if (device->response[0] == 0xAA && device->response[6] == device->requestID)
                 {
-                        // This is it. Return from this function
-                        return PK_OK;
+
+                    LastRetryCount = retries;
+                    LastWaitCount = waits;
+                    // This is it. Return from this function
+                    return PK_OK;
                 }
             }
     }
