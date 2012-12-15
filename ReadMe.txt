@@ -16,7 +16,7 @@ GNU GCC compiler is used on Linux and OS X to compile and install the library. U
   make -f Makefile.noqmake install
 on Linux and
   make -f Makefile.noqmake.osx install
-on OS X. These will also install the library in /usr/lib folder and copy the header file to /usr/include.
+on OS X. These will also install the library in /usr/lib folder and copy the header file to /usr/include. Sudo may be required to gain write access to these two folders
 
 Also:
 qmake can be used to build the librray using the attached project file PoKeysLib.pro.
@@ -48,11 +48,11 @@ Example code: http://www.mypokeys.com/new-cross-platform-library-for-all-pokeys-
 [   ] Setting pin key codes
 [   ] Reading pin key codes
 [   ] PWM operations
-[   ] Pulse engine operations
+[xxx] Pulse engine operations
 [   ] Matrix keyboard setup
 [   ] Matrix keyboard reading
 [xxx] Using encoders
-[   ]
+[x  ] I2C operations
 [   ]
 [   ]
 [   ]
@@ -68,6 +68,7 @@ Author: Matevž Bošnak (matevz@poscope.com)
 
 
 ---- Change log ----
+15.12.2012: Support for I2C added
 24.10.2012: Public release
 16.10.2012: OS X version of the library tested
 08.10.2012: Updated library - pure C, tested on Raspberry Pi

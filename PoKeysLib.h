@@ -98,6 +98,14 @@ extern "C"
 		PK_ERR_CANNOT_CONNECT           = -101
     };
 
+    enum ePK_I2C_STATUS
+    {
+        PK_I2C_STAT_ERR                 = 0,    // An error occured
+        PK_I2C_STAT_OK                  = 1,    // All is OK
+        PK_I2C_STAT_COMPLETE            = 1,    // Operation complete
+        PK_I2C_STAT_IN_PROGRESS         = 0x10  // Operation still in progress
+    };
+
 	// PoKeys device information
 	typedef struct 
 	{
@@ -479,6 +487,24 @@ extern "C"
 	// Set configuration for MPG internal jogging
 	POKEYSDECL int PK_PEMPGJogConfigurationSet(sPoKeysDevice* device);
 
+
+    // I2C operations status return ePK_I2C_STATUS, described above
+    // Set I2C status - does nothing in the device as I2C is ON all the time
+    POKEYSDECL int PK_I2CSetStatus(sPoKeysDevice* device, int activated);
+    // Retrieves I2C bus activation status
+    POKEYSDECL int PK_I2CGetStatus(sPoKeysDevice* device, int* activated);
+    // Execute write to the specified address. iDataLength specifies how many bytes should be sent from the buffer (0 to 32)
+    POKEYSDECL int PK_I2CWriteStart(sPoKeysDevice* device, unsigned char address, unsigned char* buffer, unsigned char iDataLength);
+    // Get write operation status
+    POKEYSDECL int PK_I2CWriteStatusGet(sPoKeysDevice* device, int* status);
+    // Execute read from the specified address. iDataLength specifies how many bytes should be requested
+    POKEYSDECL int PK_I2CReadStart(sPoKeysDevice* device, unsigned char address, unsigned char iDataLength);
+    // Get read operation results. iReadBytes returns the number of bytes read from the selected device, iMaxBufferLength specifies how many bytes buffer can accept
+    POKEYSDECL int PK_I2CReadStatusGet(sPoKeysDevice* device, int* status, unsigned char* iReadBytes, unsigned char* buffer, unsigned char iMaxBufferLength);
+    // Execute bus scan
+    POKEYSDECL int PK_I2CBusScanStart(sPoKeysDevice* device);
+    // Get bus scan results. iMaxDevices specifies how big presentDevices buffer is. presentDevices returns one entry per device
+    POKEYSDECL int PK_I2CBusScanGetResults(sPoKeysDevice* device, int* status, unsigned char* presentDevices, unsigned char iMaxDevices);
 
     extern int LastRetryCount;
     extern int LastWaitCount;
