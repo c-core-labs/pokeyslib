@@ -1,31 +1,41 @@
 PoKeysLib
 
 ---- About ----
-PoKeysLib is a multi-platform library which allows an application to interface PoKeys55, PoKeys56U and PoKeys56E devices.
-It is meant as a replacement and enhancement of the original .NET-based communication library for Windows.
+PoKeysLib is a multi-platform library which allows an application to interface 
+PoKeys55, PoKeys56U and PoKeys56E devices.
+It is meant as a replacement and enhancement of the original .NET-based commun-
+ication library for Windows.
 
 
 ---- License ----
-This library is released under GNU Lesser General Public License (LGPL). By using this library in any way, you agree with the terms described in License.txt
+This library is released under GNU Lesser General Public License (LGPL). By us-
+ing this library in any way, you agree with the terms described in License.txt
 
 This library uses sources from HIDAPI library.
 
 ---- Installation ----
 Preferred:
-GNU GCC compiler is used on Linux and OS X to compile and install the library. Use the following command
+GNU GCC compiler is used on Linux and OS X to compile and install the library. 
+Use the following command
   make -f Makefile.noqmake install
 on Linux and
   make -f Makefile.noqmake.osx install
-on OS X. These will also install the library in /usr/lib folder and copy the header file to /usr/include. Sudo may be required to gain write access to these two folders
+on OS X. These will also install the library in /usr/lib folder and copy the 
+header file to /usr/include. Sudo may be required to gain write access to these
+two folders
 
 Also:
-qmake can be used to build the librray using the attached project file PoKeysLib.pro.
+qmake can be used to build the librray using the attached project file 
+PoKeysLib.pro.
 
 
 ---- Usage ----
-PoKeysLib library has to be linked or included in the client application. On Linux and OS X, it depends on libusb-1.0 library that must be installed before compiling PoKeysLib.
+PoKeysLib library has to be linked or included in the client application. 
+On Linux and OS X, it depends on libusb-1.0 library that must be installed 
+before compiling PoKeysLib.
 
-Example code: http://www.mypokeys.com/new-cross-platform-library-for-all-pokeys-devices
+Example code: 
+http://www.mypokeys.com/new-cross-platform-library-for-all-pokeys-devices
 
 ---- PoKeys56U device rules setup (Linux) ----
 (coming soon)
