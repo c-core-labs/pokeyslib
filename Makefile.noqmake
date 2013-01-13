@@ -22,7 +22,7 @@ PoKeysLibCore.o: PoKeysLibCore.c
 	$(CC) $(CFLAGS) -c PoKeysLibCore.c
 	
 PoKeysLibI2C.o: PoKeysLibI2C.c
-  $(CC) $(CFLAGS) -c PoKeysLibI2C.c
+	$(CC) $(CFLAGS) -c PoKeysLibI2C.c
 
 PoKeysLibEncoders.o: PoKeysLibEncoders.c
 	$(CC) $(CFLAGS) -c PoKeysLibEncoders.c
