@@ -16,7 +16,8 @@ SOURCES += PoKeysLibCore.c \
     PoKeysLibIO.c \
     PoKeysLibDeviceData.c \
     PoKeysLibCoreSockets.c \
-    PoKeysLibI2C.c
+    PoKeysLibI2C.c \
+    PoKeysLibPoNET.c
 
 win32: SOURCES += hid.c
 

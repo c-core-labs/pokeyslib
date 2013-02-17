@@ -314,6 +314,14 @@ extern "C"
 		unsigned char reserved[3];				// placeholder
 	} sPoKeysPE;
 
+    // PoNET module data
+    typedef struct
+    {
+        unsigned char status[16];
+        unsigned char moduleID;
+        unsigned char reserved[3];
+    } sPoNETmodule;
+
 	// Main PoKeys structure
 	typedef struct
 	{
@@ -330,6 +338,7 @@ extern "C"
 		sPoKeysMatrixLED* MatrixLED;			// Matrix LED structure
 		sPoKeysLCD LCD;							// LCD structure
 		sPoKeysPE* PulseEngine;					// Pulse engine structure (available only when Pulse engine is supported and activated)
+        sPoNETmodule PoNETmodule;
 
 		unsigned char FastEncodersConfiguration;		// Fast encoders configuration, invert settings and 4x sampling (see protocol specification for details)
 		unsigned char FastEncodersOptions;				// Fast encoders additional options
@@ -505,6 +514,10 @@ extern "C"
     POKEYSDECL int PK_I2CBusScanStart(sPoKeysDevice* device);
     // Get bus scan results. iMaxDevices specifies how big presentDevices buffer is. presentDevices returns one entry per device
     POKEYSDECL int PK_I2CBusScanGetResults(sPoKeysDevice* device, int* status, unsigned char* presentDevices, unsigned char iMaxDevices);
+
+
+    POKEYSDECL int PK_PoNETSetModuleStatus(sPoKeysDevice* device);
+
 
     extern int LastRetryCount;
     extern int LastWaitCount;
