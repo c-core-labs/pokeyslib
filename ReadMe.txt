@@ -57,13 +57,14 @@ http://www.mypokeys.com/new-cross-platform-library-for-all-pokeys-devices
 [xxx] Reading pin functions
 [   ] Setting pin key codes
 [   ] Reading pin key codes
-[   ] PWM operations
+[x  ] PWM operations
 [xxx] Pulse engine operations
 [   ] Matrix keyboard setup
 [   ] Matrix keyboard reading
 [xxx] Using encoders
 [x  ] I2C operations
-[   ]
+[x  ] SPI operation
+[x  ] PoIL operations
 [   ]
 [   ]
 [   ]
@@ -78,6 +79,7 @@ Author: Matevž Bošnak (matevz@poscope.com)
 
 
 ---- Change log ----
+13.04.2013: Mulitple updates: PWM, PoIL, SPI, RTC
 15.12.2012: Support for I2C added
 24.10.2012: Public release
 16.10.2012: OS X version of the library tested
