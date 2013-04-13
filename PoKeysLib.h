@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2012 Matev≈æ Bo≈°nak (matevz@poscope.com)
+Copyright (C) 2013 Matevû Boönak (matevz@poscope.com)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -50,6 +50,18 @@ extern "C"
 		PK_PinCap_digitalCounter = 64,		// Digital counter (only on selected pins)
 		PK_PinCap_invertPin = 128			// Invert digital pin polarity (set together with digital input, output or triggered input)
 	};
+
+    // Pin capabilities / configuration
+    enum ePK_AllPinCap
+    {
+        PK_AllPinCap_digitalInput   = (1<<1),   // Digital input supported
+        PK_AllPinCap_digitalOutput  = (1<<2),	// Digital output supported
+        PK_AllPinCap_analogInput    = (1<<3),	// Analog input supported
+        PK_AllPinCap_analogOutput   = (1<<4),	// Analog output supported
+        PK_AllPinCap_triggeredInput = (1<<5),	// Triggered input supported
+        PK_AllPinCap_digitalCounter = (1<<6),	// Digital counter supported
+        PK_AllPinCap_PWMOut         = (1<<8)   // PWM output supported
+    };
 
 	// Connection type
 	enum ePK_DeviceConnectionType
@@ -322,6 +334,75 @@ extern "C"
         unsigned char reserved[3];
     } sPoNETmodule;
 
+
+    // PoIL-related structures
+
+    // PoIL core info
+    typedef struct
+    {
+        unsigned int DataMemorySize;
+        unsigned int CodeMemorySize;
+        unsigned int Version;
+    } sPoILinfo;
+
+    // PoIL stack info
+    typedef struct
+    {
+        unsigned int stackPtr;
+        unsigned int stackSize;
+
+        unsigned char StackContents[1024];
+    } sPoILStack;
+
+    // Monitor mode memory chunk descriptor
+    typedef struct
+    {
+        unsigned short address;
+        unsigned char chunkLength;
+        unsigned char reserved;
+    } sPoILmemoryChunk;
+
+    // PoIL core status
+    typedef struct
+    {
+        sPoILinfo info;
+
+        unsigned int MasterEnable;
+        unsigned int currentTask;
+        unsigned int STATUS;
+        unsigned int W;
+        unsigned int PC;
+        unsigned int ExceptionPC;
+        unsigned int CoreState;
+        unsigned int CoreDebugMode;
+        unsigned int CoreDebugBreakpoint;
+
+        sPoILStack functionStack;
+        sPoILStack dataStack;
+
+        unsigned char codeMemoryPage[256];
+        unsigned char dataMemoryPage[256];
+
+        sPoILmemoryChunk monitorChunks[18];
+    } sPoILStatus;
+
+
+
+    typedef struct
+    {
+        unsigned char SEC;
+        unsigned char MIN;
+        unsigned char HOUR;
+        unsigned char DOW;
+        unsigned char DOM;
+        unsigned char tmp;
+        unsigned short DOY;
+        unsigned short MONTH;
+        unsigned short YEAR;
+    } sPoKeysRTC;
+
+
+
 	// Main PoKeys structure
 	typedef struct
 	{
@@ -339,6 +420,8 @@ extern "C"
 		sPoKeysLCD LCD;							// LCD structure
 		sPoKeysPE* PulseEngine;					// Pulse engine structure (available only when Pulse engine is supported and activated)
         sPoNETmodule PoNETmodule;
+        sPoILStatus PoIL;
+        sPoKeysRTC RTC;
 
 		unsigned char FastEncodersConfiguration;		// Fast encoders configuration, invert settings and 4x sampling (see protocol specification for details)
 		unsigned char FastEncodersOptions;				// Fast encoders additional options
@@ -517,6 +600,29 @@ extern "C"
 
 
     POKEYSDECL int PK_PoNETSetModuleStatus(sPoKeysDevice* device);
+
+    // SPI operations
+    POKEYSDECL int PK_SPIConfigure(sPoKeysDevice * device, unsigned char prescaler, unsigned char frameFormat);
+    POKEYSDECL int PK_SPIWrite(sPoKeysDevice * device, unsigned char * buffer, unsigned char iDataLength, unsigned char pinCS);
+    POKEYSDECL int PK_SPIRead(sPoKeysDevice * device, unsigned char * buffer, unsigned char iDataLength);
+
+
+    // PoIL commands
+    POKEYSDECL int PK_PoILGetState(sPoKeysDevice* device);
+    POKEYSDECL int PK_PoILSetCoreState(sPoKeysDevice* device, unsigned short state);
+    POKEYSDECL int PK_PoILSetMasterEnable(sPoKeysDevice* device, unsigned char masterEnable);
+    POKEYSDECL int PK_PoILResetCore(sPoKeysDevice* device);
+    POKEYSDECL int PK_PoILSetDebugMode(sPoKeysDevice* device, unsigned char debugMode, unsigned short breakpoint);
+    POKEYSDECL int PK_PoILReadMemory(sPoKeysDevice* device, unsigned char memoryType, unsigned short address, unsigned short size, unsigned char * dest);
+    POKEYSDECL int PK_PoILWriteMemory(sPoKeysDevice* device, unsigned char memoryType, unsigned short address, unsigned short size, unsigned char * src);
+    POKEYSDECL int PK_PoILEraseMemory(sPoKeysDevice* device, unsigned char memoryType);
+    POKEYSDECL int PK_PoILChunkReadMemory(sPoKeysDevice * device, unsigned char * dest);
+    POKEYSDECL int PK_PoILChunkReadMemoryInternalAddress(sPoKeysDevice * device, unsigned char * dest);
+
+
+    // RTC commands (real-time clock)
+    POKEYSDECL int PK_RTCGet(sPoKeysDevice* device);
+    POKEYSDECL int PK_RTCSet(sPoKeysDevice* device);
 
 
     extern int LastRetryCount;

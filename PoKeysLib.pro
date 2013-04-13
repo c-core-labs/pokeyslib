@@ -3,9 +3,12 @@
 # -------------------------------------------------
 QT -= core gui
 
+
 TEMPLATE = lib
 
-CONFIG += staticlib warn_on #debug
+CONFIG += staticlib warn_on
+#CONFIG += dll warn_on
+#DEFINES += POKEYSDLL POKEYSDLLEXPORT
 
 SOURCES += PoKeysLibCore.c \
     PoKeysLibEncoders.c \
@@ -17,7 +20,10 @@ SOURCES += PoKeysLibCore.c \
     PoKeysLibDeviceData.c \
     PoKeysLibCoreSockets.c \
     PoKeysLibI2C.c \
-    PoKeysLibPoNET.c
+    PoKeysLibPoNET.c \
+    PoKeysLibPoIL.c \
+    PoKeysLibRTC.c \
+    PoKeysLibSPI.c
 
 win32: SOURCES += hid.c
 
@@ -27,7 +33,8 @@ HEADERS += PoKeysLibCoreSockets.h \
     PoKeysLib.h \
 
 win32 {
-    LIBS += -lsetupapi -lWs2_32
+    # x86
+    LIBS += -lsetupapi -lWs2_32 -liphlpapi
     TARGET = ../../lib/PoKeysLib
 }
 unix:!macx {

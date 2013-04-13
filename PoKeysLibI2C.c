@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2012 Matevž Bošnak (matevz@poscope.com)
+Copyright (C) 2013 Matevž Bošnak (matevz@poscope.com)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
