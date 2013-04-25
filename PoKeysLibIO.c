@@ -484,6 +484,22 @@ int PK_PWMUpdate(sPoKeysDevice* device)
 }
 
 
+int PK_PWMConfigurationSetDirectly(sPoKeysDevice * device, unsigned int PWMperiod, unsigned char * enabledChannels)
+{
+    PK_PWMConfigurationGet(device);
+    device->PWM.PWMperiod = PWMperiod;
+    memcpy(device->PWM.PWMenabledChannels, enabledChannels, 6);
+    memset(device->PWM.PWMduty, 0, 6*4);
+    PK_PWMConfigurationSet(device);
+}
+
+int PK_PWMUpdateDirectly(sPoKeysDevice * device, unsigned int * dutyCycles)
+{
+    memcpy(device->PWM.PWMduty, dutyCycles, 6*4);
+    PK_PWMUpdate(device);
+}
+
+
 int PK_PoExtBusSet(sPoKeysDevice* device)
 {
 	int i;

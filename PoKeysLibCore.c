@@ -298,7 +298,7 @@ sPoKeysDevice* PK_ConnectToDeviceWSerial(long serialNumber, int checkForNetworkD
 	if (checkForNetworkDevicesAndTimeout)
 	{
 		sPoKeysNetworkDeviceSummary * devices = (sPoKeysNetworkDeviceSummary*)malloc(sizeof(sPoKeysNetworkDeviceSummary) * 16);
-		int iNet = PK_EnumerateNetworkDevices(devices, checkForNetworkDevicesAndTimeout);
+        int iNet = PK_SearchNetworkDevices(devices, checkForNetworkDevicesAndTimeout, serialNumber);
 		for (k = 0; k < iNet; k++)
 		{
 			//printf("\nNetwork device found, serial = %lu at %u.%u.%u.%u", devices[k].SerialNumber, devices[k].IPaddress[0], devices[k].IPaddress[1], devices[k].IPaddress[2], devices[k].IPaddress[3]);

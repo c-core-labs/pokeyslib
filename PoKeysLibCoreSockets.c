@@ -208,6 +208,11 @@ uint32 * GetBroadcastAddresses()
 
 int PK_EnumerateNetworkDevices(sPoKeysNetworkDeviceSummary * devices, int timeout)
 {
+    return PK_SearchNetworkDevices(devices, timeout, 0);
+}
+
+int PK_SearchNetworkDevices(sPoKeysNetworkDeviceSummary * devices, int timeout, int serialNumberToFind)
+{
     //Broadcast the message
     int t; // 100 ms timeout
 #ifdef WIN32
@@ -365,6 +370,8 @@ int PK_EnumerateNetworkDevices(sPoKeysNetworkDeviceSummary * devices, int timeou
 
 		    nrOfDetectedBoards++;
             status = 0;
+
+            if (serialNumberToFind == device->SerialNumber) break;
         }
 		else
 		{
@@ -462,7 +469,7 @@ sPoKeysDevice* PK_ConnectToNetworkDevice(sPoKeysNetworkDeviceSummary * device)
         closesocket((SOCKET)tmpDevice->devHandle);
 #else
         close(*(int *)tmpDevice->devHandle);
-        free(device->devHandle);
+        free(tmpDevice->devHandle);
 #endif
         free(tmpDevice);
 

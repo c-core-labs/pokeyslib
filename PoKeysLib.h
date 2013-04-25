@@ -454,6 +454,7 @@ extern "C"
 	POKEYSDECL int PK_EnumerateUSBDevices(void);
 	// Enumerate network devices. Return the number of ethernet devices detected and the list of detected devices (parameter devices) is filled with devices' data
 	POKEYSDECL int PK_EnumerateNetworkDevices(sPoKeysNetworkDeviceSummary * devices, int timeout);
+    POKEYSDECL int PK_SearchNetworkDevices(sPoKeysNetworkDeviceSummary * devices, int timeout, int serialNumberToFind);
 
 	// Connect to USB PoKeys device, returns pointer to a newly created PoKeys device structure. Returns NULL if the connection is not successfull
 	POKEYSDECL sPoKeysDevice* PK_ConnectToDevice(int deviceIndex);
@@ -527,6 +528,10 @@ extern "C"
 	POKEYSDECL int PK_PWMUpdate(sPoKeysDevice* device);
 	// Retrieve PWM configuration
 	POKEYSDECL int PK_PWMConfigurationGet(sPoKeysDevice* device);
+
+
+    POKEYSDECL int PK_PWMConfigurationSetDirectly(sPoKeysDevice * device, unsigned int PWMperiod, unsigned char * enabledChannels);
+    POKEYSDECL int PK_PWMUpdateDirectly(sPoKeysDevice * device, unsigned int * dutyCycles);
 
 	// Get LCD configuration
 	POKEYSDECL int PK_LCDConfigurationGet(sPoKeysDevice* device);
