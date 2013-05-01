@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "PoKeysLib.h"
+#include "PoKeysLibCore.h"
 
 int PK_SPIConfigure(sPoKeysDevice * device, unsigned char prescaler, unsigned char frameFormat)
 {

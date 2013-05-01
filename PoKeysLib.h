@@ -623,7 +623,8 @@ extern "C"
     POKEYSDECL int PK_PoILEraseMemory(sPoKeysDevice* device, unsigned char memoryType);
     POKEYSDECL int PK_PoILChunkReadMemory(sPoKeysDevice * device, unsigned char * dest);
     POKEYSDECL int PK_PoILChunkReadMemoryInternalAddress(sPoKeysDevice * device, unsigned char * dest);
-
+    POKEYSDECL int PK_PoILReadSharedSlot(sPoKeysDevice* device, unsigned short firstSlotID, unsigned short slotsNum, int * dest);
+    POKEYSDECL int PK_PoILWriteSharedSlot(sPoKeysDevice* device, unsigned short firstSlotID, unsigned short slotsNum, int * src);
 
     // RTC commands (real-time clock)
     POKEYSDECL int PK_RTCGet(sPoKeysDevice* device);

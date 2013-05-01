@@ -83,8 +83,9 @@ uint32 * GetBroadcastAddresses()
     uint32 baddr;
 
 #endif
+#if defined(USE_GETIFADDRS)
     uint32 tmp;
-    
+#endif
 
     *ptr = 0;
     
@@ -398,11 +399,12 @@ sPoKeysDevice* PK_ConnectToNetworkDevice(sPoKeysNetworkDeviceSummary * device)
 {
 #ifdef WIN32
     int t = 500; // 500 ms timeout
+#else
+    int result;
+    int prot = 0;
 #endif
     // Create target endpoint
     struct sockaddr_in remoteEP;
-    int result;
-    int prot = 0;
     uint32 addr ;
 
     // Create temporary device object

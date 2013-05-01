@@ -127,7 +127,7 @@ int PK_PoILReadMemory(sPoKeysDevice* device, unsigned char memoryType, unsigned 
 
 int PK_PoILWriteMemory(sPoKeysDevice* device, unsigned char memoryType, unsigned short address, unsigned short size, unsigned char * src)
 {
-    unsigned int i, j;
+    unsigned int i;
     unsigned short address2 = 0;
     unsigned short writeLen = 0;
 
@@ -167,6 +167,61 @@ int PK_PoILWriteMemory(sPoKeysDevice* device, unsigned char memoryType, unsigned
             if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
         }
     }
+    return PK_OK;
+}
+
+int PK_PoILReadSharedSlot(sPoKeysDevice* device, unsigned short firstSlotID, unsigned short slotsNum, int * dest)
+{
+    unsigned int i;
+    unsigned short address2 = 0;
+    unsigned char requestedSlots;
+
+    // Read in chunks of 54 bytes
+    for (i = 0; i < slotsNum; i += 13)
+    {
+        if (slotsNum - i > 13)
+            requestedSlots = 13;
+        else
+            requestedSlots = slotsNum - i;
+
+        address2 = firstSlotID + i;
+
+        // Unlike other memories, address is the ID of the shared slot
+        CreateRequest(device->request, 0x82, 0x10, 4, (unsigned char)address2, (unsigned char)(address2 >> 8));
+        device->request[8] = (unsigned char)requestedSlots;
+        if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+        memcpy((dest + i), device->response + 8, requestedSlots * 4);
+    }
+    return PK_OK;
+}
+
+
+int PK_PoILWriteSharedSlot(sPoKeysDevice* device, unsigned short firstSlotID, unsigned short slotsNum, int * src)
+{
+    unsigned int i;
+    unsigned short address2 = 0;
+    unsigned char requestedSlots;
+
+    // Write in chunks of 54 bytes
+    for (i = 0; i < slotsNum; i += 13)
+    {
+        if (slotsNum - i > 13)
+            requestedSlots = 13;
+        else
+            requestedSlots = slotsNum - i;
+
+        address2 = firstSlotID + i;
+
+        // Unlike other memories, address is the ID of the shared slot
+        CreateRequest(device->request, 0x82, 0x15, 4, (unsigned char)address2, (unsigned char)(address2 >> 8));
+        device->request[8] = (unsigned char)requestedSlots;
+
+        memcpy(device->request + 9, (src + i), requestedSlots * 4);
+
+        if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+    }
+
     return PK_OK;
 }
 
