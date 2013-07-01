@@ -514,6 +514,8 @@ extern "C"
 
 	// Get analog input values
 	POKEYSDECL int PK_AnalogIOGet(sPoKeysDevice* device);
+    // Get analog input values as an array
+    POKEYSDECL int PK_AnalogIOGetAsArray(sPoKeysDevice* device, unsigned int * buffer);
 
 	// Get matrix keyboard configuration
 	POKEYSDECL int PK_MatrixKBConfigurationGet(sPoKeysDevice* device);

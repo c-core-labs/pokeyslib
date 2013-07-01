@@ -375,6 +375,21 @@ int PK_AnalogIOGet(sPoKeysDevice* device)
 	return PK_OK;
 }              
 
+int PK_AnalogIOGetAsArray(sPoKeysDevice* device, unsigned int * buffer)
+{
+    int result = PK_AnalogIOGet(device);
+    int i;
+
+    if (result == PK_OK)
+    {
+        for (i = 0; i < 7; i++)
+        {
+            buffer[i] = device->Pins[40+i].AnalogValue;
+        }
+    }
+    return result;
+}
+
 int PK_DigitalCounterGet(sPoKeysDevice* device)
 {
 	// Get analog inputs
