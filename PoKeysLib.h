@@ -51,17 +51,77 @@ extern "C"
 		PK_PinCap_invertPin = 128			// Invert digital pin polarity (set together with digital input, output or triggered input)
 	};
 
+
+
     // Pin capabilities / configuration
-    enum ePK_AllPinCap
+    typedef enum
     {
-        PK_AllPinCap_digitalInput   = (1<<1),   // Digital input supported
-        PK_AllPinCap_digitalOutput  = (1<<2),	// Digital output supported
-        PK_AllPinCap_analogInput    = (1<<3),	// Analog input supported
-        PK_AllPinCap_analogOutput   = (1<<4),	// Analog output supported
-        PK_AllPinCap_triggeredInput = (1<<5),	// Triggered input supported
-        PK_AllPinCap_digitalCounter = (1<<6),	// Digital counter supported
-        PK_AllPinCap_PWMOut         = (1<<8)   // PWM output supported
-    };
+        PK_AllPinCap_digitalInput,          // Digital input supported
+        PK_AllPinCap_digitalOutput,         // Digital output supported
+        PK_AllPinCap_analogInput,           // Analog input supported
+        PK_AllPinCap_analogOutput,          // Analog output supported
+        PK_AllPinCap_keyboardMapping,
+        PK_AllPinCap_triggeredInput,        // Triggered input supported
+        PK_AllPinCap_digitalCounter,        // Digital counter supported
+        PK_AllPinCap_PWMOut,                // PWM output supported
+        PK_AllPinCap_fastEncoder1A,
+        PK_AllPinCap_fastEncoder1B,
+        PK_AllPinCap_fastEncoder1I,
+        PK_AllPinCap_fastEncoder2A,
+        PK_AllPinCap_fastEncoder2B,
+        PK_AllPinCap_fastEncoder2I,
+        PK_AllPinCap_fastEncoder3A,
+        PK_AllPinCap_fastEncoder3B,
+        PK_AllPinCap_fastEncoder3I,
+        PK_AllPinCap_ultraFastEncoderA,
+        PK_AllPinCap_ultraFastEncoderB,
+        PK_AllPinCap_ultraFastEncoderI,
+        PK_AllPinCap_LCD_E,
+        PK_AllPinCap_LCD_RW,
+        PK_AllPinCap_LCD_RS,
+        PK_AllPinCap_LCD_D4,
+        PK_AllPinCap_LCD_D5,
+        PK_AllPinCap_LCD_D6,
+        PK_AllPinCap_LCD_D7
+    } ePK_AllPinCap;
+
+
+    typedef enum
+    {
+        PK_Device_Bootloader    = (1<<0),
+        PK_Device_Bootloader55  = (1<<1),
+        PK_Device_Bootloader56  = (1<<2),
+        PK_Device_Bootloader56U = (1<<3),
+        PK_Device_Bootloader56E = (1<<4),
+
+        PK_Device_55            = (1<<10),
+        PK_Device_55v1          = (1<<11),
+        PK_Device_55v2          = (1<<12),
+        PK_Device_55v3          = (1<<13),
+
+        PK_Device_56            = (1<<20),
+        PK_Device_56U           = (1<<21),
+        PK_Device_56E           = (1<<22),
+        PK_Device_27            = (1<<23),
+        PK_Device_27U           = (1<<24),
+        PK_Device_27E           = (1<<25)
+    } ePK_DeviceTypes;
+
+
+
+    typedef struct
+    {
+        int cap;
+        int pinStart;
+        int pinEnd;
+        int additionalCheck;
+        int devTypes;
+    } sPoKeys_PinCapabilities;
+
+
+
+
+
 
 	// Connection type
 	enum ePK_DeviceConnectionType
@@ -171,8 +231,9 @@ extern "C"
 		unsigned char UserID;					// Device user ID
 		unsigned char DeviceType;				// Device type code
 		unsigned char ActivatedOptions;			// Additional activated options - bit 0 for Pulse engine
-		unsigned char reserved;					// placeholder
+        unsigned char DeviceLockStatus;			// Device lock status (if 1, device is locked)
 		unsigned char ActivationCode[8];		// Activation code (when activating the device additional options)
+        unsigned long DeviceTypeID;             // ePK_DeviceTypes ID
 	} sPoKeysDevice_Data;
 
 	// Pin-specific data
@@ -469,6 +530,10 @@ extern "C"
 	// Save current configuration in the device
 	POKEYSDECL int PK_SaveConfiguration(sPoKeysDevice* device);
 
+    // Clone an existing device data structure into a new one
+    POKEYSDECL void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination);
+    // Release the device data structure from memory
+    POKEYSDECL void PK_ReleaseDeviceStructure(sPoKeysDevice* device);
 
 	// Retrieve device-specific information (this also gets automatically called when the connection with the device is established)
 	POKEYSDECL int PK_DeviceDataGet(sPoKeysDevice * device);
@@ -631,7 +696,6 @@ extern "C"
     // RTC commands (real-time clock)
     POKEYSDECL int PK_RTCGet(sPoKeysDevice* device);
     POKEYSDECL int PK_RTCSet(sPoKeysDevice* device);
-
 
     extern int LastRetryCount;
     extern int LastWaitCount;

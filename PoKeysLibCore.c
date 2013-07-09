@@ -102,7 +102,7 @@ void InitializeNewDevice(sPoKeysDevice* device)
 
 	device->PoExtBusData = (unsigned char*)malloc(sizeof(unsigned char) * device->info.iPoExtBus);
 
-	device->MatrixLED = (sPoKeysMatrixLED*)malloc(sizeof(sPoKeysMatrixLED) * device->info.iEncodersCount);
+    device->MatrixLED = (sPoKeysMatrixLED*)malloc(sizeof(sPoKeysMatrixLED) * device->info.iMatrixLED);
 	memset(device->MatrixLED, 0, sizeof(sPoKeysMatrixLED) * device->info.iMatrixLED);
 
 	if (device->info.iPulseEngine)
@@ -159,6 +159,133 @@ void CleanDevice(sPoKeysDevice* device)
 		free(device->PulseEngine->MPGaxisEncoder);
 		free(device->PulseEngine);
 	}
+}
+
+void PK_ReleaseDeviceStructure(sPoKeysDevice* device)
+{
+    CleanDevice(device);
+}
+
+void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination)
+{
+    // Reserve memory...
+    destination->Pins = (sPoKeysPinData*)malloc(sizeof(sPoKeysPinData) * original->info.iPinCount);
+    destination->Encoders = (sPoKeysEncoder*)malloc(sizeof(sPoKeysEncoder) * original->info.iEncodersCount);
+    destination->PWM.PWMduty = (uint32_t*)malloc(sizeof(uint32_t) * original->info.iPWMCount);
+    destination->PWM.PWMenabledChannels = (unsigned char*)malloc(sizeof(unsigned char) * original->info.iPWMCount);
+    destination->MatrixLED = (sPoKeysMatrixLED*)malloc(sizeof(sPoKeysMatrixLED) * original->info.iMatrixLED);
+
+    if (original->info.iPulseEngine)
+    {
+        destination->PulseEngine = (sPoKeysPE*)malloc(sizeof(sPoKeysPE));
+
+        // Allocate buffer
+        destination->PulseEngine->buffer.buffer
+                = (unsigned char*)malloc(sizeof(unsigned char) * original->PulseEngine->info.bufferDepth);
+        memset(destination->PulseEngine->buffer.buffer, 0,
+               sizeof(unsigned char) * original->PulseEngine->info.bufferDepth);
+
+        destination->PulseEngine->ReferencePosition
+                = (uint32_t*)malloc(sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
+        destination->PulseEngine->CurrentPosition
+                = (uint32_t*)malloc(sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
+        destination->PulseEngine->MaxSpeed
+                = (uint32_t*)malloc(sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
+        destination->PulseEngine->MaxAcceleration
+                = (uint32_t*)malloc(sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
+        destination->PulseEngine->MaxDecceleration
+                = (uint32_t*)malloc(sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
+        destination->PulseEngine->AxisState
+                = (unsigned char*)malloc(sizeof(unsigned char) * original->PulseEngine->info.nrOfAxes);
+
+        destination->PulseEngine->MPGjogMultiplier
+                = (uint32_t*)malloc(sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
+        destination->PulseEngine->MPGaxisEncoder
+                = (unsigned char*)malloc(sizeof(unsigned char) * original->PulseEngine->info.nrOfAxes);
+
+    } else destination->PulseEngine = NULL;
+    destination->PoExtBusData = (unsigned char*)malloc(sizeof(unsigned char) * original->info.iPoExtBus);
+
+
+
+    // Copy data
+    destination->devHandle = original->devHandle;
+
+    destination->info = original->info;
+    destination->DeviceData = original->DeviceData;
+
+    memcpy(&destination->Pins[0], &original->Pins[0],
+            original->info.iPinCount * sizeof(sPoKeysPinData));
+    memcpy(&destination->Encoders[0], &original->Encoders[0],
+            original->info.iEncodersCount * sizeof(sPoKeysEncoder));
+
+    destination->matrixKB = original->matrixKB;
+
+    destination->PWM.PWMperiod = original->PWM.PWMperiod;
+    memcpy(destination->PWM.PWMduty, original->PWM.PWMduty,
+           sizeof(uint32_t) * original->info.iPWMCount);
+    memcpy(destination->PWM.PWMenabledChannels, original->PWM.PWMenabledChannels,
+           sizeof(unsigned char) * original->info.iPWMCount);
+
+    memcpy(destination->MatrixLED, original->MatrixLED,
+           sizeof(sPoKeysMatrixLED) * original->info.iMatrixLED);
+
+    destination->LCD = original->LCD;
+
+    if (original->info.iPulseEngine)
+    {
+        destination->PulseEngine->info = original->PulseEngine->info;
+
+        memcpy(destination->PulseEngine->ReferencePosition, original->PulseEngine->ReferencePosition, sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
+        memcpy(destination->PulseEngine->CurrentPosition,   original->PulseEngine->CurrentPosition, sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
+        memcpy(destination->PulseEngine->MaxSpeed,          original->PulseEngine->MaxSpeed, sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
+        memcpy(destination->PulseEngine->MaxAcceleration,   original->PulseEngine->MaxAcceleration, sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
+        memcpy(destination->PulseEngine->MaxDecceleration,  original->PulseEngine->MaxDecceleration, sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
+        memcpy(destination->PulseEngine->AxisState,         original->PulseEngine->AxisState, sizeof(unsigned char) * original->PulseEngine->info.nrOfAxes);
+        memcpy(destination->PulseEngine->MPGjogMultiplier,  original->PulseEngine->MPGjogMultiplier, sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
+        memcpy(destination->PulseEngine->MPGaxisEncoder,    original->PulseEngine->MPGaxisEncoder, sizeof(unsigned char) * original->PulseEngine->info.nrOfAxes);
+
+        destination->PulseEngine->MPGjogActivated = original->PulseEngine->MPGjogActivated;
+
+        destination->PulseEngine->PulseEngineEnabled = original->PulseEngine->PulseEngineEnabled;
+        destination->PulseEngine->PulseEngineState = original->PulseEngine->PulseEngineState;
+
+        destination->PulseEngine->LimitConfigP = original->PulseEngine->LimitConfigP;
+        destination->PulseEngine->LimitConfigN = original->PulseEngine->LimitConfigN;
+        destination->PulseEngine->LimitStatusP = original->PulseEngine->LimitStatusP;
+        destination->PulseEngine->LimitStatusN = original->PulseEngine->LimitStatusN;
+        destination->PulseEngine->HomeConfig = original->PulseEngine->HomeConfig;
+        destination->PulseEngine->HomeStatus = original->PulseEngine->HomeStatus;
+
+        destination->PulseEngine->DirectionChange = original->PulseEngine->DirectionChange;
+
+        destination->PulseEngine->HomingDirectionChange = original->PulseEngine->HomingDirectionChange;
+        destination->PulseEngine->HomingSpeed = original->PulseEngine->HomingSpeed;
+        destination->PulseEngine->HomingReturnSpeed = original->PulseEngine->HomingReturnSpeed;
+        destination->PulseEngine->AxesHomingFlags = original->PulseEngine->AxesHomingFlags;
+
+        destination->PulseEngine->kb48CNCenabled = original->PulseEngine->kb48CNCenabled;
+        destination->PulseEngine->ChargePumpEnabled = original->PulseEngine->ChargePumpEnabled;
+
+        destination->PulseEngine->EmergencySwitchPolarity = original->PulseEngine->EmergencySwitchPolarity;
+    }
+
+    destination->PoNETmodule = original->PoNETmodule;
+    destination->PoIL = original->PoIL;
+    destination->RTC = original->RTC;
+
+
+    destination->FastEncodersConfiguration =    original->FastEncodersConfiguration;
+    destination->FastEncodersOptions =          original->FastEncodersOptions;
+    destination->UltraFastEncoderConfiguration =original->UltraFastEncoderConfiguration;
+    destination->UltraFastEncoderOptions =      original->UltraFastEncoderOptions;
+    destination->UltraFastEncoderFilter =       original->UltraFastEncoderFilter;
+
+    memcpy(destination->PoExtBusData, original->PoExtBusData, sizeof(unsigned char) * original->info.iPoExtBus);
+
+    destination->connectionType = original->connectionType;
+    destination->requestID = original->requestID;
+
 }
 
 sPoKeysDevice* PK_ConnectToDevice(int deviceIndex)
@@ -461,282 +588,3 @@ int SendRequest(sPoKeysDevice* device)
 
     return PK_ERR_TRANSFER;
 }
-
-
-
-//// Get the number of PoKeys devices
-//int CPoKeys::EnumerateDevicesLibusb()
-//{
-//    int devNum = 0;
-//    int devPoKeys = 0;
-//    int i, r;
-//
-//    libusb_device **devList;
-//    struct libusb_device_descriptor desc;
-//
-//    devNum = libusb_get_device_list (NULL, &devList);
-//
-//    for (i = 0; i < devNum; i++)
-//    {
-//            r = libusb_get_device_descriptor(devList[i], &desc);
-//            if (r < 0)
-//            {
-//                    continue;
-//            }
-//
-//            if (desc.idVendor == VENDOR_ID && desc.idProduct == PRODUCT_ID)
-//            {
-//                    devPoKeys++;
-//                    continue;
-//            }
-//    }
-//
-//    libusb_free_device_list(devList, 1);
-//
-//    return devPoKeys;
-//}
-//// Connect to PoKeys device
-//int CPoKeys::ConnectToDeviceLibusb(int deviceIndex)
-//{
-//    int devNum = 0;
-//    int devPoKeys = 0;
-//    int i, r;
-//    int result;
-//
-//    libusb_device **devList;
-//    struct libusb_device_descriptor desc;
-//
-//    if (connected) DisconnectDevice();
-//
-//    printf("Connecting to the PoKeys device...");
-//
-//    devNum = libusb_get_device_list (NULL, &devList);
-//
-//    for (i = 0; i < devNum; i++)
-//    {
-//            r = libusb_get_device_descriptor(devList[i], &desc);
-//            if (r < 0)
-//            {
-//                printf("\nError retrieving descriptor...");
-//                    continue;
-//            }
-//
-//            if (desc.idVendor == VENDOR_ID && desc.idProduct == PRODUCT_ID)
-//            {
-//                printf("\nPoKeys found!");
-//                    if (devPoKeys == deviceIndex)
-//                    {
-//
-//                            r = libusb_open(devList[i], &devh);
-//
-//                            if (r < 0)
-//                            {
-//                                printf("\nError opening the device...");
-//                                    return -1;
-//                            }
-//
-//                            if (devh != NULL)
-//                            {
-//                                    // The HID has been detected.
-//                                    libusb_detach_kernel_driver(devh, INTERFACE_NUMBER);
-//                                    result = libusb_claim_interface(devh, INTERFACE_NUMBER);
-//                                    if (result >= 0)
-//                                    {
-//                                            libusb_free_device_list(devList, 1);
-//                                            connected = 1;
-//                                            return 0;
-//                                    }
-//                                    else
-//                                    {
-//                                        printf("\nUnable to claim the interface! %d", result);
-//                                            // Unable to claim the interface
-//                                            libusb_free_device_list(devList, 1);
-//                                            return -2;
-//                                    }
-//                            }
-//                            else
-//                            {
-//                                    // Unable to connect to device
-//                                    printf("\nUnable to open the device...");
-//                                    libusb_free_device_list(devList, 1);
-//                                    return -3;
-//                            }
-//                    }
-//                    devPoKeys++;
-//                    continue;
-//            }
-//    }
-//
-//    libusb_free_device_list(devList, 1);
-//    return -4;
-//}
-//
-//// Connect to PoKeys device
-//int ConnectToDeviceWSerial(int serialNumber, int reserved)
-//{
-//        int devNum = 0;
-//        int devPoKeys = 0;
-//        int i, r;
-//        int result;
-//
-//        libusb_device **devList;
-//        struct libusb_device_descriptor desc;
-//        char buffer[] = "0.00000";
-//        char buffer2[] = "0.00000";
-//
-//        if (connected) DisconnectDevice();
-//
-//        devNum = libusb_get_device_list (NULL, &devList);
-//
-//        //sprintf(buffer2, "2.%05u", serialNumber);
-//
-//        for (i = 0; i < devNum; i++)
-//        {
-//                r = libusb_get_device_descriptor(devList[i], &desc);
-//                if (r < 0)
-//                {
-//                        continue;
-//                }
-//
-//                if (desc.idVendor == VENDOR_ID && desc.idProduct == PRODUCT_ID)
-//                {
-//                        r = libusb_open(devList[i], &devh);
-//
-//                        if (r < 0 || devh == NULL)
-//                        {
-//                                //printf("\nCan not open the device to read the descriptor...");
-//                                continue;
-//                        }
-//
-//                        libusb_get_string_descriptor_ascii(devh, desc.iSerialNumber, (unsigned char *)buffer, 8);
-//
-//                        if (strcmp(buffer, buffer2) == 0)
-//                        {
-//                                if (devh != NULL)
-//                                {
-//                                        // The HID has been detected.
-//                                        libusb_detach_kernel_driver(devh, INTERFACE_NUMBER);
-//                                        result = libusb_claim_interface(devh, INTERFACE_NUMBER);
-//                                        if (result >= 0)
-//                                        {
-//                                                libusb_free_device_list(devList, 1);
-//                                                connected = 1;
-//                                                return PK_OK;
-//                                        }
-//                                        else
-//                                        {
-//                                                // Unable to claim the interface
-//                                                libusb_free_device_list(devList, 1);
-//                                                return PK_ERR_CANNOT_CLAIM_USB;
-//                                        }
-//                                }
-//                                else
-//                                {
-//                                        // Unable to connect to device
-//                                        libusb_free_device_list(devList, 1);
-//                                        return PK_ERR_CANNOT_CONNECT;
-//                                }
-//                        } else
-//                        {
-//                                libusb_close(devh);
-//                        }
-//                        devPoKeys++;
-//                        continue;
-//                }
-//        }
-//
-//        libusb_free_device_list(devList, 1);
-//        // No devices detected, return OK
-//        return PK_OK;
-//}
-
-
-//
-//void CPoKeys::DisconnectDeviceLibusb()
-//{
-//        if (connected)
-//        {
-//                libusb_release_interface(devh, 0);
-//                libusb_close(devh);
-//        }
-//        connected = 0;
-//}
-//
-//
-//int CPoKeys::SendRequestLibusb(unsigned char *request, unsigned char *response)
-//{
-//        // Initialize variables
-//        int waits = 0;
-//        int retries = 0;
-//        int result = 0;
-//        int bytes_transferred;
-//        #ifdef PK_COM_DEBUG
-//                int i;
-//        #endif
-//
-//        // Request sending loop
-//        while (retries < 2)
-//        {
-//                request[0] = 0xBB;
-//                request[6] = ++requestID;
-//                request[7] = getChecksum(request);
-//
-//                #ifdef PK_COM_DEBUG
-//                        printf("\n * SEND ");
-//                        for (i = 0; i < 8; i++)
-//                        {
-//                                printf("%X ", request[i]);
-//                        }
-//                #endif
-//
-//                // Write data to the device.
-//                result = libusb_interrupt_transfer(devh,
-//                        0x04,  request, 64,
-//                        &bytes_transferred, TIMEOUT_MS);
-//
-//                // In case of an error, try sending again
-//                if (result < 0)
-//                {
-//                        //printf("ERR");
-//                        retries++;
-//                        continue;
-//                }
-//
-//                waits = 0;
-//
-//                // Request receiving loop
-//                while (waits < 20)
-//                {
-//                        // Read data from the device.
-//                        result = libusb_interrupt_transfer(devh,
-//                                0x84, response, 64,
-//                                &bytes_transferred, TIMEOUT_MS);
-//
-//                        // Error is not an option
-//                        if (result < 0)
-//                        {
-//                                //printf("Error...");
-//                                break;
-//                        }
-//
-//                        // Check the header and the request ID
-//                        if (response[0] == 0xAA && response[6] == requestID)
-//                        {
-//                                #ifdef PK_COM_DEBUG
-//                                        printf("\n * RECV ");
-//                                        for (i = 0; i < 8; i++)
-//                                        {
-//                                                printf("%X ", response[i]);
-//                                        }
-//                                #endif
-//                                // This is it. Return from this function
-//                                return PK_OK;
-//                        }
-//                }
-//        }
-//
-//        return PK_ERR_TRANSFER;
-//}
-//
-//
-//

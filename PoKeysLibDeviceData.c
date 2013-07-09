@@ -22,6 +22,34 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "PoKeysLibCore.h"
 #include "stdio.h"
 
+// This structure is using real pin numbers
+const sPoKeys_PinCapabilities pinCaps[] = {
+    { PK_AllPinCap_digitalInput,        1, 55, 0, PK_Device_55 | PK_Device_56 | PK_Device_27 },
+    { PK_AllPinCap_digitalOutput,       1, 55, 0, PK_Device_55 | PK_Device_56 | PK_Device_27 },
+    { PK_AllPinCap_analogInput,        43, 47, 0, PK_Device_55 },
+    { PK_AllPinCap_analogInput,        41, 47, 0, PK_Device_56 | PK_Device_27 },
+    { PK_AllPinCap_analogOutput,       43, 43, 0, PK_Device_55 },
+    { PK_AllPinCap_keyboardMapping,     1, 55, 0, PK_Device_55 | PK_Device_56U },
+    { PK_AllPinCap_triggeredInput,      1, 55, 0, PK_Device_55 | PK_Device_56U },
+    { PK_AllPinCap_digitalCounter,      1, 55, 1, PK_Device_56U | PK_Device_56E },
+    { PK_AllPinCap_PWMOut,             17, 22, 0, PK_Device_55 | PK_Device_56 },
+    { PK_AllPinCap_fastEncoder1A,       1,  1, 0, PK_Device_55 | PK_Device_56 },
+    { PK_AllPinCap_fastEncoder1B,       2,  2, 0, PK_Device_55 | PK_Device_56 },
+    { PK_AllPinCap_fastEncoder1I,       9,  9, 1, PK_Device_55 | PK_Device_56 },
+
+    { PK_AllPinCap_fastEncoder2A,       3,  3, 1, PK_Device_55 },
+    { PK_AllPinCap_fastEncoder2B,       4,  4, 1, PK_Device_55 },
+    { PK_AllPinCap_fastEncoder2A,       5,  5, 1, PK_Device_55 | PK_Device_56 },
+    { PK_AllPinCap_fastEncoder2B,       6,  6, 1, PK_Device_55 | PK_Device_56 },
+    { PK_AllPinCap_fastEncoder2I,      11, 11, 1, PK_Device_55 | PK_Device_56 },
+
+    { PK_AllPinCap_fastEncoder3A,      15, 15, 0, PK_Device_55 | PK_Device_56 },
+    { PK_AllPinCap_fastEncoder3B,      16, 16, 0, PK_Device_55 | PK_Device_56 },
+    { PK_AllPinCap_fastEncoder3I,      27, 27, 1, PK_Device_55 | PK_Device_56 },
+
+    { 0, 0, 0, 0 }
+};
+
 int PK_DeviceDataGet(sPoKeysDevice* device)
 {
 	int i;
@@ -57,6 +85,7 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 	if (SendRequest(device) == PK_OK)
     {
         data->UserID = device->response[2];
+        data->DeviceLockStatus = device->response[3];
 	} else return PK_ERR_TRANSFER;
 
 
@@ -66,6 +95,8 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 		data->DeviceType = 3; // old bootloader - recovery mode
 		devSeries55 = 1;
 		devBootloader = 1;
+
+        data->DeviceTypeID = PK_Device_Bootloader | PK_Device_Bootloader55;
     
 	// PoKeys56 devices have serial numbers above 20000
 	} else if (data->SerialNumber >= 20000) 
@@ -73,11 +104,13 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 		// PoKeys56 bootloaders have bit 7 set in the major firmware version
 		if ((data->FirmwareVersionMajor & (1 << 7)) > 0)
         {
-            if (device->connectionType == PK_DeviceType_USBDevice)
+            if (device->connectionType == PK_DeviceType_NetworkDevice)
             {
                 data->DeviceType = 16; // PoKeys56E bootloader
 				devBootloader = 1;
 				devSeries56 = 1;
+
+                data->DeviceTypeID = PK_Device_Bootloader | PK_Device_Bootloader56 | PK_Device_Bootloader56E;
             }
             else
             {
@@ -85,6 +118,8 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 				devUSB = 1;
 				devBootloader = 1;
 				devSeries56 = 1;
+
+                data->DeviceTypeID = PK_Device_Bootloader | PK_Device_Bootloader56 | PK_Device_Bootloader56U;
             }
         }
         else
@@ -97,12 +132,15 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
                     data->DeviceType = 21; // PoTLog27E
 					devSeries27 = 1;
 					devEth = 1;
+
+                    data->DeviceTypeID = PK_Device_27 | PK_Device_27E;
                 }
                 else
                 {
 					devUSB = 1;
 					devSeries27 = 1;
                     data->DeviceType = 20; // PoTLog27U
+                    data->DeviceTypeID = PK_Device_27 | PK_Device_27U;
                 }
             }
             else
@@ -112,13 +150,15 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
                     data->DeviceType = 11; // PoKeys56E
 					devSeries56 = 1;
 					devEth = 1;
+                    data->DeviceTypeID = PK_Device_56 | PK_Device_56E;
                 }
                 else
                 {
 					devUSB = 1;
                     data->DeviceType = 10; // PoKeys56U
     				devSeries56 = 1;
-				}
+                    data->DeviceTypeID = PK_Device_56 | PK_Device_56U;
+                }
             }
         }
     }
@@ -128,6 +168,7 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 		devUSB = 1;
 		devSeries55 = 1;
         data->DeviceType = 2;
+        data->DeviceTypeID = PK_Device_55 | PK_Device_55v3;
     }
 	// PoKeys55 v2
     else if (data->SerialNumber >= 10113)
@@ -135,6 +176,7 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 		devUSB = 1;
 		devSeries55 = 1;
         data->DeviceType = 1;
+        data->DeviceTypeID = PK_Device_55 | PK_Device_55v2;
     }
 	// PoKeys55 v1
     else
@@ -142,7 +184,8 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 		devUSB = 1;
 		devSeries55 = 1;
         data->DeviceType = 0;
-	}
+        data->DeviceTypeID = PK_Device_55 | PK_Device_55v1;
+    }
 
 	// Resolve the type names
 	switch (data->DeviceType)
@@ -361,4 +404,57 @@ int PK_SaveConfiguration(sPoKeysDevice* device)
 	if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
 
 	return PK_OK;
+}
+
+
+int PK_CheckPinCapability(sPoKeysDevice* device, unsigned int pin, ePK_AllPinCap cap)
+{
+    sPoKeys_PinCapabilities * ptr;
+
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    ptr = &pinCaps[0];
+
+    while (ptr->cap)
+    {
+        if (device->DeviceData.DeviceTypeID & ptr->devTypes)
+        {
+            if (pin + 1 >= ptr->pinStart &&
+                pin + 1 <= ptr->pinEnd)
+            {
+                if (ptr->additionalCheck == 0) return 1;
+                switch (ptr->cap)
+                {
+                    case PK_AllPinCap_digitalCounter:
+                        return PK_IsCounterAvailable(device, pin);
+
+                    case PK_AllPinCap_fastEncoder1I:
+                    case PK_AllPinCap_fastEncoder2I:
+                    case PK_AllPinCap_fastEncoder3I:
+                        if (device->FastEncodersOptions == 1) return 1;
+                        break;
+
+                    case PK_AllPinCap_fastEncoder2A:
+                        if (device->FastEncodersConfiguration == 1 && pin == 2) return 1;
+                        else if (device->FastEncodersConfiguration == 10 && pin == 4) return 1;
+                        break;
+                    case PK_AllPinCap_fastEncoder2B:
+                        if (device->FastEncodersConfiguration == 1 && pin == 3) return 1;
+                        else if (device->FastEncodersConfiguration == 10 && pin == 5) return 1;
+                        break;
+                }
+            }
+        }
+
+        ptr++;
+    }
+
+
+    return 0;
+}
+
+
+int PK_CheckPinEnabledCapability(sPoKeysDevice* device, unsigned int pin, ePK_AllPinCap cap)
+{
+    return 0;
 }
