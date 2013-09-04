@@ -530,6 +530,9 @@ extern "C"
 	// Save current configuration in the device
 	POKEYSDECL int PK_SaveConfiguration(sPoKeysDevice* device);
 
+    // Check pin capabilities
+    POKEYSDECL int PK_CheckPinCapability(sPoKeysDevice* device, unsigned int pin, ePK_AllPinCap cap);
+
     // Clone an existing device data structure into a new one
     POKEYSDECL void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination);
     // Release the device data structure from memory
