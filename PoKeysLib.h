@@ -56,9 +56,10 @@ extern "C"
     // Pin capabilities / configuration
     typedef enum
     {
-        PK_AllPinCap_digitalInput,          // Digital input supported
+        PK_AllPinCap_digitalInput = 1,      // Digital input supported
         PK_AllPinCap_digitalOutput,         // Digital output supported
         PK_AllPinCap_analogInput,           // Analog input supported
+        PK_AllPinCap_MFanalogInput,           // Analog input supported
         PK_AllPinCap_analogOutput,          // Analog output supported
         PK_AllPinCap_keyboardMapping,
         PK_AllPinCap_triggeredInput,        // Triggered input supported
@@ -88,34 +89,62 @@ extern "C"
 
     typedef enum
     {
-        PK_Device_Bootloader    = (1<<0),
-        PK_Device_Bootloader55  = (1<<1),
-        PK_Device_Bootloader56  = (1<<2),
-        PK_Device_Bootloader56U = (1<<3),
-        PK_Device_Bootloader56E = (1<<4),
+        PK_DeviceMask_Bootloader    = (1<<0),
+        PK_DeviceMask_Bootloader55  = (1<<1),
+        PK_DeviceMask_Bootloader56  = (1<<2),
+        PK_DeviceMask_Bootloader56U = (1<<3),
+        PK_DeviceMask_Bootloader56E = (1<<4),
+        PK_DeviceMask_Bootloader58  = (1<<5),
 
-        PK_Device_55            = (1<<10),
-        PK_Device_55v1          = (1<<11),
-        PK_Device_55v2          = (1<<12),
-        PK_Device_55v3          = (1<<13),
+        PK_DeviceMask_55            = (1<<10),
+        PK_DeviceMask_55v1          = (1<<11),
+        PK_DeviceMask_55v2          = (1<<12),
+        PK_DeviceMask_55v3          = (1<<13),
 
-        PK_Device_56            = (1<<20),
-        PK_Device_56U           = (1<<21),
-        PK_Device_56E           = (1<<22),
-        PK_Device_27            = (1<<23),
-        PK_Device_27U           = (1<<24),
-        PK_Device_27E           = (1<<25)
-    } ePK_DeviceTypes;
+        PK_DeviceMask_56            = (1<<14),
+        PK_DeviceMask_56U           = (1<<15),
+        PK_DeviceMask_56E           = (1<<16),
+        PK_DeviceMask_27            = (1<<17),
+        PK_DeviceMask_27U           = (1<<18),
+        PK_DeviceMask_27E           = (1<<19),
 
+        PK_DeviceMask_57            = (1<<20),
+
+        PK_DeviceMask_58            = (1<<21),
+        PK_DeviceMask_PoPLC58       = (1<<22)
+    } ePK_DeviceTypeMask;
+
+    typedef enum
+    {
+        PK_DeviceID_Bootloader55  = 3,
+        PK_DeviceID_Bootloader56U = 15,
+        PK_DeviceID_Bootloader56E = 16,
+        PK_DeviceID_Bootloader58  = 41,
+
+        PK_DeviceID_55v1          = 0,
+        PK_DeviceID_55v2          = 1,
+        PK_DeviceID_55v3          = 2,
+
+        PK_DeviceID_56U           = 10,
+        PK_DeviceID_56E           = 11,
+        PK_DeviceID_27U           = 20,
+        PK_DeviceID_27E           = 21,
+
+        PK_DeviceID_57U           = 17,
+        PK_DeviceID_57E           = 18,
+
+        PK_DeviceID_58EU          = 40,
+        PK_DeviceID_PoPLC58       = 50
+    } ePK_DeviceTypeID;
 
 
     typedef struct
     {
         int cap;
-        int pinStart;
-        int pinEnd;
-        int additionalCheck;
-        int devTypes;
+        unsigned int pinStart;
+        unsigned int pinEnd;
+        unsigned int additionalCheck;
+        long devTypes;
     } sPoKeys_PinCapabilities;
 
 
@@ -234,6 +263,8 @@ extern "C"
         unsigned char DeviceLockStatus;			// Device lock status (if 1, device is locked)
 		unsigned char ActivationCode[8];		// Activation code (when activating the device additional options)
         unsigned long DeviceTypeID;             // ePK_DeviceTypes ID
+        unsigned char HWtype;                   // HW type reported by the device
+        unsigned char reserved[3];
 	} sPoKeysDevice_Data;
 
 	// Pin-specific data
@@ -508,7 +539,8 @@ extern "C"
 		unsigned char hostIP[4];				// IP address of the host PC
 		unsigned char UserID;					// User ID
 		unsigned char DHCP;						// DHCP setting of the device
-		unsigned char reserved[2];				// placeholder
+        unsigned char HWtype;                   // HW type, reported by device
+        unsigned char reserved[1];				// placeholder
 	} sPoKeysNetworkDeviceSummary;
 
 	// Enumerate USB devices. Returns number of USB devices detected.
@@ -529,9 +561,16 @@ extern "C"
 	POKEYSDECL int PK_GetCurrentDeviceConnectionType(sPoKeysDevice* device);
 	// Save current configuration in the device
 	POKEYSDECL int PK_SaveConfiguration(sPoKeysDevice* device);
+    // Clear configuration in device - sPoKeysDevice structure is not cleared, so it must be repopulated!
+    POKEYSDECL int PK_ClearConfiguration(sPoKeysDevice* device);
+
+    // Set device name (from device->DeviceData.DeviceName)
+    POKEYSDECL int PK_DeviceNameSet(sPoKeysDevice* device);
 
     // Check pin capabilities
     POKEYSDECL int PK_CheckPinCapability(sPoKeysDevice* device, unsigned int pin, ePK_AllPinCap cap);
+    // Check pin capabilities by device, defined by device type mask (see ePK_DeviceTypeMask)
+    POKEYSDECL int PK_CheckPinCapabilityByDevice(long deviceTypeMask, unsigned int pin, ePK_AllPinCap cap);
 
     // Clone an existing device data structure into a new one
     POKEYSDECL void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination);
@@ -579,6 +618,8 @@ extern "C"
 	POKEYSDECL int PK_DigitalCounterGet(sPoKeysDevice* device);
 	// Check whether digital counter is available for the specified pin. Return True if digital counter is supported.
 	POKEYSDECL int PK_IsCounterAvailable(sPoKeysDevice* device, unsigned char pinID);
+    // Check digital counter availability by device, defined by device type mask (see ePK_DeviceTypeMask)
+    POKEYSDECL int PK_IsCounterAvailableByDevice(long deviceTypeMask, unsigned char pinID);
 
 	// Get analog input values
 	POKEYSDECL int PK_AnalogIOGet(sPoKeysDevice* device);

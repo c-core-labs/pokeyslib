@@ -267,6 +267,9 @@ int PK_PinConfigurationSet(sPoKeysDevice* device)
 
 int PK_IsCounterAvailable(sPoKeysDevice* device, unsigned char pinID)
 {
+    return PK_IsCounterAvailableByDevice(device->DeviceData.DeviceTypeID, pinID);
+
+    /*
     //                        1   2   3   4   5   6   7   8   9   10
     int counterSupported[] = {1,  1,  0 , 0 , 1,  1,  0 , 0 , 1,  0 ,
                               1,  0 , 0 , 0 , 1,  1,  0 , 0 , 1,  1,
@@ -279,6 +282,30 @@ int PK_IsCounterAvailable(sPoKeysDevice* device, unsigned char pinID)
     if (pinID >= 55) return 0;
 
     return counterSupported[pinID];
+    */
+}
+
+int PK_IsCounterAvailableByDevice(long deviceTypeMask, unsigned char pinID)
+{
+    //                        1   2   3   4   5   6   7   8   9   10
+    int counterSupported[] = {1,  1,  0 , 0 , 1,  1,  0 , 0 , 1,  0 ,
+                              1,  0 , 0 , 0 , 1,  1,  0 , 0 , 1,  1,
+                              1,  1,  1,  1,  1,  1,  1,  1,  0 , 0 ,
+                              0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+                              1,  1,  1,  1,  0 , 1,  0 , 1,  1,  0 ,
+                              0 , 0 , 0 , 0 , 0 , 0 , 0 };
+
+    if (deviceTypeMask & PK_DeviceMask_Bootloader) return 0;
+
+    if (deviceTypeMask & PK_DeviceMask_PoPLC58)
+    {
+        return 0;
+    } else
+    {
+        if (!(deviceTypeMask & PK_DeviceMask_56)) return 0;
+        if (pinID >= 55) return 0;
+        return counterSupported[pinID];
+    }
 }
 
 int PK_DigitalIOSet(sPoKeysDevice* device)

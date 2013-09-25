@@ -349,30 +349,61 @@ int PK_SearchNetworkDevices(sPoKeysNetworkDeviceSummary * devices, int timeout, 
         // Get IP address and receive message
         if (status > 0)
         {
-			// Parse the response
-			debug_printf("Received response...\n");
+            if (status == 14)
+            {
+                // Parse the response
+                debug_printf("Received response...\n");
 
-			debug_printf("  User ID: %u\n", rcvbuf[0]);
-			debug_printf("  Serial: %u\n", (int)(256 * (int)rcvbuf[1] + rcvbuf[2]));
-			debug_printf("  Version: %u.%u\n", rcvbuf[3], rcvbuf[4]);
-			debug_printf("  IP address: %u.%u.%u.%u\n", rcvbuf[5], rcvbuf[6], rcvbuf[7], rcvbuf[8]);
-			debug_printf("  DHCP: %u\n", rcvbuf[9]);
-			debug_printf("  Host IP address: %u.%u.%u.%u\n", rcvbuf[10], rcvbuf[11], rcvbuf[12], rcvbuf[13]);             
+                debug_printf("  User ID: %u\n", rcvbuf[0]);
+                debug_printf("  Serial: %u\n", (int)(256 * (int)rcvbuf[1] + rcvbuf[2]));
+                debug_printf("  Version: %u.%u\n", rcvbuf[3], rcvbuf[4]);
+                debug_printf("  IP address: %u.%u.%u.%u\n", rcvbuf[5], rcvbuf[6], rcvbuf[7], rcvbuf[8]);
+                debug_printf("  DHCP: %u\n", rcvbuf[9]);
+                debug_printf("  Host IP address: %u.%u.%u.%u\n", rcvbuf[10], rcvbuf[11], rcvbuf[12], rcvbuf[13]);
 
-			// Save the device info
-			device = &devices[nrOfDetectedBoards];
-			//device->userID = rcvbuf[0];
-			device->SerialNumber = (int)(256 * (int)rcvbuf[1] + rcvbuf[2]);
-			device->FirmwareVersionMajor = rcvbuf[3];
-			device->FirmwareVersionMinor = rcvbuf[4];
-			memcpy(device->IPaddress, rcvbuf + 5, 4);
-			device->DHCP = rcvbuf[9];
-			memcpy(device->hostIP, rcvbuf + 10, 4);
+                // Save the device info
+                device = &devices[nrOfDetectedBoards];
+                //device->userID = rcvbuf[0];
+                device->SerialNumber = (int)(256 * (int)rcvbuf[1] + rcvbuf[2]);
+                device->FirmwareVersionMajor = rcvbuf[3];
+                device->FirmwareVersionMinor = rcvbuf[4];
+                memcpy(device->IPaddress, rcvbuf + 5, 4);
+                device->DHCP = rcvbuf[9];
+                memcpy(device->hostIP, rcvbuf + 10, 4);
+                device->HWtype = 0;
 
-		    nrOfDetectedBoards++;
-            status = 0;
+                nrOfDetectedBoards++;
+                status = 0;
 
-            if (serialNumberToFind == device->SerialNumber) break;
+                if (serialNumberToFind == device->SerialNumber) break;
+            } else if (status == 19)
+            {
+                // Parse the response
+                debug_printf("Received response from 58 series device...\n");
+
+                // Save the device info
+                device = &devices[nrOfDetectedBoards];
+                //device->userID = rcvbuf[0];
+                device->SerialNumber = (int)rcvbuf[14] + ((int)rcvbuf[15] << 8) + ((int)rcvbuf[16] << 16) + ((int)rcvbuf[17] << 24);
+                device->FirmwareVersionMajor = rcvbuf[3];
+                device->FirmwareVersionMinor = rcvbuf[4];
+                memcpy(device->IPaddress, rcvbuf + 5, 4);
+                device->DHCP = rcvbuf[9];
+                memcpy(device->hostIP, rcvbuf + 10, 4);
+                device->HWtype = rcvbuf[18];
+
+                debug_printf("  User ID: %u\n", rcvbuf[0]);
+                debug_printf("  Serial: %u\n", device->SerialNumber);
+                debug_printf("  Version: %u.%u\n", rcvbuf[3], rcvbuf[4]);
+                debug_printf("  IP address: %u.%u.%u.%u\n", rcvbuf[5], rcvbuf[6], rcvbuf[7], rcvbuf[8]);
+                debug_printf("  DHCP: %u\n", rcvbuf[9]);
+                debug_printf("  Host IP address: %u.%u.%u.%u\n", rcvbuf[10], rcvbuf[11], rcvbuf[12], rcvbuf[13]);
+
+                nrOfDetectedBoards++;
+                status = 0;
+
+                if (serialNumberToFind == device->SerialNumber) break;
+            }
         }
 		else
 		{

@@ -343,11 +343,13 @@ sPoKeysDevice* PK_ConnectToDeviceWSerial(long serialNumber, int checkForNetworkD
     int k;
     sPoKeysDevice* tmpDevice;
     char serialSearch[8];
+    char serialSearch58[8];
 
     devs = hid_enumerate(0x1DC3, 0x1001);
     cur_dev = devs;
 
-    sprintf(serialSearch, "2.%05lu", serialNumber);
+    sprintf(serialSearch, "2.%05lu", serialNumber % 100000);
+    sprintf(serialSearch58, "3.%05lu", serialNumber % 100000);
 
     while (cur_dev)
     {
@@ -364,8 +366,16 @@ sPoKeysDevice* PK_ConnectToDeviceWSerial(long serialNumber, int checkForNetworkD
 
 				for (k = 0; k < 8 && cur_dev->serial_number[k] != 0; k++)
 				{
-					if (cur_dev->serial_number[k] != serialSearch[k]) break;
+                    if (cur_dev->serial_number[k] != serialSearch[k]) break;
 				}
+
+                if (k != 7)
+                {
+                    for (k = 0; k < 8 && cur_dev->serial_number[k] != 0; k++)
+                    {
+                        if (cur_dev->serial_number[k] != serialSearch58[k]) break;
+                    }
+                }
 
 				if (k == 7)
 				{
@@ -426,6 +436,9 @@ sPoKeysDevice* PK_ConnectToDeviceWSerial(long serialNumber, int checkForNetworkD
 	{
 		sPoKeysNetworkDeviceSummary * devices = (sPoKeysNetworkDeviceSummary*)malloc(sizeof(sPoKeysNetworkDeviceSummary) * 16);
         int iNet = PK_SearchNetworkDevices(devices, checkForNetworkDevicesAndTimeout, serialNumber);
+
+        if (iNet > 16) iNet = 16;
+
 		for (k = 0; k < iNet; k++)
 		{
 			//printf("\nNetwork device found, serial = %lu at %u.%u.%u.%u", devices[k].SerialNumber, devices[k].IPaddress[0], devices[k].IPaddress[1], devices[k].IPaddress[2], devices[k].IPaddress[3]);
@@ -439,8 +452,8 @@ sPoKeysDevice* PK_ConnectToDeviceWSerial(long serialNumber, int checkForNetworkD
 					//printf("\nProblem connecting to the device...");
 				} else
 				{
-					free(devices);
-					InitializeNewDevice(tmpDevice);
+                    free(devices);
+                    InitializeNewDevice(tmpDevice);
 					return tmpDevice;
 				}
 			}

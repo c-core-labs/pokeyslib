@@ -24,30 +24,35 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 // This structure is using real pin numbers
 const sPoKeys_PinCapabilities pinCaps[] = {
-    { PK_AllPinCap_digitalInput,        1, 55, 0, PK_Device_55 | PK_Device_56 | PK_Device_27 },
-    { PK_AllPinCap_digitalOutput,       1, 55, 0, PK_Device_55 | PK_Device_56 | PK_Device_27 },
-    { PK_AllPinCap_analogInput,        43, 47, 0, PK_Device_55 },
-    { PK_AllPinCap_analogInput,        41, 47, 0, PK_Device_56 | PK_Device_27 },
-    { PK_AllPinCap_analogOutput,       43, 43, 0, PK_Device_55 },
-    { PK_AllPinCap_keyboardMapping,     1, 55, 0, PK_Device_55 | PK_Device_56U },
-    { PK_AllPinCap_triggeredInput,      1, 55, 0, PK_Device_55 | PK_Device_56U },
-    { PK_AllPinCap_digitalCounter,      1, 55, 1, PK_Device_56U | PK_Device_56E },
-    { PK_AllPinCap_PWMOut,             17, 22, 0, PK_Device_55 | PK_Device_56 },
-    { PK_AllPinCap_fastEncoder1A,       1,  1, 0, PK_Device_55 | PK_Device_56 },
-    { PK_AllPinCap_fastEncoder1B,       2,  2, 0, PK_Device_55 | PK_Device_56 },
-    { PK_AllPinCap_fastEncoder1I,       9,  9, 1, PK_Device_55 | PK_Device_56 },
+    { PK_AllPinCap_digitalInput,        1, 55, 0, PK_DeviceMask_55 | PK_DeviceMask_56 | PK_DeviceMask_27 },
+    { PK_AllPinCap_digitalOutput,       1, 55, 0, PK_DeviceMask_55 | PK_DeviceMask_56 | PK_DeviceMask_27 },
+    { PK_AllPinCap_analogInput,        43, 47, 0, PK_DeviceMask_55 },
+    { PK_AllPinCap_analogInput,        41, 47, 0, PK_DeviceMask_56 | PK_DeviceMask_27 },
+    { PK_AllPinCap_analogOutput,       43, 43, 0, PK_DeviceMask_55 },
+    { PK_AllPinCap_keyboardMapping,     1, 55, 0, PK_DeviceMask_55 | PK_DeviceMask_56U },
+    { PK_AllPinCap_triggeredInput,      1, 55, 0, PK_DeviceMask_55 | PK_DeviceMask_56U },
+    { PK_AllPinCap_digitalCounter,      1, 55, 1, PK_DeviceMask_56U | PK_DeviceMask_56E },
+    { PK_AllPinCap_PWMOut,             17, 22, 0, PK_DeviceMask_55 | PK_DeviceMask_56 },
+    { PK_AllPinCap_fastEncoder1A,       1,  1, 0, PK_DeviceMask_55 | PK_DeviceMask_56 },
+    { PK_AllPinCap_fastEncoder1B,       2,  2, 0, PK_DeviceMask_55 | PK_DeviceMask_56 },
+    { PK_AllPinCap_fastEncoder1I,       9,  9, 1, PK_DeviceMask_55 | PK_DeviceMask_56 },
 
-    { PK_AllPinCap_fastEncoder2A,       3,  3, 1, PK_Device_55 },
-    { PK_AllPinCap_fastEncoder2B,       4,  4, 1, PK_Device_55 },
-    { PK_AllPinCap_fastEncoder2A,       5,  5, 1, PK_Device_55 | PK_Device_56 },
-    { PK_AllPinCap_fastEncoder2B,       6,  6, 1, PK_Device_55 | PK_Device_56 },
-    { PK_AllPinCap_fastEncoder2I,      11, 11, 1, PK_Device_55 | PK_Device_56 },
+    { PK_AllPinCap_fastEncoder2A,       3,  3, 1, PK_DeviceMask_55 },
+    { PK_AllPinCap_fastEncoder2B,       4,  4, 1, PK_DeviceMask_55 },
+    { PK_AllPinCap_fastEncoder2A,       5,  5, 1, PK_DeviceMask_55 | PK_DeviceMask_56 },
+    { PK_AllPinCap_fastEncoder2B,       6,  6, 1, PK_DeviceMask_55 | PK_DeviceMask_56 },
+    { PK_AllPinCap_fastEncoder2I,      11, 11, 1, PK_DeviceMask_55 | PK_DeviceMask_56 },
 
-    { PK_AllPinCap_fastEncoder3A,      15, 15, 0, PK_Device_55 | PK_Device_56 },
-    { PK_AllPinCap_fastEncoder3B,      16, 16, 0, PK_Device_55 | PK_Device_56 },
-    { PK_AllPinCap_fastEncoder3I,      27, 27, 1, PK_Device_55 | PK_Device_56 },
+    { PK_AllPinCap_fastEncoder3A,      15, 15, 0, PK_DeviceMask_55 | PK_DeviceMask_56 },
+    { PK_AllPinCap_fastEncoder3B,      16, 16, 0, PK_DeviceMask_55 | PK_DeviceMask_56 },
+    { PK_AllPinCap_fastEncoder3I,      27, 27, 1, PK_DeviceMask_55 | PK_DeviceMask_56 },
 
-    { 0, 0, 0, 0 }
+
+    { PK_AllPinCap_digitalInput,        9, 19, 0, PK_DeviceMask_PoPLC58 },
+    { PK_AllPinCap_digitalOutput,      20, 27, 0, PK_DeviceMask_PoPLC58 },
+    { PK_AllPinCap_analogInput,         1,  8, 0, PK_DeviceMask_PoPLC58 },
+    { PK_AllPinCap_MFanalogInput,       1,  8, 0, PK_DeviceMask_PoPLC58 },
+    { -1, 0, 0, 0 }
 };
 
 int PK_DeviceDataGet(sPoKeysDevice* device)
@@ -59,6 +64,7 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
     int devSeries55 = 0;
     int devSeries56 = 0;
     int devSeries27 = 0;
+    int devSeries58 = 0;
     int devUSB = 0;
     int devEth = 0;
     int devBootloader = 0;
@@ -74,10 +80,34 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 	CreateRequest(device->request, 0x00, 0, 0, 0, 0);
 	if (SendRequest(device) == PK_OK)
     {
-		data->FirmwareVersionMajor = device->response[4];
-		data->FirmwareVersionMinor = device->response[5];
+        if (device->response[8] == 'P' && device->response[9] == 'K'
+                && device->response[10] == '5' && device->response[11] == '8')
+        {
+            // Series 58 device
+            data->FirmwareVersionMajor = device->response[4];
+            data->FirmwareVersionMinor = device->response[5];
 
-		data->SerialNumber = ((long)device->response[2]*256 + (long)device->response[3]);
+            data->SerialNumber = (int)device->response[12] + ((int)device->response[13] << 8)
+                    + ((int)device->response[14] << 16) + ((int)device->response[15] << 24);
+            data->HWtype = device->response[18];
+
+            // Read device name
+            memset(data->DeviceName, 0, 11);
+            memcpy(data->DeviceName, device->response + 31, 10);
+
+            // Read build date
+            memset(data->BuildDate, 0, 12);
+            memcpy(data->BuildDate, device->response + 20, 11);
+
+        } else
+        {
+            data->FirmwareVersionMajor = device->response[4];
+            data->FirmwareVersionMinor = device->response[5];
+
+            data->SerialNumber = ((long)device->response[2]*256 + (long)device->response[3]);
+            data->DeviceName[0] = 0;
+            data->BuildDate[0] = 0;
+        }
     } else return PK_ERR_TRANSFER;
 
 	// Read User ID
@@ -96,10 +126,10 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 		devSeries55 = 1;
 		devBootloader = 1;
 
-        data->DeviceTypeID = PK_Device_Bootloader | PK_Device_Bootloader55;
+        data->DeviceTypeID = PK_DeviceMask_Bootloader | PK_DeviceMask_Bootloader55;
     
 	// PoKeys56 devices have serial numbers above 20000
-	} else if (data->SerialNumber >= 20000) 
+    } else if (data->SerialNumber >= 20000 && data->SerialNumber < 65536)
     {
 		// PoKeys56 bootloaders have bit 7 set in the major firmware version
 		if ((data->FirmwareVersionMajor & (1 << 7)) > 0)
@@ -110,7 +140,7 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 				devBootloader = 1;
 				devSeries56 = 1;
 
-                data->DeviceTypeID = PK_Device_Bootloader | PK_Device_Bootloader56 | PK_Device_Bootloader56E;
+                data->DeviceTypeID = PK_DeviceMask_Bootloader | PK_DeviceMask_Bootloader56 | PK_DeviceMask_Bootloader56E;
             }
             else
             {
@@ -119,7 +149,7 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 				devBootloader = 1;
 				devSeries56 = 1;
 
-                data->DeviceTypeID = PK_Device_Bootloader | PK_Device_Bootloader56 | PK_Device_Bootloader56U;
+                data->DeviceTypeID = PK_DeviceMask_Bootloader | PK_DeviceMask_Bootloader56 | PK_DeviceMask_Bootloader56U;
             }
         }
         else
@@ -133,14 +163,14 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 					devSeries27 = 1;
 					devEth = 1;
 
-                    data->DeviceTypeID = PK_Device_27 | PK_Device_27E;
+                    data->DeviceTypeID = PK_DeviceMask_27 | PK_DeviceMask_27E;
                 }
                 else
                 {
 					devUSB = 1;
 					devSeries27 = 1;
                     data->DeviceType = 20; // PoTLog27U
-                    data->DeviceTypeID = PK_Device_27 | PK_Device_27U;
+                    data->DeviceTypeID = PK_DeviceMask_27 | PK_DeviceMask_27U;
                 }
             }
             else
@@ -150,16 +180,41 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
                     data->DeviceType = 11; // PoKeys56E
 					devSeries56 = 1;
 					devEth = 1;
-                    data->DeviceTypeID = PK_Device_56 | PK_Device_56E;
+                    data->DeviceTypeID = PK_DeviceMask_56 | PK_DeviceMask_56E;
                 }
                 else
                 {
 					devUSB = 1;
                     data->DeviceType = 10; // PoKeys56U
     				devSeries56 = 1;
-                    data->DeviceTypeID = PK_Device_56 | PK_Device_56U;
+                    data->DeviceTypeID = PK_DeviceMask_56 | PK_DeviceMask_56U;
                 }
             }
+        }
+    } else if (data->SerialNumber >= 50000)
+    {
+        // PoKeys58 series devices report their type by themselves
+        data->DeviceType = data->HWtype;
+        devSeries58 = 1;
+
+        devUSB = 1;
+        devEth = 1;
+
+        switch (data->DeviceType)
+        {
+            // PoKeys58EU
+            case 40:
+                data->DeviceTypeID = PK_DeviceMask_58;
+                break;
+            // PoBootload series 58
+            case 41:
+                data->DeviceTypeID = PK_DeviceMask_Bootloader58;
+                devBootloader = 1;
+                break;
+            // PoPLC58
+            case 50:
+                data->DeviceTypeID = PK_DeviceMask_PoPLC58;
+                break;
         }
     }
 	// PoKeys55 v3
@@ -168,7 +223,7 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 		devUSB = 1;
 		devSeries55 = 1;
         data->DeviceType = 2;
-        data->DeviceTypeID = PK_Device_55 | PK_Device_55v3;
+        data->DeviceTypeID = PK_DeviceMask_55 | PK_DeviceMask_55v3;
     }
 	// PoKeys55 v2
     else if (data->SerialNumber >= 10113)
@@ -176,7 +231,7 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 		devUSB = 1;
 		devSeries55 = 1;
         data->DeviceType = 1;
-        data->DeviceTypeID = PK_Device_55 | PK_Device_55v2;
+        data->DeviceTypeID = PK_DeviceMask_55 | PK_DeviceMask_55v2;
     }
 	// PoKeys55 v1
     else
@@ -184,7 +239,7 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 		devUSB = 1;
 		devSeries55 = 1;
         data->DeviceType = 0;
-        data->DeviceTypeID = PK_Device_55 | PK_Device_55v1;
+        data->DeviceTypeID = PK_DeviceMask_55 | PK_DeviceMask_55v1;
     }
 
 	// Resolve the type names
@@ -220,6 +275,15 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
         case 21:
             sprintf(data->DeviceTypeName, "PoTLog27E");
 			break;
+        case 40:
+            sprintf(data->DeviceTypeName, "PoKeys58EU");
+            break;
+        case 41:
+            sprintf(data->DeviceTypeName, "PoBootload");
+            break;
+        case 50:
+            sprintf(data->DeviceTypeName, "PoPLC58");
+            break;
         default:
             sprintf(data->DeviceTypeName, "PoKeys");
 			break;
@@ -276,6 +340,26 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 			info->iPWMCount = 0;
 			break;
 
+        // PoKeys58EU
+        case 40:
+            break;
+
+        // PoBootload
+        case 41:
+            info->iPinCount = 0;
+            info->iEncodersCount = 0;
+            info->iBasicEncoderCount = 0;
+            info->iPWMCount = 0;
+            break;
+
+        // PoPLC58
+        case 50:
+            info->iPinCount = 27;
+            info->iEncodersCount = 0;
+            info->iPWMCount = 0;
+            info->iBasicEncoderCount = 0;
+            break;
+
 		default:
 			info->iPinCount = 0;
 			info->iBasicEncoderCount = 0;
@@ -285,76 +369,84 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 			break;
     }
 
-	// Read device name
-    CreateRequest(device->request, 0x06, 0, 0, 0, 0);
-	if (SendRequest(device) == PK_OK)
+    if (!devSeries58)
     {
-		for (i = 0; i < 10; i++)
-		{
-			data->DeviceName[i] = device->response[8 + i];
-		}
-	} else return PK_ERR_TRANSFER;
+        // Read device name
+        CreateRequest(device->request, 0x06, 0, 0, 0, 0);
+        if (SendRequest(device) == PK_OK)
+        {
+            for (i = 0; i < 10; i++)
+            {
+                data->DeviceName[i] = device->response[8 + i];
+            }
+        } else return PK_ERR_TRANSFER;
+    }
 
 	// If the device name is empty, rewrite the name with the type name
-	if (strlen(data->DeviceName))
+    if (strlen(data->DeviceName) == 0)
 	{
         strcpy(data->DeviceName, data->DeviceTypeName);
 	}
 
-	// Read firmware build date
-    CreateRequest(device->request, 0x04, 0, 0, 0, 0);
-	if (SendRequest(device) == PK_OK)
+    if (!devSeries58)
     {
-		for (i = 0; i < 4; i++)	data->BuildDate[i + 0] = device->response[2 + i];
-	} else return PK_ERR_TRANSFER;
+        // Read firmware build date
+        CreateRequest(device->request, 0x04, 0, 0, 0, 0);
+        if (SendRequest(device) == PK_OK)
+        {
+            for (i = 0; i < 4; i++)	data->BuildDate[i + 0] = device->response[2 + i];
+        } else return PK_ERR_TRANSFER;
 
-    CreateRequest(device->request, 0x04, 1, 0, 0, 0);
-	if (SendRequest(device) == PK_OK)
-    {
-		for (i = 0; i < 4; i++)	data->BuildDate[i + 4] = device->response[2 + i];
-	} else return PK_ERR_TRANSFER;
+        CreateRequest(device->request, 0x04, 1, 0, 0, 0);
+        if (SendRequest(device) == PK_OK)
+        {
+            for (i = 0; i < 4; i++)	data->BuildDate[i + 4] = device->response[2 + i];
+        } else return PK_ERR_TRANSFER;
 
-    CreateRequest(device->request, 0x04, 2, 0, 0, 0);
-	if (SendRequest(device) == PK_OK)
-    {
-		for (i = 0; i < 3; i++)	data->BuildDate[i + 8] = device->response[2 + i];
-		data->BuildDate[11] = 0;
-	} else return PK_ERR_TRANSFER;
-
+        CreateRequest(device->request, 0x04, 2, 0, 0, 0);
+        if (SendRequest(device) == PK_OK)
+        {
+            for (i = 0; i < 3; i++)	data->BuildDate[i + 8] = device->response[2 + i];
+            data->BuildDate[11] = 0;
+        } else return PK_ERR_TRANSFER;
+    }
 
 
 	// Check device capabilities
 	if (!devBootloader)
 	{
-		if (devUSB)						info->iKeyMapping = 1;
-		if (devUSB && !devSeries27)		info->iTriggeredKeyMapping = 1;
-		if (devUSB && !devSeries27)		info->iKeyRepeatDelay = 1;
-		if (devSeries56)				info->iDigitalCounters = 1;		
-		if (devUSB)						info->iJoystickButtonAxisMapping = 1;
-		if (devUSB)						info->iJoystickAnalogToDigitalMapping = 1;
-		if (devSeries55 || devSeries56)	info->iFastEncoders = 3;
-		if (devSeries56)				info->iUltraFastEncoders = 1;
-		if (devUSB)						info->iMacros = 1;
-										info->iMatrixKeyboard = 1;
-		if (devUSB)						info->iMatrixKeyboardTriggeredMapping = 1;
-		if (devSeries56)				info->iPoNET = 1;
-		if (!devSeries27)				info->iLCD = 1;
-		if (!devSeries27)				info->iMatrixLED = 2;
-		if (!devSeries27)				info->iConnectionSignal = 1;
-		if (!devSeries27)				info->iPoExtBus = 10;
+        if (!devSeries58)
+        {
+            if (devUSB)						info->iKeyMapping = 1;
+            if (devUSB && !devSeries27)		info->iTriggeredKeyMapping = 1;
+            if (devUSB && !devSeries27)		info->iKeyRepeatDelay = 1;
+            if (devSeries56)				info->iDigitalCounters = 1;
+            if (devUSB)						info->iJoystickButtonAxisMapping = 1;
+            if (devUSB)						info->iJoystickAnalogToDigitalMapping = 1;
+            if (devSeries55 || devSeries56)	info->iFastEncoders = 3;
+            if (devSeries56)				info->iUltraFastEncoders = 1;
+            if (devUSB)						info->iMacros = 1;
+                                            info->iMatrixKeyboard = 1;
+            if (devUSB)						info->iMatrixKeyboardTriggeredMapping = 1;
+            if (devSeries56)				info->iPoNET = 1;
+            if (!devSeries27)				info->iLCD = 1;
+            if (!devSeries27)				info->iMatrixLED = 2;
+            if (!devSeries27)				info->iConnectionSignal = 1;
+            if (!devSeries27)				info->iPoExtBus = 10;
+            if (!devSeries55)				info->iInitOutputsStart = 1;
+            if (devSeries56 || devSeries27) info->iprotI2C = 1;
+            if (devSeries56)				info->iprot1wire = 1;
+            if (devSeries56 && !(data->FirmwareVersionMajor == 32 && data->FirmwareVersionMinor < 13)) info->iAdditionalOptions = 1;
+            if (!devSeries27)				info->iCustomDeviceName = 1;
+            if (devSeries56 || devSeries27) info->iPoTLog27support = 1;
+            if (devSeries56 || devSeries27) info->iSensorList = 1;
+            if (devEth)						info->iWebInterface = 1;
+            if (devSeries56)				info->iFailSafeSettings = 1;
+            if (devSeries56 && devUSB)		info->iJoystickHATswitch = 1;
+        }
 		if (1)							info->iAnalogInputs = 1;
 		if (1)	  						info->iAnalogFiltering = 1;
-		if (!devSeries55)				info->iInitOutputsStart = 1;
-		if (devSeries56 || devSeries27) info->iprotI2C = 1;
-		if (devSeries56)				info->iprot1wire = 1;
-		if (devSeries56 && !(data->FirmwareVersionMajor == 32 && data->FirmwareVersionMinor < 13)) info->iAdditionalOptions = 1;
 		if (!devSeries27)				info->iLoadStatus = 1;
-		if (!devSeries27)				info->iCustomDeviceName = 1;
-		if (devSeries56 || devSeries27) info->iPoTLog27support = 1;
-		if (devSeries56 || devSeries27) info->iSensorList = 1;
-		if (devEth)						info->iWebInterface = 1;
-		if (devSeries56)				info->iFailSafeSettings = 1;
-		if (devSeries56 && devUSB)		info->iJoystickHATswitch = 1;
 	}
 
 	// Read activated options
@@ -368,6 +460,25 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 
 	return PK_OK;
 }
+
+int PK_DeviceNameSet(sPoKeysDevice* device)
+{
+    int i;
+
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    CreateRequest(device->request, 0x06, 0x01, 0, 0, 0);
+
+    for (i = 0; i < 10; i++)
+    {
+        device->request[8+i] = device->DeviceData.DeviceName[i];
+    }
+
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+    return PK_OK;
+}
+
 
 int PK_DeviceActivation(sPoKeysDevice* device)
 {
@@ -406,18 +517,70 @@ int PK_SaveConfiguration(sPoKeysDevice* device)
 	return PK_OK;
 }
 
+int PK_ClearConfiguration(sPoKeysDevice* device)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    CreateRequest(device->request, 0x52, 0xAA, 0x55, 0, 0);
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+    return PK_OK;
+}
+
+int PK_CheckPinCapabilityByDevice(long deviceTypeMask, unsigned int pin, ePK_AllPinCap cap)
+{
+    const sPoKeys_PinCapabilities * ptr;
+
+    ptr = &pinCaps[0];
+
+    while (ptr->cap != -1)
+    {
+        if ((ptr->devTypes & deviceTypeMask) && (ptr->cap == cap))
+        {
+            if (pin + 1 >= ptr->pinStart &&
+                pin + 1 <= ptr->pinEnd)
+            {
+                if (ptr->additionalCheck == 0) return 1;
+                switch (ptr->cap)
+                {
+                    case PK_AllPinCap_digitalCounter:
+                        return PK_IsCounterAvailableByDevice(deviceTypeMask, pin);
+
+                    case PK_AllPinCap_fastEncoder1I:
+                    case PK_AllPinCap_fastEncoder2I:
+                    case PK_AllPinCap_fastEncoder3I:
+                        if (deviceTypeMask & PK_DeviceMask_56) return 1; else return 0;
+
+                    case PK_AllPinCap_fastEncoder2A:
+                        if (deviceTypeMask & PK_DeviceMask_56) return 1; else return 0;
+                        break;
+                    case PK_AllPinCap_fastEncoder2B:
+                        if (deviceTypeMask & PK_DeviceMask_56) return 1; else return 0;
+                        break;
+                }
+            }
+        }
+        ptr++;
+    }
+
+
+    return 0;
+}
+
+
+
 
 int PK_CheckPinCapability(sPoKeysDevice* device, unsigned int pin, ePK_AllPinCap cap)
 {
-    sPoKeys_PinCapabilities * ptr;
+    const sPoKeys_PinCapabilities * ptr;
 
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
     ptr = &pinCaps[0];
 
-    while (ptr->cap)
+    while (ptr->cap != -1)
     {
-        if (device->DeviceData.DeviceTypeID & ptr->devTypes)
+        if ((device->DeviceData.DeviceTypeID & ptr->devTypes) && (ptr->cap == cap))
         {
             if (pin + 1 >= ptr->pinStart &&
                 pin + 1 <= ptr->pinEnd)
