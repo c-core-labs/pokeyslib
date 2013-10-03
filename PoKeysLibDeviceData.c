@@ -369,6 +369,38 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 			break;
     }
 
+    if (devEth)
+    {
+        device->netDeviceData = (sPoKeysNetworkDeviceInfo *)malloc(sizeof(sPoKeysNetworkDeviceInfo));
+
+        // Get network device information...
+        CreateRequest(device->request, 0xE0, 0, 0, 0, 0);
+        if (SendRequest(device) == PK_OK)
+        {
+            device->netDeviceData->DHCP = device->response[8];
+
+            memcpy(device->netDeviceData->IPAddressSetup, device->response + 9, 4);
+            memcpy(device->netDeviceData->IPAddressCurrent, device->response + 13, 4);
+
+            device->netDeviceData->TCPtimeout = (unsigned short)device->response[17] + ((unsigned short)device->response[18] << 8);
+
+            memcpy(device->netDeviceData->DefaultGateway, device->response + 19, 4);
+            memcpy(device->netDeviceData->Subnetmask, device->response + 23, 4);
+
+            if ((device->response[27] & 0xA0) == 0xA0)
+            {
+                device->netDeviceData->AdditionalNetworkOptions = device->response[27];
+            }
+            else
+            {
+                device->netDeviceData->AdditionalNetworkOptions = 0;
+            }
+        } else return PK_ERR_TRANSFER;
+    } else
+    {
+        device->netDeviceData = 0;
+    }
+
     if (!devSeries58)
     {
         // Read device name
@@ -473,6 +505,33 @@ int PK_DeviceNameSet(sPoKeysDevice* device)
     {
         device->request[8+i] = device->DeviceData.DeviceName[i];
     }
+
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+    return PK_OK;
+}
+
+int PK_NetworkConfigurationSet(sPoKeysDevice* device)
+{
+    int i;
+
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    CreateRequest(device->request, 0xE0, 10, 0, 0, 0);
+
+    device->request[8] = device->netDeviceData->DHCP;
+
+    memcpy(device->request + 9, device->netDeviceData->IPAddressSetup, 4);
+    memcpy(device->request + 13, device->netDeviceData->IPAddressCurrent, 4);
+
+    device->request[17] = device->netDeviceData->TCPtimeout & 0xFF;
+    device->request[18] = (device->netDeviceData->TCPtimeout >> 8) & 0xFF;
+
+    memcpy(device->request + 19, device->netDeviceData->DefaultGateway, 4);
+    memcpy(device->request + 23, device->netDeviceData->Subnetmask, 4);
+
+    device->request[27] = 1; // This request supports subnet and gateway
+    device->request[28] = 0xA0 | (device->netDeviceData->AdditionalNetworkOptions & 0x0F);
 
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
 

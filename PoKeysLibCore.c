@@ -60,6 +60,9 @@ void InitializeNewDevice(sPoKeysDevice* device)
 	int i;
 	memset(&device->info, 0, sizeof(sPoKeysDevice_Info));
 	memset(&device->DeviceData, 0, sizeof(sPoKeysDevice_Info));
+
+    device->netDeviceData = 0;
+
 	memset(&device->matrixKB, 0, sizeof(sMatrixKeyboard));
 	memset(&device->PWM, 0, sizeof(sPoKeysPWM));
 	memset(&device->LCD, 0, sizeof(sPoKeysLCD));
@@ -144,6 +147,13 @@ void CleanDevice(sPoKeysDevice* device)
 	free(device->PWM.PWMenabledChannels);
 	free(device->PoExtBusData);
 	free(device->MatrixLED);
+
+    if (device->netDeviceData != 0)
+    {
+        free(device->netDeviceData);
+        device->netDeviceData = 0;
+    }
+
 	if (device->PulseEngine != NULL)
 	{
 		free(device->PulseEngine->buffer.buffer);
@@ -174,6 +184,16 @@ void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination
     destination->PWM.PWMduty = (uint32_t*)malloc(sizeof(uint32_t) * original->info.iPWMCount);
     destination->PWM.PWMenabledChannels = (unsigned char*)malloc(sizeof(unsigned char) * original->info.iPWMCount);
     destination->MatrixLED = (sPoKeysMatrixLED*)malloc(sizeof(sPoKeysMatrixLED) * original->info.iMatrixLED);
+
+    // Network device information structure...
+    if (original->netDeviceData != 0)
+    {
+        destination->netDeviceData = (sPoKeysNetworkDeviceInfo *)malloc(sizeof(sPoKeysNetworkDeviceInfo));
+        memcpy(destination->netDeviceData, original->netDeviceData, sizeof(sPoKeysNetworkDeviceInfo));
+    } else
+    {
+        destination->netDeviceData = 0;
+    }
 
     if (original->info.iPulseEngine)
     {

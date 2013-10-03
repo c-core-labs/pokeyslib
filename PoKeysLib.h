@@ -493,7 +493,35 @@ extern "C"
         unsigned short YEAR;
     } sPoKeysRTC;
 
+    // Network device structure - used for network device enumeration
+    typedef struct
+    {
+        long SerialNumber;						// Serial number
+        long FirmwareVersionMajor;				// Firmware version - major
+        long FirmwareVersionMinor;				// Firmware version - minor
+        unsigned char IPaddress[4];				// IP address of the device
+        unsigned char hostIP[4];				// IP address of the host PC
+        unsigned char UserID;					// User ID
+        unsigned char DHCP;						// DHCP setting of the device
+        unsigned char HWtype;                   // HW type, reported by device
+        unsigned char reserved[1];				// placeholder
+    } sPoKeysNetworkDeviceSummary;
 
+    // Network device info structure - used for network device information/setup
+    typedef struct
+    {
+        unsigned char IPAddressCurrent[4];      // Current (temporary) address may differ from the setup one
+        unsigned char IPAddressSetup[4];        // Setup IP address
+        unsigned char Subnetmask[4];            // Subnet mask
+        unsigned char DefaultGateway[4];        // Default gateway
+        unsigned short TCPtimeout;              // TCP timeout value
+        unsigned char AdditionalNetworkOptions; // Additional network options: bits 7:4 are 0xA, lower are the following:
+                                                // - bit 3: reserved
+                                                // - bit 2: disable IP configuration via UDP broadcast
+                                                // - bit 1: disable automatic device IP configuration during discovery
+                                                // - bit 0: disable automatic device discovery mechanism
+        unsigned char DHCP;                     // DHCP setting of the device
+    } sPoKeysNetworkDeviceInfo;
 
 	// Main PoKeys structure
 	typedef struct
@@ -502,6 +530,7 @@ extern "C"
 
 		sPoKeysDevice_Info info;				// PoKeys device info
 		sPoKeysDevice_Data DeviceData;			// PoKeys device-specific data
+        sPoKeysNetworkDeviceInfo* netDeviceData;
 
 		sPoKeysPinData* Pins;					// PoKeys pins
 		sPoKeysEncoder* Encoders;				// PoKeys encoders
@@ -529,19 +558,7 @@ extern "C"
 		unsigned char response[64];				// Communication buffer
 	} sPoKeysDevice;
 
-	// Network device structure - used for network device enumeration
-	typedef struct
-	{
-		long SerialNumber;						// Serial number
-		long FirmwareVersionMajor;				// Firmware version - major
-		long FirmwareVersionMinor;				// Firmware version - minor
-		unsigned char IPaddress[4];				// IP address of the device
-		unsigned char hostIP[4];				// IP address of the host PC
-		unsigned char UserID;					// User ID
-		unsigned char DHCP;						// DHCP setting of the device
-        unsigned char HWtype;                   // HW type, reported by device
-        unsigned char reserved[1];				// placeholder
-	} sPoKeysNetworkDeviceSummary;
+
 
 	// Enumerate USB devices. Returns number of USB devices detected.
 	POKEYSDECL int PK_EnumerateUSBDevices(void);
@@ -583,6 +600,9 @@ extern "C"
 	POKEYSDECL int PK_DeviceActivation(sPoKeysDevice * device);
 	// Clear activated options in the device
 	POKEYSDECL int PK_DeviceActivationClear(sPoKeysDevice * device);
+
+    // Configure network device - uses structure device->netDeviceData
+    POKEYSDECL int PK_NetworkConfigurationSet(sPoKeysDevice* device);
 
 	// Retrieve pin configuration from the device
 	POKEYSDECL int PK_PinConfigurationGet(sPoKeysDevice* device);

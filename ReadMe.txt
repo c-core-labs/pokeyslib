@@ -79,6 +79,7 @@ Author: Matevž Bošnak (matevz@poscope.com)
 
 
 ---- Change log ----
+03.10.2013: Support for network device data, pin capability function, new devices, bug fixes
 13.04.2013: Mulitple updates: PWM, PoIL, SPI, RTC
 15.12.2012: Support for I2C added
 24.10.2012: Public release
