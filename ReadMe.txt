@@ -75,10 +75,11 @@ http://www.mypokeys.com/new-cross-platform-library-for-all-pokeys-devices
 [   ]
 
 ---- Credits ----
-Author: Matev≈æ Bo≈°nak (matevz@poscope.com)
+Author: Matevû Boönak (matevz@poscope.com)
 
 
 ---- Change log ----
+16.11.2013: Added support for UDP connection to PoKeys56E/57E devices
 03.10.2013: Support for network device data, pin capability function, new devices, bug fixes
 13.04.2013: Mulitple updates: PWM, PoIL, SPI, RTC
 15.12.2012: Support for I2C added

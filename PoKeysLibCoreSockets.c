@@ -428,41 +428,52 @@ int PK_SearchNetworkDevices(sPoKeysNetworkDeviceSummary * devices, int timeout, 
 
 sPoKeysDevice* PK_ConnectToNetworkDevice(sPoKeysNetworkDeviceSummary * device)
 {
-#ifdef WIN32
-    int t = 500; // 500 ms timeout
-#else
     int result;
-    int prot = 0;
+#ifdef WIN32
+    int t = 100; // 100 ms timeout
 #endif
     // Create target endpoint
-    struct sockaddr_in remoteEP;
+    //struct sockaddr_in * remoteEP;
     uint32 addr ;
 
     // Create temporary device object
     sPoKeysDevice * tmpDevice = (sPoKeysDevice*)malloc(sizeof(sPoKeysDevice));
+    tmpDevice->devHandle2 = malloc(sizeof(struct sockaddr_in));
 
     tmpDevice->connectionType = PK_DeviceType_NetworkDevice; // Network device
-
+    tmpDevice->connectionParam = device->useUDP;
 
     addr = (uint32)device->IPaddress[0] + ((uint32)device->IPaddress[1] << 8) + ((uint32)device->IPaddress[2] << 16) + ((uint32)device->IPaddress[3] << 24);
     // Set up the RecvAddr structure with the broadcast ip address and correct port number
-    remoteEP.sin_family = AF_INET;
-    remoteEP.sin_port = htons(20055);
-    remoteEP.sin_addr.s_addr = addr;
+    ((struct sockaddr_in*)tmpDevice->devHandle2)->sin_family = AF_INET;
+    ((struct sockaddr_in*)tmpDevice->devHandle2)->sin_port = htons(20055);
+    ((struct sockaddr_in*)tmpDevice->devHandle2)->sin_addr.s_addr = addr;
 
-    //debug_printf(" %lu", addr);
-    
-    // Create socket
-#ifdef WIN32
-    if ((SOCKET)(tmpDevice->devHandle = (void*)socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
+#ifdef WIN32    
+    if (InitWinsock() != 0)
+    {
+        debug_printf("InitWinsock error!");
+        return 0;
+    }
+
+
+    if (tmpDevice->connectionParam == PK_ConnectionParam_UDP)
+    {
+        tmpDevice->devHandle = (void*)socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    } else
+    {
+        tmpDevice->devHandle = (void*)socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    }
+
+    if ((SOCKET)tmpDevice->devHandle == -1)
 #else
     tmpDevice->devHandle = malloc(sizeof(int));
     if (tmpDevice->devHandle == NULL) return NULL;
     
-    if (prot == 0)    
-		*(int *)tmpDevice->devHandle = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	else 
-		*(int *)tmpDevice->devHandle = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (tmpDevice->connectionParam == PK_ConnectionParam_UDP)
+        *(int *)tmpDevice->devHandle = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    else
+        *(int *)tmpDevice->devHandle = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	
 	if ((*(int *)tmpDevice->devHandle) == -1)
 #endif
@@ -485,16 +496,20 @@ sPoKeysDevice* PK_ConnectToNetworkDevice(sPoKeysNetworkDeviceSummary * device)
 
 	// Connect to target IP
 #ifdef WIN32
-    if (connect((SOCKET)tmpDevice->devHandle, (SOCKADDR *)&remoteEP, sizeof(remoteEP)) == -1)
+    if (tmpDevice->connectionParam != PK_ConnectionParam_UDP)
+        result = connect((SOCKET)tmpDevice->devHandle, (SOCKADDR *)tmpDevice->devHandle2, sizeof(struct sockaddr_in));
+    else
+        result = 0;
 #else
 	result = 0;
-    if (prot == 0)    
-		result = connect(*(int *)tmpDevice->devHandle, (struct sockaddr *)&remoteEP, sizeof(remoteEP));
+    if (tmpDevice->connectionParam != PK_ConnectionParam_UDP)
+        result = connect(*(int *)tmpDevice->devHandle, (struct sockaddr *)tmpDevice->devHandle2, sizeof(struct sockaddr_in));
 	else
-		result = -1;
+        result = 0;
 		
-	if (result == -1)
 #endif
+
+    if (result == -1)
     {
 		debug_printf(" ERROR");
         //CleanDevice(tmpDevice);
@@ -529,11 +544,15 @@ void PK_DisconnectNetworkDevice(sPoKeysDevice* device)
 
 #ifdef WIN32
     if ((SOCKET)device->devHandle)
-		closesocket((SOCKET)device->devHandle);
+		closesocket((SOCKET)device->devHandle);    
 #else
     close(*(int *)device->devHandle);
     free(device->devHandle);
 #endif
+
+    // Release secondary device handle
+    if (device->devHandle2)
+        free(device->devHandle2);
 }
 
 
@@ -547,12 +566,11 @@ int SendEthRequest(sPoKeysDevice* device)
 #else
     fd_set fds;
     struct timeval stimeout;
-#endif
+#endif  
 
     if (device == NULL) return PK_ERR_GENERIC;
     if (device->connectionType != PK_DeviceType_NetworkDevice) return PK_ERR_GENERIC;
     if (device->devHandle == NULL) return PK_ERR_GENERIC;
-
 
     while (1)
     {
@@ -568,19 +586,33 @@ int SendEthRequest(sPoKeysDevice* device)
         debug_printf("\nSending...");
         // Send the data
 
-#ifdef WIN32
-		if (send((SOCKET)device->devHandle, (char *)device->request, 64, 0) != 64)
-#else
-        if (send(*(int*)device->devHandle, (char *)device->request, 64, 0) != 64)
-#endif
+        if (device->connectionParam == PK_ConnectionParam_UDP)
         {
-			debug_printf("Error sending TCP report\nAborting...\n");
-			return -1;
-		}
+#ifdef WIN32
+            if (sendto((SOCKET)device->devHandle, (char *)device->request, 64, 0, (SOCKADDR *)device->devHandle2, sizeof(struct sockaddr_in)) == -1)
+#else
+            if (sendto(*(int*)device->devHandle, (char *)device->request, 64, 0, (SOCKADDR *)device->devHandle2, sizeof(struct sockaddr_in)) == -1)
+#endif
+            {
+                debug_printf("Error sending UDP report\nAborting...\n");
+                return -1;
+            }
+        } else
+        {
+#ifdef WIN32
+            if (send((SOCKET)device->devHandle, (char *)device->request, 64, 0) != 64)
+#else
+            if (send(*(int*)device->devHandle, (char *)device->request, 64, 0) != 64)
+#endif
+            {
+                debug_printf("Error sending TCP report\nAborting...\n");
+                return -1;
+            }
+        }
 
 		// Wait for the response
 		while(1)
-		{
+		{           
 #ifdef WIN32
             result = recv((SOCKET)device->devHandle, (char *)device->response, 64, 0);
 #else

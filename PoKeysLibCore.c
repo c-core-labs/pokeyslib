@@ -230,6 +230,7 @@ void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination
 
     // Copy data
     destination->devHandle = original->devHandle;
+    destination->devHandle2 = original->devHandle2;
 
     destination->info = original->info;
     destination->DeviceData = original->DeviceData;
@@ -332,6 +333,7 @@ sPoKeysDevice* PK_ConnectToDevice(int deviceIndex)
 
                 //printf("Connect to this device...");
 				tmpDevice->devHandle = (void*)hid_open_path(cur_dev->path);
+                tmpDevice->devHandle2 = NULL;
 
 				tmpDevice->connectionType = PK_DeviceType_USBDevice;
 
@@ -403,6 +405,7 @@ sPoKeysDevice* PK_ConnectToDeviceWSerial(long serialNumber, int checkForNetworkD
 
 					//printf("Connect to this device...");
 					tmpDevice->devHandle = (void*)hid_open_path(cur_dev->path);
+                    tmpDevice->devHandle2 = 0;
 
 					tmpDevice->connectionType = PK_DeviceType_USBDevice;
 					if (tmpDevice->devHandle != NULL)
@@ -422,6 +425,7 @@ sPoKeysDevice* PK_ConnectToDeviceWSerial(long serialNumber, int checkForNetworkD
 				// Old, PoKeys55 device - we must to connect and read the serial number...
 				tmpDevice = (sPoKeysDevice*)malloc(sizeof(sPoKeysDevice));
 				tmpDevice->devHandle = (void*)hid_open_path(cur_dev->path);
+                tmpDevice->devHandle2 = 0;
 
 				if (tmpDevice->devHandle != NULL)
 				{

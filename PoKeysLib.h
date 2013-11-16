@@ -159,6 +159,12 @@ extern "C"
 		PK_DeviceType_NetworkDevice = 1
 	};
 
+    enum ePK_DeviceConnectionParam
+    {
+        PK_ConnectionParam_TCP = 0,
+        PK_ConnectionParam_UDP = 1
+    };
+
 	// Pulse engine state
 	enum ePK_PEState
 	{
@@ -504,7 +510,7 @@ extern "C"
         unsigned char UserID;					// User ID
         unsigned char DHCP;						// DHCP setting of the device
         unsigned char HWtype;                   // HW type, reported by device
-        unsigned char reserved[1];				// placeholder
+        unsigned char useUDP;                   // If set to 1, UDP connection will be established with the device
     } sPoKeysNetworkDeviceSummary;
 
     // Network device info structure - used for network device information/setup
@@ -526,7 +532,8 @@ extern "C"
 	// Main PoKeys structure
 	typedef struct
 	{
-		void* devHandle;						// Communication device handle
+        void* devHandle;						// Communication device handle
+        void* devHandle2;
 
 		sPoKeysDevice_Info info;				// PoKeys device info
 		sPoKeysDevice_Data DeviceData;			// PoKeys device-specific data
@@ -553,7 +560,9 @@ extern "C"
 		unsigned char* PoExtBusData;			// PoExtBus outputs buffer
 
 		unsigned char connectionType;			// Connection type
+        unsigned char connectionParam;          // Additional connection parameter
 		unsigned char requestID;				// Communication request ID
+        unsigned char reserved;
 		unsigned char request[64];				// Communication buffer
 		unsigned char response[64];				// Communication buffer
 	} sPoKeysDevice;
