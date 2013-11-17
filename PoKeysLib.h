@@ -460,6 +460,15 @@ extern "C"
         unsigned char reserved;
     } sPoILmemoryChunk;
 
+    typedef struct
+    {
+        unsigned char taskStatus;
+        unsigned char taskLoad;
+        unsigned short taskPeriod;
+        unsigned short taskRealPeriod;
+        unsigned short taskRealPeriodFiltered;
+    } sPoILTask;
+
     // PoIL core status
     typedef struct
     {
@@ -482,6 +491,11 @@ extern "C"
         unsigned char dataMemoryPage[256];
 
         sPoILmemoryChunk monitorChunks[18];
+
+        sPoILTask tasks[32];
+        unsigned char inactiveLoad;
+        unsigned char taskCount;
+        unsigned char reserved[2];
     } sPoILStatus;
 
 
@@ -563,8 +577,8 @@ extern "C"
         unsigned char connectionParam;          // Additional connection parameter
 		unsigned char requestID;				// Communication request ID
         unsigned char reserved;
-		unsigned char request[64];				// Communication buffer
-		unsigned char response[64];				// Communication buffer
+        unsigned char request[68];				// Communication buffer
+        unsigned char response[68];				// Communication buffer
 	} sPoKeysDevice;
 
 
@@ -765,6 +779,7 @@ extern "C"
     POKEYSDECL int PK_PoILChunkReadMemoryInternalAddress(sPoKeysDevice * device, unsigned char * dest);
     POKEYSDECL int PK_PoILReadSharedSlot(sPoKeysDevice* device, unsigned short firstSlotID, unsigned short slotsNum, int * dest);
     POKEYSDECL int PK_PoILWriteSharedSlot(sPoKeysDevice* device, unsigned short firstSlotID, unsigned short slotsNum, int * src);
+    POKEYSDECL int PK_PoILTaskStatus(sPoKeysDevice * device);
 
     // RTC commands (real-time clock)
     POKEYSDECL int PK_RTCGet(sPoKeysDevice* device);

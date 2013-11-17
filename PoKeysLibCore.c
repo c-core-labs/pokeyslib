@@ -78,10 +78,11 @@ void InitializeNewDevice(sPoKeysDevice* device)
 	memset(device->request, 0, 64);
 	memset(device->response, 0, 64);
 
-	PK_DeviceDataGet(device);
+    PK_DeviceDataGet(device);
 
-	device->Pins = (sPoKeysPinData*)malloc(sizeof(sPoKeysPinData) * device->info.iPinCount);
+    device->Pins = (sPoKeysPinData*)malloc(sizeof(sPoKeysPinData) * device->info.iPinCount);
 	memset(device->Pins, 0, sizeof(sPoKeysPinData) * device->info.iPinCount);
+
 
 	for (i = 0; i < device->info.iPinCount; i++)
 	{
@@ -339,7 +340,7 @@ sPoKeysDevice* PK_ConnectToDevice(int deviceIndex)
 
 				if (tmpDevice->devHandle != NULL)
 				{
-					InitializeNewDevice(tmpDevice);
+                    InitializeNewDevice(tmpDevice);
 				} else
 				{
 					free(tmpDevice);
@@ -548,6 +549,7 @@ int SendRequest(sPoKeysDevice* device)
     #ifdef PK_COM_DEBUG
         int i;
     #endif
+
     hid_device * devHandle = (hid_device*)device->devHandle;
 
     if (device == NULL) return PK_ERR_GENERIC;
@@ -559,47 +561,46 @@ int SendRequest(sPoKeysDevice* device)
 
     if (devHandle == NULL) return PK_ERR_GENERIC;
 
-
     // Request sending loop
     while (retries++ < 2)
     {
-            device->request[0] = 0xBB;
-            device->request[6] = ++device->requestID;
-            device->request[7] = getChecksum(device->request);
+        device->request[0] = 0xBB;
+        device->request[6] = ++device->requestID;
+        device->request[7] = getChecksum(device->request);
 
-            memcpy(bufferOut + 1, device->request, 64);
+        memcpy(bufferOut + 1, device->request, 64);
 
-            #ifdef PK_COM_DEBUG
-                    printf("\n * SEND ");
-                    for (i = 0; i < 10; i++)
-                    {
-                            printf("%X ", bufferOut[i]);
-                    }
-            #endif
+        #ifdef PK_COM_DEBUG
+                printf("\n * SEND ");
+                for (i = 0; i < 10; i++)
+                {
+                        printf("%X ", bufferOut[i]);
+                }
+        #endif
 
-            result = hid_write(devHandle, bufferOut, 65);
+        result = hid_write(devHandle, bufferOut, 65);
 
-            // In case of an error, try sending again
+        // In case of an error, try sending again
+        if (result < 0)
+        {
+                //printf(" ERR %u", result);
+                retries++;
+                continue;
+        }
+
+        waits = 0;
+
+        // Request receiving loop
+        while (waits++ < 100)
+        {
+            result = hid_read(devHandle, device->response, 65);
+
+            // Error is not an option
             if (result < 0)
             {
-                    //printf(" ERR %u", result);
-                    retries++;
-                    continue;
+                    //printf(" Receive ERR %u", result);
+                    break;
             }
-
-            waits = 0;
-
-            // Request receiving loop
-            while (waits++ < 100)
-            {
-                result = hid_read(devHandle, device->response, 65);
-
-                // Error is not an option
-                if (result < 0)
-                {
-                        //printf(" Receive ERR %u", result);
-                        break;
-                }
 
 #ifdef PK_COM_DEBUG
         printf("\n * RECV ");

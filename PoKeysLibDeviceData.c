@@ -118,7 +118,6 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
         data->DeviceLockStatus = device->response[3];
 	} else return PK_ERR_TRANSFER;
 
-
 	// Resolve device type
     if (data->SerialNumber == 0xFFFF)
     {

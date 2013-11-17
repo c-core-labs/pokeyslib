@@ -43,6 +43,7 @@ void PK_ParsePoILStateResponse(sPoKeysDevice* device)
     device->PoIL.dataStack.stackPtr = device->response[30] + ((unsigned int)device->response[31] << 8);
     device->PoIL.MasterEnable = device->response[59];
     device->PoIL.currentTask = device->response[16];
+    device->PoIL.taskCount = device->response[60];
 }
 
 int PK_PoILGetState(sPoKeysDevice* device)
@@ -278,3 +279,43 @@ int PK_PoILChunkReadMemoryInternalAddress(sPoKeysDevice * device, unsigned char 
     return PK_OK;
 }
 
+int PK_PoILTaskStatus(sPoKeysDevice * device)
+{
+    unsigned int i = 0, k = 0;
+    unsigned char taskCountLeft = device->PoIL.taskCount;
+    unsigned char * dataPtr;
+
+    while(taskCountLeft > 0)
+    {
+        // Transfer task info in chunks of up to 7 tasks at a time
+        if (taskCountLeft > 7)
+        {
+            CreateRequest(device->request, 0x82, 0x20, i, 7, 0);
+            taskCountLeft -= 7;
+        }
+        else
+        {
+            CreateRequest(device->request, 0x82, 0x20, i, taskCountLeft, 0);
+            taskCountLeft = 0;
+        }
+        if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+        // Copy task info
+        device->PoIL.inactiveLoad = device->response[3];
+
+        for (k = 0; k < device->request[4]; k++)
+        {
+            dataPtr = &device->response[8+k*8];
+
+            device->PoIL.tasks[i + k].taskStatus = *dataPtr++;
+            device->PoIL.tasks[i + k].taskLoad = *dataPtr++;
+            device->PoIL.tasks[i + k].taskPeriod = *(unsigned short*)(dataPtr); dataPtr+=2;
+            device->PoIL.tasks[i + k].taskRealPeriod = *(unsigned short*)(dataPtr); dataPtr+=2;
+            device->PoIL.tasks[i + k].taskRealPeriodFiltered = *(unsigned short*)(dataPtr); dataPtr+=2;
+        }
+
+        i += device->request[4];
+    }
+
+    return PK_OK;
+}
