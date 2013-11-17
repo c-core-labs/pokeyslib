@@ -79,6 +79,7 @@ Author: Matevž Bošnak (matevz@poscope.com)
 
 
 ---- Change log ----
+17.11.2013: Memory leak fixed, PoIL task status read supported
 16.11.2013: Added support for UDP connection to PoKeys56E/57E devices
 03.10.2013: Support for network device data, pin capability function, new devices, bug fixes
 13.04.2013: Mulitple updates: PWM, PoIL, SPI, RTC
