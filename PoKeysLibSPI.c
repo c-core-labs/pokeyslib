@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "PoKeysLib.h"
 #include "PoKeysLibCore.h"
 
-int PK_SPIConfigure(sPoKeysDevice * device, unsigned char prescaler, unsigned char frameFormat)
+int32_t PK_SPIConfigure(sPoKeysDevice * device, uint8_t prescaler, uint8_t frameFormat)
 {
     // Configure SPI
     CreateRequest(device->request, 0xE5, 0x01, prescaler, frameFormat, 0);
@@ -29,9 +29,9 @@ int PK_SPIConfigure(sPoKeysDevice * device, unsigned char prescaler, unsigned ch
     return PK_OK;
 }
 
-int PK_SPIWrite(sPoKeysDevice * device, unsigned char * buffer, unsigned char iDataLength, unsigned char pinCS)
+int32_t PK_SPIWrite(sPoKeysDevice * device, uint8_t * buffer, uint8_t iDataLength, uint8_t pinCS)
 {
-    int i;
+    uint8_t i;
     if (iDataLength > 16) iDataLength = 16;
 
     CreateRequest(device->request, 0xE5, 0x10, iDataLength, pinCS, 0);
@@ -44,9 +44,9 @@ int PK_SPIWrite(sPoKeysDevice * device, unsigned char * buffer, unsigned char iD
     if (device->response[3] == 1) return PK_OK; else return PK_ERR_GENERIC;
 }
 
-int PK_SPIRead(sPoKeysDevice * device, unsigned char * buffer, unsigned char iDataLength)
+int32_t PK_SPIRead(sPoKeysDevice * device, uint8_t * buffer, uint8_t iDataLength)
 {
-    int i;
+    uint8_t i;
     if (iDataLength > 16) iDataLength = 16;
 
     CreateRequest(device->request, 0xE5, 0x20, iDataLength, 0, 0);

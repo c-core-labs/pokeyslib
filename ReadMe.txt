@@ -24,6 +24,22 @@ on OS X. These will also install the library in /usr/lib folder and copy the
 header file to /usr/include. Sudo may be required to gain write access to these
 two folders
 
+Dependencies (Windows):
+The library (and applications using it) must be linked with the following libra-
+ries on Windows:
+    setupapi.lib
+    Ws2_32.lib
+    iphlpapi.lib
+with the following linker command
+-lsetupapi -lWs2_32 -liphlpapi
+
+Dependencies (other OS):
+The library (and applications using it) must be linked with the following libra-
+ry:
+    usb-1.0 (libusb-1.0)
+with the following linker command
+-lusb-1.0
+
 Also:
 qmake can be used to build the librray using the attached project file 
 PoKeysLib.pro.
@@ -33,6 +49,8 @@ PoKeysLib.pro.
 PoKeysLib library has to be linked or included in the client application. 
 On Linux and OS X, it depends on libusb-1.0 library that must be installed 
 before compiling PoKeysLib.
+
+The host system is assumed to be little-endian.
 
 Example code: 
 http://www.mypokeys.com/new-cross-platform-library-for-all-pokeys-devices
@@ -79,6 +97,7 @@ Author: Matevž Bošnak (matevz@poscope.com)
 
 
 ---- Change log ----
+17.12.2013: Support for Pulse engine v2 added, unification of data types used
 17.11.2013: Memory leak fixed, PoIL task status read supported
 16.11.2013: Added support for UDP connection to PoKeys56E/57E devices
 03.10.2013: Support for network device data, pin capability function, new devices, bug fixes

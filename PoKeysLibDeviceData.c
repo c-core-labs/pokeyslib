@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 */
 
+#include <stdlib.h>
 #include "PoKeysLib.h"
 #include "PoKeysLibCore.h"
 #include "stdio.h"
@@ -55,19 +56,19 @@ const sPoKeys_PinCapabilities pinCaps[] = {
     { -1, 0, 0, 0 }
 };
 
-int PK_DeviceDataGet(sPoKeysDevice* device)
+int32_t PK_DeviceDataGet(sPoKeysDevice* device)
 {
-	int i;
+    int32_t i;
     sPoKeysDevice_Data * data = &device->DeviceData;
     sPoKeysDevice_Info * info = &device->info;
 
-    int devSeries55 = 0;
-    int devSeries56 = 0;
-    int devSeries27 = 0;
-    int devSeries58 = 0;
-    int devUSB = 0;
-    int devEth = 0;
-    int devBootloader = 0;
+    uint8_t devSeries55 = 0;
+    uint8_t devSeries56 = 0;
+    uint8_t devSeries27 = 0;
+    uint8_t devSeries58 = 0;
+    uint8_t devUSB = 0;
+    uint8_t devEth = 0;
+    uint8_t devBootloader = 0;
 
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
@@ -492,9 +493,9 @@ int PK_DeviceDataGet(sPoKeysDevice* device)
 	return PK_OK;
 }
 
-int PK_DeviceNameSet(sPoKeysDevice* device)
+int32_t PK_DeviceNameSet(sPoKeysDevice* device)
 {
-    int i;
+    uint32_t i;
 
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
@@ -510,10 +511,8 @@ int PK_DeviceNameSet(sPoKeysDevice* device)
     return PK_OK;
 }
 
-int PK_NetworkConfigurationSet(sPoKeysDevice* device)
+int32_t PK_NetworkConfigurationSet(sPoKeysDevice* device)
 {
-    int i;
-
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
     CreateRequest(device->request, 0xE0, 10, 0, 0, 0);
@@ -538,7 +537,7 @@ int PK_NetworkConfigurationSet(sPoKeysDevice* device)
 }
 
 
-int PK_DeviceActivation(sPoKeysDevice* device)
+int32_t PK_DeviceActivation(sPoKeysDevice* device)
 {
 	if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
@@ -552,7 +551,7 @@ int PK_DeviceActivation(sPoKeysDevice* device)
 	return PK_OK;
 }
 
-int PK_DeviceActivationClear(sPoKeysDevice* device)
+int32_t PK_DeviceActivationClear(sPoKeysDevice* device)
 {
 	if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
@@ -565,7 +564,7 @@ int PK_DeviceActivationClear(sPoKeysDevice* device)
 	return PK_OK;
 }
 
-int PK_SaveConfiguration(sPoKeysDevice* device)
+int32_t PK_SaveConfiguration(sPoKeysDevice* device)
 {
 	if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
@@ -575,7 +574,7 @@ int PK_SaveConfiguration(sPoKeysDevice* device)
 	return PK_OK;
 }
 
-int PK_ClearConfiguration(sPoKeysDevice* device)
+int32_t PK_ClearConfiguration(sPoKeysDevice* device)
 {
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
@@ -585,7 +584,7 @@ int PK_ClearConfiguration(sPoKeysDevice* device)
     return PK_OK;
 }
 
-int PK_CheckPinCapabilityByDevice(long deviceTypeMask, unsigned int pin, ePK_AllPinCap cap)
+int32_t PK_CheckPinCapabilityByDevice(long deviceTypeMask, unsigned int pin, ePK_AllPinCap cap)
 {
     const sPoKeys_PinCapabilities * ptr;
 
@@ -628,7 +627,7 @@ int PK_CheckPinCapabilityByDevice(long deviceTypeMask, unsigned int pin, ePK_All
 
 
 
-int PK_CheckPinCapability(sPoKeysDevice* device, unsigned int pin, ePK_AllPinCap cap)
+int32_t PK_CheckPinCapability(sPoKeysDevice* device, unsigned int pin, ePK_AllPinCap cap)
 {
     const sPoKeys_PinCapabilities * ptr;
 
@@ -675,7 +674,7 @@ int PK_CheckPinCapability(sPoKeysDevice* device, unsigned int pin, ePK_AllPinCap
 }
 
 
-int PK_CheckPinEnabledCapability(sPoKeysDevice* device, unsigned int pin, ePK_AllPinCap cap)
+int32_t PK_CheckPinEnabledCapability(sPoKeysDevice* device, unsigned int pin, ePK_AllPinCap cap)
 {
     return 0;
 }

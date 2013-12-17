@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "PoKeysLib.h"
 #include "PoKeysLibCore.h"
 
-int PK_EncoderConfigurationGet(sPoKeysDevice* device)
+int32_t PK_EncoderConfigurationGet(sPoKeysDevice* device)
 {
-	int i;
+    uint32_t i;
 	if (device->info.iBasicEncoderCount)
 	{
 		// Get basic encoder options
@@ -98,9 +98,9 @@ int PK_EncoderConfigurationGet(sPoKeysDevice* device)
 	return PK_OK;
 }
 
-int PK_EncoderConfigurationSet(sPoKeysDevice* device)
+int32_t PK_EncoderConfigurationSet(sPoKeysDevice* device)
 {
-	int i;
+    uint32_t i;
 	if (device->info.iBasicEncoderCount)
 	{
 		// Set basic encoder options
@@ -159,9 +159,9 @@ int PK_EncoderConfigurationSet(sPoKeysDevice* device)
 	return PK_OK;
 }
 
-int PK_EncoderValuesGet(sPoKeysDevice* device)
+int32_t PK_EncoderValuesGet(sPoKeysDevice* device)
 {
-	int i;
+    uint32_t i;
 	if (device->info.iBasicEncoderCount >= 13)
 	{
 		// Read the first 13 encoders
@@ -201,9 +201,9 @@ int PK_EncoderValuesGet(sPoKeysDevice* device)
 	return PK_OK;
 }
 
-int PK_EncoderValuesSet(sPoKeysDevice* device)
+int32_t PK_EncoderValuesSet(sPoKeysDevice* device)
 {
-	int i;
+    uint32_t i;
 	if (device->info.iBasicEncoderCount >= 13)
 	{
 		// Read the first 13 encoders

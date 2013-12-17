@@ -27,9 +27,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //#define PK_COM_DEBUG
 
 // Connection specific commands
-int PK_EnumerateUSBDevices()
+int32_t PK_EnumerateUSBDevices()
 {
-    int numDevices = 0;
+    int32_t numDevices = 0;
     struct hid_device_info *devs, *cur_dev;
 
     devs = hid_enumerate(0x1DC3, 0x1001);
@@ -50,14 +50,14 @@ int PK_EnumerateUSBDevices()
     return numDevices;
 }
 
-int PK_GetCurrentDeviceConnectionType(sPoKeysDevice* device)
+int32_t PK_GetCurrentDeviceConnectionType(sPoKeysDevice* device)
 {
 	return device->connectionType;
 }
 
 void InitializeNewDevice(sPoKeysDevice* device)
 {
-	int i;
+    uint32_t i;
 	memset(&device->info, 0, sizeof(sPoKeysDevice_Info));
 	memset(&device->DeviceData, 0, sizeof(sPoKeysDevice_Info));
 
@@ -138,6 +138,8 @@ void InitializeNewDevice(sPoKeysDevice* device)
 		memset(device->PulseEngine->MPGaxisEncoder, 0, sizeof(unsigned char) * device->PulseEngine->info.nrOfAxes);
 
 	} else device->PulseEngine = NULL;
+
+    memset(&device->PEv2, 0, sizeof(sPoKeysPEv2));
 }
 
 void CleanDevice(sPoKeysDevice* device)
@@ -310,9 +312,9 @@ void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination
 
 }
 
-sPoKeysDevice* PK_ConnectToDevice(int deviceIndex)
+sPoKeysDevice* PK_ConnectToDevice(uint32_t deviceIndex)
 {
-    int numDevices = 0;
+    int32_t numDevices = 0;
     struct hid_device_info *devs, *cur_dev;
     sPoKeysDevice* tmpDevice;
 
@@ -321,11 +323,6 @@ sPoKeysDevice* PK_ConnectToDevice(int deviceIndex)
 
     while (cur_dev)
     {
-        /*printf("Device Found\n");
-        printf("  Serial:      %ls\n", cur_dev->serial_number);
-        printf("  Product:      %ls\n", cur_dev->product_string);
-        printf("  Interface:    %d\n",  cur_dev->interface_number);
-        printf("\n");//*/
         if (cur_dev->interface_number == 1)
         {
             if (numDevices == deviceIndex)
@@ -359,14 +356,17 @@ sPoKeysDevice* PK_ConnectToDevice(int deviceIndex)
     return NULL;
 }
 
-sPoKeysDevice* PK_ConnectToDeviceWSerial(long serialNumber, int checkForNetworkDevicesAndTimeout)
+sPoKeysDevice* PK_ConnectToDeviceWSerial(uint32_t serialNumber, uint32_t checkForNetworkDevicesAndTimeout)
 {
-    int numDevices = 0;
+    int32_t numDevices = 0;
     struct hid_device_info *devs, *cur_dev;
-    int k;
+    int32_t k;
     sPoKeysDevice* tmpDevice;
-    char serialSearch[8];
-    char serialSearch58[8];
+    uint8_t serialSearch[8];
+    uint8_t serialSearch58[8];
+
+    sPoKeysNetworkDeviceSummary * devices;
+    int32_t iNet;
 
     devs = hid_enumerate(0x1DC3, 0x1001);
     cur_dev = devs;
@@ -376,17 +376,10 @@ sPoKeysDevice* PK_ConnectToDeviceWSerial(long serialNumber, int checkForNetworkD
 
     while (cur_dev)
     {
-        /*printf("Device Found\n");
-        printf("  Serial:      %ls\n", cur_dev->serial_number);
-        printf("  Product:      %ls\n", cur_dev->product_string);
-        printf("  Interface:    %d\n",  cur_dev->interface_number);
-        printf("\n");//*/
         if (cur_dev->interface_number == 1)
         {
 			if (cur_dev->serial_number[0] != 'P')
 			{
-				int k;
-
 				for (k = 0; k < 8 && cur_dev->serial_number[k] != 0; k++)
 				{
                     if (cur_dev->serial_number[k] != serialSearch[k]) break;
@@ -459,12 +452,12 @@ sPoKeysDevice* PK_ConnectToDeviceWSerial(long serialNumber, int checkForNetworkD
 
 	if (checkForNetworkDevicesAndTimeout)
 	{
-		sPoKeysNetworkDeviceSummary * devices = (sPoKeysNetworkDeviceSummary*)malloc(sizeof(sPoKeysNetworkDeviceSummary) * 16);
-        int iNet = PK_SearchNetworkDevices(devices, checkForNetworkDevicesAndTimeout, serialNumber);
+        devices = (sPoKeysNetworkDeviceSummary*)malloc(sizeof(sPoKeysNetworkDeviceSummary) * 16);
+        iNet = PK_SearchNetworkDevices(devices, checkForNetworkDevicesAndTimeout, serialNumber);
 
         if (iNet > 16) iNet = 16;
 
-		for (k = 0; k < iNet; k++)
+        for (k = 0; k < iNet; k++)
 		{
 			//printf("\nNetwork device found, serial = %lu at %u.%u.%u.%u", devices[k].SerialNumber, devices[k].IPaddress[0], devices[k].IPaddress[1], devices[k].IPaddress[2], devices[k].IPaddress[3]);
 			if (devices[k].SerialNumber == serialNumber)
@@ -509,7 +502,7 @@ void PK_DisconnectDevice(sPoKeysDevice* device)
     }
 }
 
-int CreateRequest(unsigned char * request, unsigned char type, unsigned char param1, unsigned char param2, unsigned char param3, unsigned char param4)
+int32_t CreateRequest(unsigned char * request, unsigned char type, unsigned char param1, unsigned char param2, unsigned char param3, unsigned char param4)
 {
     memset(request, 0, 64);
 
@@ -522,10 +515,10 @@ int CreateRequest(unsigned char * request, unsigned char type, unsigned char par
     return PK_OK;
 }
 
-unsigned char getChecksum(unsigned char * data)
+uint8_t getChecksum(uint8_t * data)
 {
-    unsigned char temp = 0;
-    int i;
+    uint8_t temp = 0;
+    uint32_t i;
 
     for (i = 0; i < 7; i++)
     {
@@ -534,18 +527,19 @@ unsigned char getChecksum(unsigned char * data)
     return temp;
 }
 
-int LastRetryCount = 0;
-int LastWaitCount = 0;
+int32_t LastRetryCount = 0;
+int32_t LastWaitCount = 0;
 
 
 //#define PK_COM_DEBUG
-int SendRequest(sPoKeysDevice* device)
+int32_t SendRequest(sPoKeysDevice* device)
 {
     // Initialize variables
-    int waits = 0;
-    int retries = 0;
-    int result = 0;
-    unsigned char bufferOut[65] = {0};
+    uint32_t waits = 0;
+    uint32_t retries = 0;
+    int32_t result = 0;
+    uint8_t bufferOut[65] = {0};
+
     #ifdef PK_COM_DEBUG
         int i;
     #endif
@@ -583,9 +577,9 @@ int SendRequest(sPoKeysDevice* device)
         // In case of an error, try sending again
         if (result < 0)
         {
-                //printf(" ERR %u", result);
-                retries++;
-                continue;
+            //printf(" ERR %u", result);
+            retries++;
+            continue;
         }
 
         waits = 0;

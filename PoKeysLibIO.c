@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "PoKeysLib.h"
 #include "PoKeysLibCore.h"
 
-int PK_PinConfigurationGet(sPoKeysDevice* device)
+int32_t PK_PinConfigurationGet(sPoKeysDevice* device)
 {
-	int i;
+    uint32_t i;
 	// Get all pin configuration
     CreateRequest(device->request, 0xC0, 0, 0, 0, 0);
 	if (SendRequest(device) == PK_OK)
@@ -43,7 +43,7 @@ int PK_PinConfigurationGet(sPoKeysDevice* device)
 		{
 			for (i = 0; i < device->info.iPinCount; i++)
 			{
-				if (PK_IsCounterAvailable(device, i))
+                if (PK_IsCounterAvailable(device, (uint8_t)i))
 				{
 					device->Pins[i].DigitalCounterAvailable = 1;
 					device->Pins[i].CounterOptions = device->response[8 + i];
@@ -153,9 +153,9 @@ int PK_PinConfigurationGet(sPoKeysDevice* device)
 	return PK_OK;
 }
 
-int PK_PinConfigurationSet(sPoKeysDevice* device)
+int32_t PK_PinConfigurationSet(sPoKeysDevice* device)
 {
-	int i;
+    uint32_t i;
 	
 	// Set all pin configuration
     CreateRequest(device->request, 0xC0, 1, 0, 0, 0);
@@ -265,7 +265,7 @@ int PK_PinConfigurationSet(sPoKeysDevice* device)
 
 
 
-int PK_IsCounterAvailable(sPoKeysDevice* device, unsigned char pinID)
+int32_t PK_IsCounterAvailable(sPoKeysDevice* device, uint8_t pinID)
 {
     return PK_IsCounterAvailableByDevice(device->DeviceData.DeviceTypeID, pinID);
 
@@ -285,7 +285,7 @@ int PK_IsCounterAvailable(sPoKeysDevice* device, unsigned char pinID)
     */
 }
 
-int PK_IsCounterAvailableByDevice(long deviceTypeMask, unsigned char pinID)
+int32_t PK_IsCounterAvailableByDevice(uint32_t deviceTypeMask, uint8_t pinID)
 {
     //                        1   2   3   4   5   6   7   8   9   10
     int counterSupported[] = {1,  1,  0 , 0 , 1,  1,  0 , 0 , 1,  0 ,
@@ -308,9 +308,9 @@ int PK_IsCounterAvailableByDevice(long deviceTypeMask, unsigned char pinID)
     }
 }
 
-int PK_DigitalIOSet(sPoKeysDevice* device)
+int32_t PK_DigitalIOSet(sPoKeysDevice* device)
 {
-	int i;
+    uint32_t i;
 	// Set digital outputs
 	CreateRequest(device->request, 0xCC, 1, 0, 0, 0);
 	for (i = 0; i < device->info.iPinCount; i++)
@@ -325,9 +325,9 @@ int PK_DigitalIOSet(sPoKeysDevice* device)
 	return PK_OK;
 }
 
-int PK_DigitalIOGet(sPoKeysDevice* device)
+int32_t PK_DigitalIOGet(sPoKeysDevice* device)
 {
-	int i;
+    uint32_t i;
 	// Get digital inputs
 	CreateRequest(device->request, 0xCC, 0, 0, 0, 0);
 	if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;   
@@ -340,9 +340,9 @@ int PK_DigitalIOGet(sPoKeysDevice* device)
 	return PK_OK;
 }              
 
-int PK_DigitalIOSetGet(sPoKeysDevice* device)
+int32_t PK_DigitalIOSetGet(sPoKeysDevice* device)
 {
-	int i;
+    uint32_t i;
 	// Set digital outputs
 	CreateRequest(device->request, 0xCC, 1, 0, 0, 0);
 	for (i = 0; i < device->info.iPinCount; i++)
@@ -362,7 +362,7 @@ int PK_DigitalIOSetGet(sPoKeysDevice* device)
 	return PK_OK;
 }
 
-int PK_DigitalIOSetSingle(sPoKeysDevice* device, unsigned char pinID, unsigned char pinValue)
+int32_t PK_DigitalIOSetSingle(sPoKeysDevice* device, uint8_t pinID, uint8_t pinValue)
 {
 	if (pinID >= device->info.iPinCount) return PK_ERR_PARAMETER;
 
@@ -374,7 +374,7 @@ int PK_DigitalIOSetSingle(sPoKeysDevice* device, unsigned char pinID, unsigned c
 	return PK_OK;
 }
 
-int PK_DigitalIOGetSingle(sPoKeysDevice* device, unsigned char pinID, unsigned char* pinValue)
+int32_t PK_DigitalIOGetSingle(sPoKeysDevice* device, uint8_t pinID, uint8_t* pinValue)
 {
 	if (pinID >= device->info.iPinCount) return PK_ERR_PARAMETER;
 
@@ -387,7 +387,7 @@ int PK_DigitalIOGetSingle(sPoKeysDevice* device, unsigned char pinID, unsigned c
 	return PK_OK;
 }
 
-int PK_AnalogIOGet(sPoKeysDevice* device)
+int32_t PK_AnalogIOGet(sPoKeysDevice* device)
 {
 	int i;
 	// Get analog inputs
@@ -396,16 +396,16 @@ int PK_AnalogIOGet(sPoKeysDevice* device)
 
 	for (i = 0; i < 7; i++)
     {
-		device->Pins[40 + i].AnalogValue = ((long)device->response[8 + i * 2] << 8) + (long)device->response[9 + i * 2];
+        device->Pins[40 + i].AnalogValue = (uint32_t)(*(uint16_t*)&device->response[8+i*2]); // ((uint32_t)device->response[8 + i * 2] << 8) + (long)device->response[9 + i * 2];
     }
 
 	return PK_OK;
 }              
 
-int PK_AnalogIOGetAsArray(sPoKeysDevice* device, unsigned int * buffer)
+int32_t PK_AnalogIOGetAsArray(sPoKeysDevice* device, uint32_t * buffer)
 {
-    int result = PK_AnalogIOGet(device);
-    int i;
+    uint32_t result = PK_AnalogIOGet(device);
+    uint32_t i;
 
     if (result == PK_OK)
     {
@@ -417,13 +417,13 @@ int PK_AnalogIOGetAsArray(sPoKeysDevice* device, unsigned int * buffer)
     return result;
 }
 
-int PK_DigitalCounterGet(sPoKeysDevice* device)
+int32_t PK_DigitalCounterGet(sPoKeysDevice* device)
 {
-	// Get analog inputs
-	int requestPending = 0;
-	int k = 0;
-	long value = 0;
-	int i, j;
+    // Get digital counter values
+    uint32_t requestPending = 0;
+    uint32_t k = 0;
+    //uint32_t value = 0;
+    uint32_t i, j;
 
 	CreateRequest(device->request, 0xD8, 0, 0, 0, 0);
 
@@ -441,12 +441,12 @@ int PK_DigitalCounterGet(sPoKeysDevice* device)
 
 				for (j = 0; j < 13; j++)
 				{
-					value = (long)device->response[8 + j * 4];
-					value += (long)device->response[9 + j * 4] << 8;
-					value += (long)device->response[10 + j * 4] << 16;
-					value += (long)device->response[11 + j * 4] << 24;
+                    /* value = (uint32_t)device->response[8 + j * 4];
+                    value += (uint32_t)device->response[9 + j * 4] << 8;
+                    value += (uint32_t)device->response[10 + j * 4] << 16;
+                    value += (uint32_t)device->response[11 + j * 4] << 24;*/
 
-					device->Pins[device->request[8 + j]].DigitalCounterValue = value;
+                    device->Pins[device->request[8 + j]].DigitalCounterValue = *(int32_t*)(&device->response[8 + j*4]);
 				}
 				requestPending = 0;
 				k = 0;
@@ -459,27 +459,28 @@ int PK_DigitalCounterGet(sPoKeysDevice* device)
 
 		for (j = 0; j < k; j++)
 		{
+            /*
 			value = (long)device->response[8 + j * 4];
 			value += (long)device->response[9 + j * 4] << 8;
 			value += (long)device->response[10 + j * 4] << 16;
 			value += (long)device->response[11 + j * 4] << 24;
-
-			device->Pins[device->request[8 + j]].DigitalCounterValue = value;
+            */
+            device->Pins[device->request[8 + j]].DigitalCounterValue = *(int32_t*)(&device->response[8 + j*4]);;
 		}
 	}
 
 	return PK_OK;
 }              
 
-int PK_PWMConfigurationSet(sPoKeysDevice* device)
+int32_t PK_PWMConfigurationSet(sPoKeysDevice* device)
 {
-	int n;
+    uint32_t n;
 	// Set PWM configuration
 	CreateRequest(device->request, 0xCB, 1, 0, 0, 0);
 
     for (n = 0; n < 6; n++)
     {
-		if (device->PWM.PWMenabledChannels[n]) device->request[8] |= (unsigned char)(1 << n);
+        if (device->PWM.PWMenabledChannels[n]) device->request[8] |= (uint8_t)(1 << n);
 
 		memcpy(&(device->request[9 + n * 4]), &(device->PWM.PWMduty[n]), 4);
     }
@@ -489,9 +490,9 @@ int PK_PWMConfigurationSet(sPoKeysDevice* device)
 	return PK_OK;
 }
 
-int PK_PWMConfigurationGet(sPoKeysDevice* device)
+int32_t PK_PWMConfigurationGet(sPoKeysDevice* device)
 {
-	int n;
+    uint32_t n;
 	// Get PWM configuration
 	CreateRequest(device->request, 0xCB, 0, 0, 0, 0);
 	if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;   
@@ -507,9 +508,9 @@ int PK_PWMConfigurationGet(sPoKeysDevice* device)
 	return PK_OK;
 }
 
-int PK_PWMUpdate(sPoKeysDevice* device)
+int32_t PK_PWMUpdate(sPoKeysDevice* device)
 {
-	int n;
+    uint32_t n;
 	// Update PWM values
 	CreateRequest(device->request, 0xCB, 1, 1, 0, 0);
 
@@ -526,7 +527,7 @@ int PK_PWMUpdate(sPoKeysDevice* device)
 }
 
 
-int PK_PWMConfigurationSetDirectly(sPoKeysDevice * device, unsigned int PWMperiod, unsigned char * enabledChannels)
+int32_t PK_PWMConfigurationSetDirectly(sPoKeysDevice * device, uint32_t PWMperiod, uint8_t * enabledChannels)
 {
     if (PK_PWMConfigurationGet(device) != PK_OK) return PK_ERR_GENERIC;
 
@@ -536,16 +537,16 @@ int PK_PWMConfigurationSetDirectly(sPoKeysDevice * device, unsigned int PWMperio
     return PK_PWMConfigurationSet(device);
 }
 
-int PK_PWMUpdateDirectly(sPoKeysDevice * device, unsigned int * dutyCycles)
+int32_t PK_PWMUpdateDirectly(sPoKeysDevice * device, uint32_t * dutyCycles)
 {
     memcpy(device->PWM.PWMduty, dutyCycles, 6*4);
     return PK_PWMUpdate(device);
 }
 
 
-int PK_PoExtBusSet(sPoKeysDevice* device)
+int32_t PK_PoExtBusSet(sPoKeysDevice* device)
 {
-	int i;
+    uint32_t i;
 	// Set PoExtBus values
     CreateRequest(device->request, 0xDA, 1, 0, 0, 0);
 	for (i = 0; i < device->info.iPoExtBus; i++)
@@ -557,9 +558,9 @@ int PK_PoExtBusSet(sPoKeysDevice* device)
 	return PK_OK;
 }
 
-int PK_PoExtBusGet(sPoKeysDevice* device)
+int32_t PK_PoExtBusGet(sPoKeysDevice* device)
 {
-	int i;
+    uint32_t i;
 	// Get PoExtBus values
     CreateRequest(device->request, 0xDA, 2, 0, 0, 0);
 	if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;

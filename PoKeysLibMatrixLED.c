@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "PoKeysLib.h"
 #include "PoKeysLibCore.h"
 
-int PK_MatrixLEDConfigurationSet(sPoKeysDevice* device)
+int32_t PK_MatrixLEDConfigurationSet(sPoKeysDevice* device)
 {
 	if (device->info.iMatrixLED == 0) return PK_ERR_GENERIC;
 
@@ -35,7 +35,7 @@ int PK_MatrixLEDConfigurationSet(sPoKeysDevice* device)
 	return PK_OK;
 }
 
-int PK_MatrixLEDConfigurationGet(sPoKeysDevice* device)
+int32_t PK_MatrixLEDConfigurationGet(sPoKeysDevice* device)
 {
 	if (device->info.iMatrixLED == 0) return PK_ERR_GENERIC;
 
@@ -54,10 +54,10 @@ int PK_MatrixLEDConfigurationGet(sPoKeysDevice* device)
 	return PK_OK;
 }
 
-int PK_MatrixLEDUpdate(sPoKeysDevice* device)
+int32_t PK_MatrixLEDUpdate(sPoKeysDevice* device)
 {
-	int i, j;
-    int displayCode[] = {1, 11};
+    uint32_t i, j;
+    uint8_t displayCode[] = {1, 11};
     if (device->info.iMatrixLED == 0) return PK_ERR_GENERIC;
 
 	// Update matrix LEDs

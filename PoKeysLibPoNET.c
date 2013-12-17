@@ -22,9 +22,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "PoKeysLib.h"
 #include "PoKeysLibCore.h"
 
-int PK_PoNETSetModuleStatus(sPoKeysDevice* device)
+int32_t PK_PoNETSetModuleStatus(sPoKeysDevice* device)
 {
-  int i;
+  uint32_t i;
 
   CreateRequest(device->request, 0xDD, 0x55, device->PoNETmodule.moduleID, 0, 0);
   for (i = 0; i < 16; i++)

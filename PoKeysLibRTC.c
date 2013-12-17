@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "PoKeysLib.h"
 #include "PoKeysLibCore.h"
 
-int PK_RTCGet(sPoKeysDevice* device)
+int32_t PK_RTCGet(sPoKeysDevice* device)
 {
     CreateRequest(device->request, 0x83, 0x00, 0, 0, 0);
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
@@ -41,7 +41,7 @@ int PK_RTCGet(sPoKeysDevice* device)
 }
 
 
-int PK_RTCSet(sPoKeysDevice* device)
+int32_t PK_RTCSet(sPoKeysDevice* device)
 {
     CreateRequest(device->request, 0x83, 0x10, 0, 0, 0);
     device->request[8] = device->RTC.SEC;

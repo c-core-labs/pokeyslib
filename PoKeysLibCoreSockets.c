@@ -188,7 +188,7 @@ uint32 * GetBroadcastAddresses()
 #ifdef WIN32
     WSADATA wsaData;
 
-    int InitWinsock()
+    int32_t InitWinsock()
     {
             // Initialize Winsock - version 2.2
             if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0)
@@ -199,7 +199,7 @@ uint32 * GetBroadcastAddresses()
             return 0;
     }
 
-    int TerminateWinsock()
+    int32_t TerminateWinsock()
     {
             WSACleanup();
             return 0;
@@ -207,15 +207,15 @@ uint32 * GetBroadcastAddresses()
 #endif
 
 
-int PK_EnumerateNetworkDevices(sPoKeysNetworkDeviceSummary * devices, int timeout)
+int32_t PK_EnumerateNetworkDevices(sPoKeysNetworkDeviceSummary * devices, uint32_t timeout)
 {
     return PK_SearchNetworkDevices(devices, timeout, 0);
 }
 
-int PK_SearchNetworkDevices(sPoKeysNetworkDeviceSummary * devices, int timeout, int serialNumberToFind)
+int32_t PK_SearchNetworkDevices(sPoKeysNetworkDeviceSummary * devices, uint32_t timeout, uint32_t serialNumberToFind)
 {
     //Broadcast the message
-    int t; // 100 ms timeout
+    int32_t t; // 100 ms timeout
 #ifdef WIN32
     struct sockaddr_in remoteEP;
     SOCKET txSocket;
@@ -556,7 +556,7 @@ void PK_DisconnectNetworkDevice(sPoKeysDevice* device)
 }
 
 
-int SendEthRequest(sPoKeysDevice* device)
+int32_t SendEthRequest(sPoKeysDevice* device)
 {    
     int retries1 = 0;
     int retries2 = 0;

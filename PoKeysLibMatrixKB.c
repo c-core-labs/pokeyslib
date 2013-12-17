@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "PoKeysLib.h"
 #include "PoKeysLibCore.h"
 
-int PK_MatrixKBConfigurationGet(sPoKeysDevice* device)
+int32_t PK_MatrixKBConfigurationGet(sPoKeysDevice* device)
 {
-	int n, key, x;
+    uint32_t n, key, x;
 	if (device->info.iMatrixKeyboard)
 	{
 		// Get matrix KB configuration
@@ -90,9 +90,9 @@ int PK_MatrixKBConfigurationGet(sPoKeysDevice* device)
 	return PK_OK;
 }
 
-int PK_MatrixKBConfigurationSet(sPoKeysDevice* device)
+int32_t PK_MatrixKBConfigurationSet(sPoKeysDevice* device)
 {
-	int n, key, x;
+    uint32_t n, key, x;
 	if (device->info.iMatrixKeyboard)
 	{
 		// Set matrix KB configuration
@@ -187,9 +187,9 @@ int PK_MatrixKBConfigurationSet(sPoKeysDevice* device)
 	return PK_OK;
 }
 
-int PK_MatrixKBStatusGet(sPoKeysDevice* device)
+int32_t PK_MatrixKBStatusGet(sPoKeysDevice* device)
 {
-	int n;
+    uint32_t n;
 	if (device->info.iMatrixKeyboard)
 	{
 		// Get matrix KB status
