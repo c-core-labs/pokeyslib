@@ -24,7 +24,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 void PK_PEv2_DecodeStatus(sPoKeysDevice * device)
 {
-    uint8_t * ans = device->response;
+    uint8_t * ans;
+    if (device == NULL) return;
+
+    ans = device->response;
 
     device->PEv2.SoftLimitStatus = ans[3];
     device->PEv2.AxisEnabledStatesMask = ans[4];
@@ -43,7 +46,7 @@ void PK_PEv2_DecodeStatus(sPoKeysDevice * device)
     device->PEv2.HomeStatus = ans[14];
 
     memcpy(device->PEv2.AxesState, ans + 16, 8);
-    memcpy(device->PEv2.CurrentPosition, ans + 24, 8);
+    memcpy(device->PEv2.CurrentPosition, ans + 24, 8*4);
 
     // Engine info
     device->PEv2.info.nrOfAxes = ans[56];
@@ -61,7 +64,10 @@ void PK_PEv2_DecodeStatus(sPoKeysDevice * device)
 int32_t PK_PEv2_StatusGet(sPoKeysDevice * device)
 {
     // Do some 'random' magic with numbers
-    uint8_t tstB = (0x10 + device->requestID) % 199;
+    uint8_t tstB;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    tstB = (0x10 + device->requestID) % 199;
 
     // Send request
     CreateRequest(device->request, 0x85, 0x00, tstB, 0, 0);
@@ -85,6 +91,8 @@ int32_t PK_PEv2_StatusGet(sPoKeysDevice * device)
 // Configure (setup) the pulse engine
 int32_t PK_PEv2_PulseEngineSetup(sPoKeysDevice * device)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     CreateRequest(device->request, 0x85, 0x01, 0, 0, 0);
 
     // Fill the information
@@ -104,6 +112,8 @@ int32_t PK_PEv2_PulseEngineSetup(sPoKeysDevice * device)
 int32_t PK_PEv2_AxisConfigurationGet(sPoKeysDevice * device)
 {
     sPoKeysPEv2 * pe;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     if (device->PEv2.param1 >= 8) return PK_ERR_PARAMETER;
 
     // Send request
@@ -137,6 +147,7 @@ int32_t PK_PEv2_AxisConfigurationGet(sPoKeysDevice * device)
     pe->MPGjogMultiplier[pe->param1] = *(int16_t*)(device->response + 36);
 
     pe->AxisEnableOutputPins[pe->param1] = device->response[38];
+    pe->InvertAxisEnable[pe->param1] = device->response[39];
 
     return PK_OK;
 }
@@ -145,6 +156,8 @@ int32_t PK_PEv2_AxisConfigurationGet(sPoKeysDevice * device)
 int32_t PK_PEv2_AxisConfigurationSet(sPoKeysDevice * device)
 {
     sPoKeysPEv2 * pe;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     if (device->PEv2.param1 >= 8) return PK_ERR_PARAMETER;
 
     // Create request
@@ -175,6 +188,7 @@ int32_t PK_PEv2_AxisConfigurationSet(sPoKeysDevice * device)
     *(int16_t*)(device->request + 36) = (int16_t)pe->MPGjogMultiplier[pe->param1];
 
     device->request[38] = pe->AxisEnableOutputPins[pe->param1];
+    device->request[39] = pe->InvertAxisEnable[pe->param1];
 
     // Send request
     return SendRequest(device);
@@ -184,6 +198,8 @@ int32_t PK_PEv2_AxisConfigurationSet(sPoKeysDevice * device)
 int32_t PK_PEv2_PositionSet(sPoKeysDevice * device)
 {
     int i;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     if (device->PEv2.param2 == 0) return PK_ERR_PARAMETER;
 
     // Create request
@@ -201,6 +217,8 @@ int32_t PK_PEv2_PositionSet(sPoKeysDevice * device)
 // Set pulse engine state
 int32_t PK_PEv2_PulseEngineStateSet(sPoKeysDevice * device)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     // Create request
     CreateRequest(device->request, 0x85, 0x02, device->PEv2.PulseEngineStateSetup, device->PEv2.LimitOverrideSetup, 0);
 
@@ -211,6 +229,8 @@ int32_t PK_PEv2_PulseEngineStateSet(sPoKeysDevice * device)
 // Execute the move. Position or speed is specified by the ReferencePositionSpeed
 int32_t PK_PEv2_PulseEngineMove(sPoKeysDevice * device)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     // Create request
     CreateRequest(device->request, 0x85, 0x20, 0, 0, 0);
 
@@ -223,6 +243,8 @@ int32_t PK_PEv2_PulseEngineMove(sPoKeysDevice * device)
 // Read external outputs state - save them to ExternalRelayOutputs and ExternalOCOutputs
 int32_t PK_PEv2_ExternalOutputsGet(sPoKeysDevice * device)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     // Send request
     CreateRequest(device->request, 0x85, 0x04, 0, 0, 1);
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
@@ -236,6 +258,8 @@ int32_t PK_PEv2_ExternalOutputsGet(sPoKeysDevice * device)
 // Set external outputs state (from ExternalRelayOutputs and ExternalOCOutputs)
 int32_t PK_PEv2_ExternalOutputsSet(sPoKeysDevice * device)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     // Create request
     CreateRequest(device->request, 0x85, 0x04, device->PEv2.ExternalRelayOutputs, device->PEv2.ExternalOCOutputs, 0);
     // Send request
@@ -247,6 +271,8 @@ int32_t PK_PEv2_ExternalOutputsSet(sPoKeysDevice * device)
 // In addition, pulse engine state is read (PEv2_GetStatus)
 int32_t PK_PEv2_BufferFill(sPoKeysDevice * device)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     // Create request
     CreateRequest(device->request, 0x85, 0xFF, device->PEv2.newMotionBufferEntries, device->PEv2.PulseEngineEnabled & 0x0F, 0);
 
@@ -267,6 +293,8 @@ int32_t PK_PEv2_BufferFill(sPoKeysDevice * device)
 // Clear motion buffer in device
 int32_t PK_PEv2_BufferClear(sPoKeysDevice * device)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     // Create request
     CreateRequest(device->request, 0x85, 0xF0, 0, 0, 0);
     // Send request
@@ -276,6 +304,8 @@ int32_t PK_PEv2_BufferClear(sPoKeysDevice * device)
 // Reboot pulse engine v2
 int32_t PK_PEv2_PulseEngineReboot(sPoKeysDevice * device)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     // Create request
     CreateRequest(device->request, 0x85, 0x05, 0, 0, 0);
     // Send request
@@ -286,6 +316,8 @@ int32_t PK_PEv2_PulseEngineReboot(sPoKeysDevice * device)
 // Axes to home are selected as bit-mapped HomingStartMaskSetup value
 int32_t PK_PEv2_HomingStart(sPoKeysDevice * device)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     // Create request
     CreateRequest(device->request, 0x85, 0x21, device->PEv2.HomingStartMaskSetup, 0, 0);
 
@@ -298,6 +330,8 @@ int32_t PK_PEv2_HomingStart(sPoKeysDevice * device)
 // Finish the homing procedure
 int32_t PK_PEv2_HomingFinish(sPoKeysDevice * device)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     // Create request
     CreateRequest(device->request, 0x85, 0x22, 0, 0, 0);
     // Send request
@@ -311,6 +345,8 @@ int32_t PK_PEv2_HomingFinish(sPoKeysDevice * device)
 // ProbeInputPolarity defines the polarity of the probe signal
 int32_t PK_PEv2_ProbingStart(sPoKeysDevice * device)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     // Create request
     CreateRequest(device->request, 0x85, 0x23, device->PEv2.ProbeStartMaskSetup, 0, 0);
 
@@ -326,6 +362,8 @@ int32_t PK_PEv2_ProbingStart(sPoKeysDevice * device)
 // Finish the probing procedure. Probe position and status are saved to ProbePosition and ProbeStatus
 int32_t PK_PEv2_ProbingFinish(sPoKeysDevice * device)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     // Create request
     CreateRequest(device->request, 0x85, 0x24, 0, 0, 0);
 

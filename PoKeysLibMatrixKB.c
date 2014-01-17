@@ -24,7 +24,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 int32_t PK_MatrixKBConfigurationGet(sPoKeysDevice* device)
 {
     uint32_t n, key, x;
-	if (device->info.iMatrixKeyboard)
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    if (device->info.iMatrixKeyboard)
 	{
 		// Get matrix KB configuration
 		CreateRequest(device->request, 0xCA, 10, 0, 0, 0);
@@ -93,7 +95,9 @@ int32_t PK_MatrixKBConfigurationGet(sPoKeysDevice* device)
 int32_t PK_MatrixKBConfigurationSet(sPoKeysDevice* device)
 {
     uint32_t n, key, x;
-	if (device->info.iMatrixKeyboard)
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    if (device->info.iMatrixKeyboard)
 	{
 		// Set matrix KB configuration
 		CreateRequest(device->request, 0xCA, 1, 0, 0, 0);
@@ -190,7 +194,9 @@ int32_t PK_MatrixKBConfigurationSet(sPoKeysDevice* device)
 int32_t PK_MatrixKBStatusGet(sPoKeysDevice* device)
 {
     uint32_t n;
-	if (device->info.iMatrixKeyboard)
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    if (device->info.iMatrixKeyboard)
 	{
 		// Get matrix KB status
 		CreateRequest(device->request, 0xCA, 20, 0, 0, 0);

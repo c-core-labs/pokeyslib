@@ -307,6 +307,7 @@ typedef struct
     uint32_t iFailSafeSettings;                // Device supports fail-safe mode
     uint32_t iJoystickHATswitch;               // Device supports joystick HAT switch mapping
     uint32_t iPulseEngine;                     // Device supports Pulse engine
+    uint32_t iPulseEnginev2;                   // Device supports Pulse engine v2
 } sPoKeysDevice_Info;
 
 
@@ -333,6 +334,7 @@ typedef struct
     int32_t         CurrentPosition[8];        // Current position
     int32_t         PositionSetup[8];          // Position to be set as current position
     int32_t         ReferencePositionSpeed[8]; // Reference position or speed (position or pulses/s)
+    int8_t          InvertAxisEnable[8];       // Invert axis enable signal
 
     int32_t         SoftLimitMaximum[8];       // Soft limit maximum position
     int32_t         SoftLimitMinimum[8];       // Soft limit minimum position
@@ -739,8 +741,12 @@ typedef struct
     uint8_t                   connectionParam;               // Additional connection parameter
     uint8_t                   requestID;                     // Communication request ID
     uint8_t                   reserved;
+    uint32_t sendRetries;
+    uint32_t readRetries;
+    uint32_t socketTimeout;
     uint8_t                   request[68];                   // Communication buffer
     uint8_t                   response[68];                  // Communication buffer
+    uint64_t                  reserved64;
 } sPoKeysDevice;
 
 
@@ -750,11 +756,15 @@ POKEYSDECL int32_t PK_EnumerateUSBDevices(void);
 // Enumerate network devices. Return the number of ethernet devices detected and the list of detected devices (parameter devices) is filled with devices' data
 POKEYSDECL int32_t PK_EnumerateNetworkDevices(sPoKeysNetworkDeviceSummary * devices, uint32_t timeout);
 POKEYSDECL int32_t PK_SearchNetworkDevices(sPoKeysNetworkDeviceSummary * devices, uint32_t timeout, uint32_t serialNumberToFind);
+POKEYSDECL void PK_SetEthernetRetryCountAndTimeout(sPoKeysDevice* device, uint32_t sendRetries, uint32_t readRetries, uint32_t timeout);
 
 // Connect to USB PoKeys device, returns pointer to a newly created PoKeys device structure. Returns NULL if the connection is not successfull
 POKEYSDECL sPoKeysDevice* PK_ConnectToDevice(uint32_t deviceIndex);
 // Connect to a PoKeys device with the specific serial number. Returns pointer to a newly created PoKeys device structure. Returns NULL if the connection is not successfull
 POKEYSDECL sPoKeysDevice* PK_ConnectToDeviceWSerial(uint32_t serialNumber, uint32_t checkForNetworkDevicesAndTimeout);
+// Same as above, but uses UDP for connection
+POKEYSDECL sPoKeysDevice* PK_ConnectToDeviceWSerial_UDP(uint32_t serialNumber, uint32_t checkForNetworkDevicesAndTimeout);
+
 // Connect to a network PoKeys device. Returns NULL if the connection is not successfull
 POKEYSDECL sPoKeysDevice* PK_ConnectToNetworkDevice(sPoKeysNetworkDeviceSummary * device);
 // Disconnect from a PoKeys device

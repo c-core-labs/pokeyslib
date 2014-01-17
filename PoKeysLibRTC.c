@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 int32_t PK_RTCGet(sPoKeysDevice* device)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     CreateRequest(device->request, 0x83, 0x00, 0, 0, 0);
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
 
@@ -43,6 +45,8 @@ int32_t PK_RTCGet(sPoKeysDevice* device)
 
 int32_t PK_RTCSet(sPoKeysDevice* device)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     CreateRequest(device->request, 0x83, 0x10, 0, 0, 0);
     device->request[8] = device->RTC.SEC;
     device->request[9] = device->RTC.MIN;

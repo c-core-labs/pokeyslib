@@ -26,6 +26,8 @@ int32_t PK_PoNETSetModuleStatus(sPoKeysDevice* device)
 {
   uint32_t i;
 
+  if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
   CreateRequest(device->request, 0xDD, 0x55, device->PoNETmodule.moduleID, 0, 0);
   for (i = 0; i < 16; i++)
   {

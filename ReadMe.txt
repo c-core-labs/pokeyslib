@@ -97,6 +97,7 @@ Author: Matevž Bošnak (matevz@poscope.com)
 
 
 ---- Change log ----
+17.01.2014: Ethernet device timeout configuration option added, bug fixes
 17.12.2013: Support for Pulse engine v2 added, unification of data types used
 17.11.2013: Memory leak fixed, PoIL task status read supported
 16.11.2013: Added support for UDP connection to PoKeys56E/57E devices

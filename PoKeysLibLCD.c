@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 int PK_LCDConfigurationGet(sPoKeysDevice* device)
 {	
 	// Get LCD configuration
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     CreateRequest(device->request, 0xD0, 1, 0, 0, 0);
 	if (SendRequest(device) == PK_OK)
     {
@@ -37,7 +39,9 @@ int PK_LCDConfigurationGet(sPoKeysDevice* device)
 
 int PK_LCDConfigurationSet(sPoKeysDevice* device)
 {
-	// Set LCD configuration
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Set LCD configuration
     CreateRequest(device->request, 0xD0, 0, device->LCD.Configuration, device->LCD.Rows, device->LCD.Columns);
 	if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
 
@@ -55,8 +59,16 @@ int PK_LCDConfigurationSet(sPoKeysDevice* device)
 
 int PK_LCDUpdate(sPoKeysDevice* device)
 {
-	unsigned char * lines[] = { device->LCD.line1, device->LCD.line2, device->LCD.line3, device->LCD.line4 };
+    unsigned char * lines[4];
 	int i, n;
+
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    lines[0] = device->LCD.line1;
+    lines[1] = device->LCD.line2;
+    lines[2] = device->LCD.line3;
+    lines[3] = device->LCD.line4;
+
 	// Update LCD contents
 	for (n = 0; n < 4; n++)
 	{

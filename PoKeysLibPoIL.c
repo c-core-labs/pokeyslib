@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 void PK_ParsePoILStateResponse(sPoKeysDevice* device)
 {
+    if (device == NULL) return;
+
     device->PoIL.info.CodeMemorySize = device->response[8] + ((uint32_t)device->response[9] << 8);
     device->PoIL.info.DataMemorySize = device->response[10] + ((uint32_t)device->response[11] << 8);
 
@@ -48,6 +50,8 @@ void PK_ParsePoILStateResponse(sPoKeysDevice* device)
 
 int32_t PK_PoILGetState(sPoKeysDevice* device)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     CreateRequest(device->request, 0x82, 0x00, 0, 0, 0);
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
 
@@ -61,6 +65,8 @@ int32_t PK_PoILGetState(sPoKeysDevice* device)
 
 int32_t PK_PoILSetCoreState(sPoKeysDevice* device, uint16_t state)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     CreateRequest(device->request, 0x82, 0x01, state & 0xFF, state >> 8, 0);
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
 
@@ -71,6 +77,8 @@ int32_t PK_PoILSetCoreState(sPoKeysDevice* device, uint16_t state)
 
 int32_t PK_PoILSetMasterEnable(sPoKeysDevice* device, uint8_t masterEnable)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     CreateRequest(device->request, 0x82, 0x03, masterEnable, 0, 0);
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
 
@@ -81,6 +89,8 @@ int32_t PK_PoILSetMasterEnable(sPoKeysDevice* device, uint8_t masterEnable)
 
 int32_t PK_PoILResetCore(sPoKeysDevice* device)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     CreateRequest(device->request, 0x82, 0x02, 0, 0, 0);
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
 
@@ -91,6 +101,8 @@ int32_t PK_PoILResetCore(sPoKeysDevice* device)
 
 int32_t PK_PoILSetDebugMode(sPoKeysDevice* device, uint8_t debugMode, uint16_t breakpoint)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     CreateRequest(device->request, 0x82, 0x05, debugMode, breakpoint & 0xFF, breakpoint >> 8);
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
 
@@ -104,6 +116,8 @@ int32_t PK_PoILReadMemory(sPoKeysDevice* device, uint8_t memoryType, uint16_t ad
     uint32_t i;
     uint16_t address2 = 0;
     uint16_t readLen = 0;
+
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
     // Read in chunks of 54 bytes
     for (i = 0; i < size; i += 54)
@@ -131,6 +145,8 @@ int32_t PK_PoILWriteMemory(sPoKeysDevice* device, uint8_t memoryType, uint16_t a
     uint32_t i;
     uint16_t address2 = 0;
     uint16_t writeLen = 0;
+
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
     if (memoryType == 0)
     {
@@ -177,6 +193,8 @@ int32_t PK_PoILReadSharedSlot(sPoKeysDevice* device, uint16_t firstSlotID, uint1
     uint16_t address2 = 0;
     uint8_t requestedSlots;
 
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     // Read in chunks of 54 bytes
     for (i = 0; i < slotsNum; i += 13)
     {
@@ -204,6 +222,8 @@ int32_t PK_PoILWriteSharedSlot(sPoKeysDevice* device, uint16_t firstSlotID, uint
     uint16_t address2 = 0;
     uint8_t requestedSlots;
 
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     // Write in chunks of 54 bytes
     for (i = 0; i < slotsNum; i += 13)
     {
@@ -228,6 +248,8 @@ int32_t PK_PoILWriteSharedSlot(sPoKeysDevice* device, uint16_t firstSlotID, uint
 
 int32_t PK_PoILEraseMemory(sPoKeysDevice* device, uint8_t memoryType)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     CreateRequest(device->request, 0x82, 0x16, memoryType, 0, 0);
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
 
@@ -239,6 +261,8 @@ int32_t PK_PoILChunkReadMemory(sPoKeysDevice * device, uint8_t * dest)
     uint32_t i;
     uint16_t address2 = 0;
     uint16_t readLen = 0;
+
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
     CreateRequest(device->request, 0x82, 0x11, 1, 0, 0);
     for (i = 0; i < 18; i++)
@@ -262,6 +286,8 @@ int32_t PK_PoILChunkReadMemoryInternalAddress(sPoKeysDevice * device, uint8_t * 
     uint32_t i;
     uint16_t readLen = 0;
 
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     CreateRequest(device->request, 0x82, 0x11, 5, 0, 0);
     for (i = 0; i < 18; i++)
     {
@@ -281,8 +307,12 @@ int32_t PK_PoILChunkReadMemoryInternalAddress(sPoKeysDevice * device, uint8_t * 
 int32_t PK_PoILTaskStatus(sPoKeysDevice * device)
 {
     uint32_t i = 0, k = 0;
-    uint8_t taskCountLeft = device->PoIL.taskCount;
+    uint8_t taskCountLeft;
     uint8_t * dataPtr;
+
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    taskCountLeft = device->PoIL.taskCount;
 
     while(taskCountLeft > 0)
     {

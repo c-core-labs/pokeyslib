@@ -59,8 +59,8 @@ const sPoKeys_PinCapabilities pinCaps[] = {
 int32_t PK_DeviceDataGet(sPoKeysDevice* device)
 {
     int32_t i;
-    sPoKeysDevice_Data * data = &device->DeviceData;
-    sPoKeysDevice_Info * info = &device->info;
+    sPoKeysDevice_Data * data;
+    sPoKeysDevice_Info * info;
 
     uint8_t devSeries55 = 0;
     uint8_t devSeries56 = 0;
@@ -71,6 +71,9 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
     uint8_t devBootloader = 0;
 
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    data = &device->DeviceData;
+    info = &device->info;
 
 	memset(info, 0, sizeof(sPoKeysDevice_Info));
 
@@ -488,7 +491,19 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
 		data->ActivatedOptions = device->response[8];
 	} else return PK_ERR_TRANSFER;
 
-	if (data->ActivatedOptions & 1) info->iPulseEngine = 1;
+    // Firmware < 3.0.59
+    if (data->FirmwareVersionMajor == 32 && data->FirmwareVersionMinor < 59)
+    {
+        if (data->ActivatedOptions & 1) info->iPulseEngine = 1;
+    } else if (data->FirmwareVersionMajor == 32 && data->FirmwareVersionMinor >= 59)
+    {
+        // On 3.0.59 and on, Pulse engine is automatically activated
+        info->iPulseEngine = 1;
+    } else if (data->FirmwareVersionMajor == 33)
+    {
+        // On 3.1.0 and on, Pulse engine v2 is automatically activated
+        info->iPulseEnginev2 = 1;
+    }
 
 	return PK_OK;
 }

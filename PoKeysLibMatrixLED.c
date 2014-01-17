@@ -23,7 +23,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 int32_t PK_MatrixLEDConfigurationSet(sPoKeysDevice* device)
 {
-	if (device->info.iMatrixLED == 0) return PK_ERR_GENERIC;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    if (device->info.iMatrixLED == 0) return PK_ERR_GENERIC;
 
 	// Update matrix LED configuration
 	CreateRequest(device->request, 0xD5, 0, 0, 0, 0);
@@ -37,7 +39,9 @@ int32_t PK_MatrixLEDConfigurationSet(sPoKeysDevice* device)
 
 int32_t PK_MatrixLEDConfigurationGet(sPoKeysDevice* device)
 {
-	if (device->info.iMatrixLED == 0) return PK_ERR_GENERIC;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    if (device->info.iMatrixLED == 0) return PK_ERR_GENERIC;
 
 	// Get matrix LED configuration
 	CreateRequest(device->request, 0xD5, 1, 0, 0, 0);
@@ -58,6 +62,9 @@ int32_t PK_MatrixLEDUpdate(sPoKeysDevice* device)
 {
     uint32_t i, j;
     uint8_t displayCode[] = {1, 11};
+
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     if (device->info.iMatrixLED == 0) return PK_ERR_GENERIC;
 
 	// Update matrix LEDs

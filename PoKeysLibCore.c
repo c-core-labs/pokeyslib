@@ -59,7 +59,7 @@ void InitializeNewDevice(sPoKeysDevice* device)
 {
     uint32_t i;
 	memset(&device->info, 0, sizeof(sPoKeysDevice_Info));
-	memset(&device->DeviceData, 0, sizeof(sPoKeysDevice_Info));
+    memset(&device->DeviceData, 0, sizeof(sPoKeysDevice_Data));
 
     device->netDeviceData = 0;
 
@@ -140,6 +140,10 @@ void InitializeNewDevice(sPoKeysDevice* device)
 	} else device->PulseEngine = NULL;
 
     memset(&device->PEv2, 0, sizeof(sPoKeysPEv2));
+
+    device->sendRetries = 3;
+    device->readRetries = 10;
+    device->socketTimeout = 100;
 }
 
 void CleanDevice(sPoKeysDevice* device)
@@ -356,7 +360,7 @@ sPoKeysDevice* PK_ConnectToDevice(uint32_t deviceIndex)
     return NULL;
 }
 
-sPoKeysDevice* PK_ConnectToDeviceWSerial(uint32_t serialNumber, uint32_t checkForNetworkDevicesAndTimeout)
+sPoKeysDevice* PK_ConnectToPoKeysDevice(uint32_t serialNumber, uint32_t checkForNetworkDevicesAndTimeout, uint32_t flags)
 {
     int32_t numDevices = 0;
     struct hid_device_info *devs, *cur_dev;
@@ -378,12 +382,12 @@ sPoKeysDevice* PK_ConnectToDeviceWSerial(uint32_t serialNumber, uint32_t checkFo
     {
         if (cur_dev->interface_number == 1)
         {
-			if (cur_dev->serial_number[0] != 'P')
-			{
-				for (k = 0; k < 8 && cur_dev->serial_number[k] != 0; k++)
-				{
+            if (cur_dev->serial_number[0] != 'P')
+            {
+                for (k = 0; k < 8 && cur_dev->serial_number[k] != 0; k++)
+                {
                     if (cur_dev->serial_number[k] != serialSearch[k]) break;
-				}
+                }
 
                 if (k != 7)
                 {
@@ -393,93 +397,105 @@ sPoKeysDevice* PK_ConnectToDeviceWSerial(uint32_t serialNumber, uint32_t checkFo
                     }
                 }
 
-				if (k == 7)
-				{
-					tmpDevice = (sPoKeysDevice*)malloc(sizeof(sPoKeysDevice));
+                if (k == 7)
+                {
+                    tmpDevice = (sPoKeysDevice*)malloc(sizeof(sPoKeysDevice));
 
-					//printf("Connect to this device...");
-					tmpDevice->devHandle = (void*)hid_open_path(cur_dev->path);
+                    //printf("Connect to this device...");
+                    tmpDevice->devHandle = (void*)hid_open_path(cur_dev->path);
                     tmpDevice->devHandle2 = 0;
 
-					tmpDevice->connectionType = PK_DeviceType_USBDevice;
-					if (tmpDevice->devHandle != NULL)
-					{
-						InitializeNewDevice(tmpDevice);
-					} else
-					{
-						free(tmpDevice);
-						tmpDevice = NULL;
-					}
-					//hid_set_nonblocking(devHandle);
-					hid_free_enumeration(devs);
-					return tmpDevice;
-				}
-			} else
-			{
-				// Old, PoKeys55 device - we must to connect and read the serial number...
-				tmpDevice = (sPoKeysDevice*)malloc(sizeof(sPoKeysDevice));
-				tmpDevice->devHandle = (void*)hid_open_path(cur_dev->path);
+                    tmpDevice->connectionType = PK_DeviceType_USBDevice;
+                    if (tmpDevice->devHandle != NULL)
+                    {
+                        InitializeNewDevice(tmpDevice);
+                    } else
+                    {
+                        free(tmpDevice);
+                        tmpDevice = NULL;
+                    }
+                    //hid_set_nonblocking(devHandle);
+                    hid_free_enumeration(devs);
+                    return tmpDevice;
+                }
+            } else
+            {
+                // Old, PoKeys55 device - we must to connect and read the serial number...
+                tmpDevice = (sPoKeysDevice*)malloc(sizeof(sPoKeysDevice));
+                tmpDevice->devHandle = (void*)hid_open_path(cur_dev->path);
                 tmpDevice->devHandle2 = 0;
 
-				if (tmpDevice->devHandle != NULL)
-				{
-					InitializeNewDevice(tmpDevice);
-				} else
-				{
-					free(tmpDevice);
-					tmpDevice = NULL;
-					hid_free_enumeration(devs);
-					return NULL;
-				}
+                if (tmpDevice->devHandle != NULL)
+                {
+                    InitializeNewDevice(tmpDevice);
+                } else
+                {
+                    free(tmpDevice);
+                    tmpDevice = NULL;
+                    hid_free_enumeration(devs);
+                    return NULL;
+                }
                 hid_free_enumeration(devs);
 
-				tmpDevice->connectionType = PK_DeviceType_USBDevice;
-				if (tmpDevice->DeviceData.SerialNumber == serialNumber)
-				{
-					return tmpDevice;
-				} else
-				{
-					CleanDevice(tmpDevice);
-					free(tmpDevice);
-				}
-			}
-            
+                tmpDevice->connectionType = PK_DeviceType_USBDevice;
+                if (tmpDevice->DeviceData.SerialNumber == serialNumber)
+                {
+                    return tmpDevice;
+                } else
+                {
+                    CleanDevice(tmpDevice);
+                    free(tmpDevice);
+                }
+            }
+
             numDevices++;
         }
         cur_dev = cur_dev->next;
     }
     hid_free_enumeration(devs);
 
-	if (checkForNetworkDevicesAndTimeout)
-	{
+    if (checkForNetworkDevicesAndTimeout)
+    {
         devices = (sPoKeysNetworkDeviceSummary*)malloc(sizeof(sPoKeysNetworkDeviceSummary) * 16);
         iNet = PK_SearchNetworkDevices(devices, checkForNetworkDevicesAndTimeout, serialNumber);
 
         if (iNet > 16) iNet = 16;
 
         for (k = 0; k < iNet; k++)
-		{
-			//printf("\nNetwork device found, serial = %lu at %u.%u.%u.%u", devices[k].SerialNumber, devices[k].IPaddress[0], devices[k].IPaddress[1], devices[k].IPaddress[2], devices[k].IPaddress[3]);
-			if (devices[k].SerialNumber == serialNumber)
-			{
-				tmpDevice = PK_ConnectToNetworkDevice(&devices[k]);
-				if (tmpDevice == NULL)
-				{
-					CleanDevice(tmpDevice);
-					free(tmpDevice);
-					//printf("\nProblem connecting to the device...");
-				} else
-				{
+        {
+            //printf("\nNetwork device found, serial = %lu at %u.%u.%u.%u", devices[k].SerialNumber, devices[k].IPaddress[0], devices[k].IPaddress[1], devices[k].IPaddress[2], devices[k].IPaddress[3]);
+            if (devices[k].SerialNumber == serialNumber)
+            {
+                if (flags & 1) devices[k].useUDP = 1;
+                tmpDevice = PK_ConnectToNetworkDevice(&devices[k]);
+                if (tmpDevice == NULL)
+                {
+                    //CleanDevice(tmpDevice);
+                    free(tmpDevice);
+                    //printf("\nProblem connecting to the device...");
+                } else
+                {
                     free(devices);
                     InitializeNewDevice(tmpDevice);
-					return tmpDevice;
-				}
-			}
-		}
-		free(devices);
-	}
+                    return tmpDevice;
+                }
+            }
+        }
+        free(devices);
+    }
 
     return NULL;
+}
+
+
+sPoKeysDevice* PK_ConnectToDeviceWSerial(uint32_t serialNumber, uint32_t checkForNetworkDevicesAndTimeout)
+{
+    return PK_ConnectToPoKeysDevice(serialNumber, checkForNetworkDevicesAndTimeout, 0);
+}
+
+sPoKeysDevice* PK_ConnectToDeviceWSerial_UDP(uint32_t serialNumber, uint32_t checkForNetworkDevicesAndTimeout)
+{
+    return PK_ConnectToPoKeysDevice(serialNumber, checkForNetworkDevicesAndTimeout, 1);
 }
 
 void PK_DisconnectDevice(sPoKeysDevice* device)
@@ -504,6 +520,8 @@ void PK_DisconnectDevice(sPoKeysDevice* device)
 
 int32_t CreateRequest(unsigned char * request, unsigned char type, unsigned char param1, unsigned char param2, unsigned char param3, unsigned char param4)
 {
+    if (request == NULL) return PK_ERR_NOT_CONNECTED;
+
     memset(request, 0, 64);
 
     request[1] = type;
@@ -544,13 +562,17 @@ int32_t SendRequest(sPoKeysDevice* device)
         int i;
     #endif
 
-    hid_device * devHandle = (hid_device*)device->devHandle;
+    hid_device * devHandle;
+
+
 
     if (device == NULL) return PK_ERR_GENERIC;
 	if (device->connectionType == PK_DeviceType_NetworkDevice)
 	{
 		return SendEthRequest(device);
 	}
+
+    devHandle = (hid_device*)device->devHandle;
 
 
     if (devHandle == NULL) return PK_ERR_GENERIC;
@@ -585,7 +607,7 @@ int32_t SendRequest(sPoKeysDevice* device)
         waits = 0;
 
         // Request receiving loop
-        while (waits++ < 100)
+        while (waits++ < 50)
         {
             result = hid_read(devHandle, device->response, 65);
 
@@ -609,11 +631,13 @@ int32_t SendRequest(sPoKeysDevice* device)
                 // Check the header and the request ID
                 if (device->response[0] == 0xAA && device->response[6] == device->requestID)
                 {
-
-                    LastRetryCount = retries;
-                    LastWaitCount = waits;
-                    // This is it. Return from this function
-                    return PK_OK;
+                    if (device->response[7] == getChecksum(device->response))
+                    {
+                        LastRetryCount = retries;
+                        LastWaitCount = waits;
+                        // This is it. Return from this function
+                        return PK_OK;
+                    }
                 }
             }
     }

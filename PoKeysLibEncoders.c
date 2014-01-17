@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 int32_t PK_EncoderConfigurationGet(sPoKeysDevice* device)
 {
     uint32_t i;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
 	if (device->info.iBasicEncoderCount)
 	{
 		// Get basic encoder options
@@ -101,7 +103,9 @@ int32_t PK_EncoderConfigurationGet(sPoKeysDevice* device)
 int32_t PK_EncoderConfigurationSet(sPoKeysDevice* device)
 {
     uint32_t i;
-	if (device->info.iBasicEncoderCount)
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    if (device->info.iBasicEncoderCount)
 	{
 		// Set basic encoder options
 		CreateRequest(device->request, 0xC4, 1, 0, 0, 0);
@@ -162,7 +166,9 @@ int32_t PK_EncoderConfigurationSet(sPoKeysDevice* device)
 int32_t PK_EncoderValuesGet(sPoKeysDevice* device)
 {
     uint32_t i;
-	if (device->info.iBasicEncoderCount >= 13)
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    if (device->info.iBasicEncoderCount >= 13)
 	{
 		// Read the first 13 encoders
 		CreateRequest(device->request, 0xCD, 0, 0, 0, 0);
@@ -204,7 +210,9 @@ int32_t PK_EncoderValuesGet(sPoKeysDevice* device)
 int32_t PK_EncoderValuesSet(sPoKeysDevice* device)
 {
     uint32_t i;
-	if (device->info.iBasicEncoderCount >= 13)
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    if (device->info.iBasicEncoderCount >= 13)
 	{
 		// Read the first 13 encoders
 		CreateRequest(device->request, 0xCD, 10, 0, 0, 0);

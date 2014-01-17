@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 int32_t PK_SPIConfigure(sPoKeysDevice * device, uint8_t prescaler, uint8_t frameFormat)
 {
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     // Configure SPI
     CreateRequest(device->request, 0xE5, 0x01, prescaler, frameFormat, 0);
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
@@ -32,6 +34,8 @@ int32_t PK_SPIConfigure(sPoKeysDevice * device, uint8_t prescaler, uint8_t frame
 int32_t PK_SPIWrite(sPoKeysDevice * device, uint8_t * buffer, uint8_t iDataLength, uint8_t pinCS)
 {
     uint8_t i;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     if (iDataLength > 16) iDataLength = 16;
 
     CreateRequest(device->request, 0xE5, 0x10, iDataLength, pinCS, 0);
@@ -47,6 +51,8 @@ int32_t PK_SPIWrite(sPoKeysDevice * device, uint8_t * buffer, uint8_t iDataLengt
 int32_t PK_SPIRead(sPoKeysDevice * device, uint8_t * buffer, uint8_t iDataLength)
 {
     uint8_t i;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
     if (iDataLength > 16) iDataLength = 16;
 
     CreateRequest(device->request, 0xE5, 0x20, iDataLength, 0, 0);

@@ -437,7 +437,11 @@ sPoKeysDevice* PK_ConnectToNetworkDevice(sPoKeysNetworkDeviceSummary * device)
     uint32 addr ;
 
     // Create temporary device object
-    sPoKeysDevice * tmpDevice = (sPoKeysDevice*)malloc(sizeof(sPoKeysDevice));
+    sPoKeysDevice * tmpDevice;
+
+    if (device == NULL) return NULL;
+
+    tmpDevice = (sPoKeysDevice*)malloc(sizeof(sPoKeysDevice));
     tmpDevice->devHandle2 = malloc(sizeof(struct sockaddr_in));
 
     tmpDevice->connectionType = PK_DeviceType_NetworkDevice; // Network device
@@ -524,6 +528,15 @@ sPoKeysDevice* PK_ConnectToNetworkDevice(sPoKeysNetworkDeviceSummary * device)
         return NULL; // Couldn't connect
     }
 
+#ifdef WIN32
+    if (tmpDevice->connectionParam == PK_ConnectionParam_UDP)
+    {
+        // Setup socket to be unblocking
+        u_long iMode = TRUE;
+        ioctlsocket((SOCKET)tmpDevice->devHandle, FIONBIO, &iMode);
+    }
+#endif
+
 	debug_printf(" Connected\n");
 
     debug_printf("Initializing the device object... ");
@@ -558,15 +571,12 @@ void PK_DisconnectNetworkDevice(sPoKeysDevice* device)
 
 int32_t SendEthRequest(sPoKeysDevice* device)
 {    
-    int retries1 = 0;
-    int retries2 = 0;
+    uint32_t retries1 = 0;
+    uint32_t retries2 = 0;
     int result;
 
-#ifdef WIN32
-#else
     fd_set fds;
     struct timeval stimeout;
-#endif  
 
     if (device == NULL) return PK_ERR_GENERIC;
     if (device->connectionType != PK_DeviceType_NetworkDevice) return PK_ERR_GENERIC;
@@ -614,7 +624,26 @@ int32_t SendEthRequest(sPoKeysDevice* device)
 		while(1)
 		{           
 #ifdef WIN32
+            FD_ZERO(&fds);
+            FD_SET((SOCKET)device->devHandle, &fds);
+
+            stimeout.tv_sec = 0;
+            stimeout.tv_usec = 1000 * 100;
+
+            result = select((SOCKET)device->devHandle + 1, &fds, NULL, NULL, &stimeout);
+
+            if (result == 0 || result == -1)
+            {
+                // Timeout...
+                debug_printf("Timeout!");
+                if (++retries1 > device->readRetries) break;
+                continue;
+            }
+
+            //device->reserved64 = GetTickCount64();
             result = recv((SOCKET)device->devHandle, (char *)device->response, 64, 0);
+            //device->reserved64 = GetTickCount64() - device->reserved64;
+            //printf("Time: %u\n", (uint32_t)device->reserved64);
 #else
             FD_ZERO(&fds);
             FD_SET(*(int*)device->devHandle, &fds);
@@ -666,13 +695,22 @@ int32_t SendEthRequest(sPoKeysDevice* device)
 #endif
 
             
-			if (++retries1 > 10) break;
+            if (++retries1 > device->readRetries) break;
 		}
 
-        if (retries2++ > 3) break;
+        if (retries2++ > device->sendRetries) break;
     }
 
 	debug_printf("Error - timeout...");
 	return PK_ERR_TRANSFER;
 
 }
+
+
+void PK_SetEthernetRetryCountAndTimeout(sPoKeysDevice * device, uint32_t sendRetries, uint32_t readRetries, uint32_t timeout)
+{
+    device->sendRetries = sendRetries;
+    device->readRetries = readRetries;
+    device->socketTimeout = timeout;
+}
+
