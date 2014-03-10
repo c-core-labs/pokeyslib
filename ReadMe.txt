@@ -83,7 +83,7 @@ http://www.mypokeys.com/new-cross-platform-library-for-all-pokeys-devices
 [x  ] I2C operations
 [x  ] SPI operation
 [x  ] PoIL operations
-[   ]
+[x  ] 1-wire operations
 [   ]
 [   ]
 [   ]
@@ -97,6 +97,8 @@ Author: Matevž Bošnak (matevz@poscope.com)
 
 
 ---- Change log ----
+10.03.2014: Support for 1-wire included
+31.01.2014: Updated PoIL shared slot read/write (wrong indexing)
 17.01.2014: Ethernet device timeout configuration option added, bug fixes
 17.12.2013: Support for Pulse engine v2 added, unification of data types used
 17.11.2013: Memory leak fixed, PoIL task status read supported

@@ -203,7 +203,7 @@ int32_t PK_PoILReadSharedSlot(sPoKeysDevice* device, uint16_t firstSlotID, uint1
         else
             requestedSlots = slotsNum - i;
 
-        address2 = firstSlotID + i;
+        address2 = 4*(firstSlotID + i);
 
         // Unlike other memories, address is the ID of the shared slot
         CreateRequest(device->request, 0x82, 0x10, 4, (uint8_t)address2, (uint8_t)(address2 >> 8));
@@ -232,7 +232,7 @@ int32_t PK_PoILWriteSharedSlot(sPoKeysDevice* device, uint16_t firstSlotID, uint
         else
             requestedSlots = slotsNum - i;
 
-        address2 = firstSlotID + i;
+        address2 = 4*(firstSlotID + i);
 
         // Unlike other memories, address is the ID of the shared slot
         CreateRequest(device->request, 0x82, 0x15, 4, (uint8_t)address2, (uint8_t)(address2 >> 8));

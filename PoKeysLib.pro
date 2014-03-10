@@ -24,7 +24,8 @@ SOURCES += PoKeysLibCore.c \
     PoKeysLibPoIL.c \
     PoKeysLibRTC.c \
     PoKeysLibSPI.c \
-    PoKeysLibPulseEngine_v2.c
+    PoKeysLibPulseEngine_v2.c \
+    PoKeysLib1Wire.c
 
 win32: SOURCES += hid.c
 

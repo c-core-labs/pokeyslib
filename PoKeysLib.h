@@ -1,6 +1,6 @@
 /*
 
-   Copyright (C) 2013 Matevž Bošnak (matevz@poscope.com)
+   Copyright (C) 2014 Matevž Bošnak (matevz@poscope.com)
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -37,8 +37,8 @@ typedef unsigned char    uint8_t;
 typedef unsigned short   uint16_t;
 typedef unsigned int     uint32_t;
 
-typedef __int64          int64_t;
-typedef unsigned __int64 uint64_t;
+typedef long long        int64_t;
+typedef unsigned long long uint64_t;
 
     #endif
 
@@ -972,14 +972,22 @@ POKEYSDECL int32_t PK_I2CBusScanStart(sPoKeysDevice* device);
 // Get bus scan results. iMaxDevices specifies how big presentDevices buffer is. presentDevices returns one entry per device
 POKEYSDECL int32_t PK_I2CBusScanGetResults(sPoKeysDevice* device, uint8_t* status, uint8_t* presentDevices, uint8_t iMaxDevices);
 
-
 POKEYSDECL int32_t PK_PoNETSetModuleStatus(sPoKeysDevice* device);
+
+// 1-wire operations
+// Set 1-wire activation status
+int32_t PK_1WireStatusSet(sPoKeysDevice* device, uint8_t activated);
+// Get 1-wire activation status
+int32_t PK_1WireStatusGet(sPoKeysDevice* device, uint8_t* activated);
+// Start 1-wire write and read operation
+int32_t PK_1WireWriteReadStart(sPoKeysDevice* device, uint8_t WriteCount, uint8_t ReadCount, uint8_t * data);
+// Get the result of the read operation
+int32_t PK_1WireReadStatusGet(sPoKeysDevice* device, uint8_t * readStatus, uint8_t * ReadCount, uint8_t * data);
 
 // SPI operations
 POKEYSDECL int32_t PK_SPIConfigure(sPoKeysDevice * device, uint8_t prescaler, uint8_t frameFormat);
 POKEYSDECL int32_t PK_SPIWrite(sPoKeysDevice * device, uint8_t * buffer, uint8_t iDataLength, uint8_t pinCS);
 POKEYSDECL int32_t PK_SPIRead(sPoKeysDevice * device, uint8_t * buffer, uint8_t iDataLength);
-
 
 // PoIL commands
 POKEYSDECL int32_t PK_PoILGetState(sPoKeysDevice* device);
