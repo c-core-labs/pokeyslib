@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef WIN32
     #include "windows.h"
-    #include "Winsock.h"
+   // #include "Winsock.h"
     #include "conio.h"
     #include <iphlpapi.h>
 #else

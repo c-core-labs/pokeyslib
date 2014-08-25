@@ -56,6 +56,18 @@ const sPoKeys_PinCapabilities pinCaps[] = {
     { -1, 0, 0, 0 }
 };
 
+int32_t CompareName(int8_t *device, int8_t *search)
+{
+    int32_t len = strlen(search);
+    int32_t i;
+
+    for (i = 0; i < len; i++)
+    {
+        if (device[i] != search[i]) return i+1;
+    }
+    return 0;
+}
+
 int32_t PK_DeviceDataGet(sPoKeysDevice* device)
 {
     int32_t i;
@@ -66,6 +78,8 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
     uint8_t devSeries56 = 0;
     uint8_t devSeries27 = 0;
     uint8_t devSeries58 = 0;
+    uint8_t devSeries16 = 0;
+    uint8_t devNewSeries = 0;
     uint8_t devUSB = 0;
     uint8_t devEth = 0;
     uint8_t devBootloader = 0;
@@ -80,12 +94,13 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
 	memset(device->request, 0, 64);
 	memset(device->response, 0, 64);
 
+    data->DeviceType = 0;
+
 	// Read serial and firmware version
 	CreateRequest(device->request, 0x00, 0, 0, 0, 0);
 	if (SendRequest(device) == PK_OK)
     {
-        if (device->response[8] == 'P' && device->response[9] == 'K'
-                && device->response[10] == '5' && device->response[11] == '8')
+        if (CompareName(device->response+8, "PK58") == 0) // device->response[8] == 'P' && device->response[9] == 'K' && device->response[10] == '5' && device->response[11] == '8')
         {
             // Series 58 device
             data->FirmwareVersionMajor = device->response[4];
@@ -94,6 +109,7 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
             data->SerialNumber = (int)device->response[12] + ((int)device->response[13] << 8)
                     + ((int)device->response[14] << 16) + ((int)device->response[15] << 24);
             data->HWtype = device->response[18];
+            data->ProductID = device->response[57];
 
             // Read device name
             memset(data->DeviceName, 0, 11);
@@ -103,6 +119,27 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
             memset(data->BuildDate, 0, 12);
             memcpy(data->BuildDate, device->response + 20, 11);
 
+            devNewSeries = 1;
+        } else if (CompareName(device->response+8, "RF16") == 0)
+        {
+            // Series 16 device
+            data->FirmwareVersionMajor = device->response[4];
+            data->FirmwareVersionMinor = device->response[5];
+
+            data->SerialNumber = (int)device->response[12] + ((int)device->response[13] << 8)
+                    + ((int)device->response[14] << 16) + ((int)device->response[15] << 24);
+            data->HWtype = device->response[18];
+            data->ProductID = device->response[57];
+
+            // Read device name
+            memset(data->DeviceName, 0, 11);
+            memcpy(data->DeviceName, device->response + 31, 10);
+
+            // Read build date
+            memset(data->BuildDate, 0, 12);
+            memcpy(data->BuildDate, device->response + 20, 11);
+
+            devNewSeries = 1;
         } else
         {
             data->FirmwareVersionMajor = device->response[4];
@@ -122,128 +159,153 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
         data->DeviceLockStatus = device->response[3];
 	} else return PK_ERR_TRANSFER;
 
-	// Resolve device type
-    if (data->SerialNumber == 0xFFFF)
+    if (devNewSeries == 0)
     {
-		data->DeviceType = 3; // old bootloader - recovery mode
-		devSeries55 = 1;
-		devBootloader = 1;
 
-        data->DeviceTypeID = PK_DeviceMask_Bootloader | PK_DeviceMask_Bootloader55;
-    
-	// PoKeys56 devices have serial numbers above 20000
-    } else if (data->SerialNumber >= 20000 && data->SerialNumber < 65536)
-    {
-		// PoKeys56 bootloaders have bit 7 set in the major firmware version
-		if ((data->FirmwareVersionMajor & (1 << 7)) > 0)
+        // Resolve device type
+        if (data->SerialNumber == 0xFFFF)
         {
-            if (device->connectionType == PK_DeviceType_NetworkDevice)
-            {
-                data->DeviceType = 16; // PoKeys56E bootloader
-				devBootloader = 1;
-				devSeries56 = 1;
+            data->DeviceType = 3; // old bootloader - recovery mode
+            devSeries55 = 1;
+            devBootloader = 1;
 
-                data->DeviceTypeID = PK_DeviceMask_Bootloader | PK_DeviceMask_Bootloader56 | PK_DeviceMask_Bootloader56E;
-            }
-            else
-            {
-                data->DeviceType = 15; // PoKeys56U bootloader
-				devUSB = 1;
-				devBootloader = 1;
-				devSeries56 = 1;
+            data->DeviceTypeID = PK_DeviceMask_Bootloader | PK_DeviceMask_Bootloader55;
 
-                data->DeviceTypeID = PK_DeviceMask_Bootloader | PK_DeviceMask_Bootloader56 | PK_DeviceMask_Bootloader56U;
-            }
-        }
-        else
+        // PoKeys56 devices have serial numbers above 20000
+        } else if (data->SerialNumber >= 20000 && data->SerialNumber < 65536)
         {
-            // PoTLog27
-            if (data->FirmwareVersionMajor == 64)
-            {
-				if (device->connectionType == PK_DeviceType_NetworkDevice)
-                {
-                    data->DeviceType = 21; // PoTLog27E
-					devSeries27 = 1;
-					devEth = 1;
-
-                    data->DeviceTypeID = PK_DeviceMask_27 | PK_DeviceMask_27E;
-                }
-                else
-                {
-					devUSB = 1;
-					devSeries27 = 1;
-                    data->DeviceType = 20; // PoTLog27U
-                    data->DeviceTypeID = PK_DeviceMask_27 | PK_DeviceMask_27U;
-                }
-            }
-            else
+            // PoKeys56 bootloaders have bit 7 set in the major firmware version
+            if ((data->FirmwareVersionMajor & (1 << 7)) > 0)
             {
                 if (device->connectionType == PK_DeviceType_NetworkDevice)
                 {
-                    data->DeviceType = 11; // PoKeys56E
-					devSeries56 = 1;
-					devEth = 1;
-                    data->DeviceTypeID = PK_DeviceMask_56 | PK_DeviceMask_56E;
+                    data->DeviceType = 16; // PoKeys56E bootloader
+                    devBootloader = 1;
+                    devSeries56 = 1;
+
+                    data->DeviceTypeID = PK_DeviceMask_Bootloader | PK_DeviceMask_Bootloader56 | PK_DeviceMask_Bootloader56E;
                 }
                 else
                 {
-					devUSB = 1;
-                    data->DeviceType = 10; // PoKeys56U
-    				devSeries56 = 1;
-                    data->DeviceTypeID = PK_DeviceMask_56 | PK_DeviceMask_56U;
+                    data->DeviceType = 15; // PoKeys56U bootloader
+                    devUSB = 1;
+                    devBootloader = 1;
+                    devSeries56 = 1;
+
+                    data->DeviceTypeID = PK_DeviceMask_Bootloader | PK_DeviceMask_Bootloader56 | PK_DeviceMask_Bootloader56U;
+                }
+            }
+            else
+            {
+                // PoTLog27
+                if (data->FirmwareVersionMajor == 64)
+                {
+                    if (device->connectionType == PK_DeviceType_NetworkDevice)
+                    {
+                        data->DeviceType = 21; // PoTLog27E
+                        devSeries27 = 1;
+                        devEth = 1;
+
+                        data->DeviceTypeID = PK_DeviceMask_27 | PK_DeviceMask_27E;
+                    }
+                    else
+                    {
+                        devUSB = 1;
+                        devSeries27 = 1;
+                        data->DeviceType = 20; // PoTLog27U
+                        data->DeviceTypeID = PK_DeviceMask_27 | PK_DeviceMask_27U;
+                    }
+                }
+                else
+                {
+                    if (device->connectionType == PK_DeviceType_NetworkDevice)
+                    {
+                        data->DeviceType = 11; // PoKeys56E
+                        devSeries56 = 1;
+                        devEth = 1;
+                        data->DeviceTypeID = PK_DeviceMask_56 | PK_DeviceMask_56E;
+                    }
+                    else
+                    {
+                        devUSB = 1;
+                        data->DeviceType = 10; // PoKeys56U
+                        devSeries56 = 1;
+                        data->DeviceTypeID = PK_DeviceMask_56 | PK_DeviceMask_56U;
+                    }
                 }
             }
         }
-    } else if (data->SerialNumber >= 50000)
+        // PoKeys55 v3
+        else if (data->SerialNumber >= 11500)
+        {
+            devUSB = 1;
+            devSeries55 = 1;
+            data->DeviceType = 2;
+            data->DeviceTypeID = PK_DeviceMask_55 | PK_DeviceMask_55v3;
+        }
+        // PoKeys55 v2
+        else if (data->SerialNumber >= 10113)
+        {
+            devUSB = 1;
+            devSeries55 = 1;
+            data->DeviceType = 1;
+            data->DeviceTypeID = PK_DeviceMask_55 | PK_DeviceMask_55v2;
+        }
+        // PoKeys55 v1
+        else
+        {
+            devUSB = 1;
+            devSeries55 = 1;
+            data->DeviceType = 0;
+            data->DeviceTypeID = PK_DeviceMask_55 | PK_DeviceMask_55v1;
+        }
+
+    // New devices report type already
+    } else
     {
         // PoKeys58 series devices report their type by themselves
         data->DeviceType = data->HWtype;
-        devSeries58 = 1;
-
-        devUSB = 1;
-        devEth = 1;
 
         switch (data->DeviceType)
         {
             // PoKeys58EU
             case 40:
+                devSeries58 = 1;
+
+                devUSB = 1;
+                devEth = 1;
+
                 data->DeviceTypeID = PK_DeviceMask_58;
                 break;
             // PoBootload series 58
             case 41:
+                devSeries58 = 1;
+
+                devUSB = 1;
+                devEth = 1;
+
                 data->DeviceTypeID = PK_DeviceMask_Bootloader58;
                 devBootloader = 1;
                 break;
             // PoPLC58
             case 50:
+                devSeries58 = 1;
+
+                devUSB = 1;
+                devEth = 1;
+
                 data->DeviceTypeID = PK_DeviceMask_PoPLC58;
+                break;
+
+            // PoKeys16RF
+            case 60:
+                devSeries16 = 1;
+                devUSB = 1;
+                data->DeviceTypeID = PK_DeviceMask_PoKeys16RF;
                 break;
         }
     }
-	// PoKeys55 v3
-    else if (data->SerialNumber >= 11500)
-    {
-		devUSB = 1;
-		devSeries55 = 1;
-        data->DeviceType = 2;
-        data->DeviceTypeID = PK_DeviceMask_55 | PK_DeviceMask_55v3;
-    }
-	// PoKeys55 v2
-    else if (data->SerialNumber >= 10113)
-    {
-		devUSB = 1;
-		devSeries55 = 1;
-        data->DeviceType = 1;
-        data->DeviceTypeID = PK_DeviceMask_55 | PK_DeviceMask_55v2;
-    }
-	// PoKeys55 v1
-    else
-	{
-		devUSB = 1;
-		devSeries55 = 1;
-        data->DeviceType = 0;
-        data->DeviceTypeID = PK_DeviceMask_55 | PK_DeviceMask_55v1;
-    }
+
 
 	// Resolve the type names
 	switch (data->DeviceType)
@@ -287,6 +349,10 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
         case 50:
             sprintf(data->DeviceTypeName, "PoPLC58");
             break;
+        case 60:
+            sprintf(data->DeviceTypeName, "PoKeys16RF");
+            break;
+
         default:
             sprintf(data->DeviceTypeName, "PoKeys");
 			break;
@@ -363,6 +429,15 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
             info->iBasicEncoderCount = 0;
             break;
 
+        // PoKeys16RF
+        case 60:
+            info->iPinCount = 16;
+            info->iEncodersCount = 0;
+            info->iPWMCount = 0;
+            info->iBasicEncoderCount = 0;
+            break;
+
+
 		default:
 			info->iPinCount = 0;
 			info->iBasicEncoderCount = 0;
@@ -404,7 +479,7 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
         device->netDeviceData = 0;
     }
 
-    if (!devSeries58)
+    if (!devNewSeries)
     {
         // Read device name
         CreateRequest(device->request, 0x06, 0, 0, 0, 0);
@@ -423,7 +498,7 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
         strcpy(data->DeviceName, data->DeviceTypeName);
 	}
 
-    if (!devSeries58)
+    if (!devNewSeries)
     {
         // Read firmware build date
         CreateRequest(device->request, 0x04, 0, 0, 0, 0);
@@ -450,7 +525,7 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
 	// Check device capabilities
 	if (!devBootloader)
 	{
-        if (!devSeries58)
+        if (devSeries27 || devSeries55 || devSeries56)
         {
             if (devUSB)						info->iKeyMapping = 1;
             if (devUSB && !devSeries27)		info->iTriggeredKeyMapping = 1;
@@ -479,30 +554,36 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
             if (devSeries56)				info->iFailSafeSettings = 1;
             if (devSeries56 && devUSB)		info->iJoystickHATswitch = 1;
         }
-		if (1)							info->iAnalogInputs = 1;
-		if (1)	  						info->iAnalogFiltering = 1;
-		if (!devSeries27)				info->iLoadStatus = 1;
+        if (1)                              info->iAnalogInputs = 1;
+        if (1)                              info->iAnalogFiltering = 1;
+        if (!devSeries27 && !devSeries16)	info->iLoadStatus = 1;
 	}
 
-	// Read activated options
-    CreateRequest(device->request, 0x8F, 0, 0, 0, 0);
-	if (SendRequest(device) == PK_OK)
+    if (devSeries27 || devSeries55 || devSeries56 || devSeries58)
     {
-		data->ActivatedOptions = device->response[8];
-	} else return PK_ERR_TRANSFER;
+        // Read activated options
+        CreateRequest(device->request, 0x8F, 0, 0, 0, 0);
+        if (SendRequest(device) == PK_OK)
+        {
+            data->ActivatedOptions = device->response[8];
+        } else return PK_ERR_TRANSFER;
+    }
 
-    // Firmware < 3.0.59
-    if (data->FirmwareVersionMajor == 32 && data->FirmwareVersionMinor < 59)
+    if (devSeries56)
     {
-        if (data->ActivatedOptions & 1) info->iPulseEngine = 1;
-    } else if (data->FirmwareVersionMajor == 32 && data->FirmwareVersionMinor >= 59)
-    {
-        // On 3.0.59 and on, Pulse engine is automatically activated
-        info->iPulseEngine = 1;
-    } else if (data->FirmwareVersionMajor == 33)
-    {
-        // On 3.1.0 and on, Pulse engine v2 is automatically activated
-        info->iPulseEnginev2 = 1;
+        // Firmware < 3.0.59
+        if (data->FirmwareVersionMajor == 32 && data->FirmwareVersionMinor < 59)
+        {
+            if (data->ActivatedOptions & 1) info->iPulseEngine = 1;
+        } else if (data->FirmwareVersionMajor == 32 && data->FirmwareVersionMinor >= 59)
+        {
+            // On 3.0.59 and on, Pulse engine is automatically activated
+            info->iPulseEngine = 1;
+        } else if (data->FirmwareVersionMajor == 33)
+        {
+            // On 3.1.0 and on, Pulse engine v2 is automatically activated
+            info->iPulseEnginev2 = 1;
+        }
     }
 
 	return PK_OK;
@@ -689,7 +770,41 @@ int32_t PK_CheckPinCapability(sPoKeysDevice* device, unsigned int pin, ePK_AllPi
 }
 
 
-int32_t PK_CheckPinEnabledCapability(sPoKeysDevice* device, unsigned int pin, ePK_AllPinCap cap)
+int32_t PK_CheckPinEnabledCapability(sPoKeysDevice* device, uint32_t pin, ePK_AllPinCap cap)
 {
     return 0;
+}
+
+int32_t PK_GetDebugValues(sPoKeysDevice * device, int32_t * buffer)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    CreateRequest(device->request, 0xBB, 0, 1, 0, 0);
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+	memcpy(buffer + 0, &device->response[8], 13*4);
+
+	CreateRequest(device->request, 0xBB, 1, 1, 0, 0);
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+	memcpy(buffer + 13, &device->response[8], 13*4);
+
+    CreateRequest(device->request, 0xBB, 2, 1, 0, 0);
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+	memcpy(buffer + 26, &device->response[8], 13*4);
+
+    CreateRequest(device->request, 0xBB, 3, 1, 0, 0);
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+	memcpy(buffer + 39, &device->response[8], 13*4);
+
+	return PK_OK;
+
+}
+
+int32_t PK_SetFastUSBEnableStatus(sPoKeysDevice * device, uint32_t newState)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    CreateRequest(device->request, 0x07, newState, 0, 0, 0);
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	return PK_OK;
 }

@@ -63,6 +63,7 @@ http://www.mypokeys.com/new-cross-platform-library-for-all-pokeys-devices
 [xxx] Enumerating USB devices
 [xx ] Enumerating network devices
 [xxx] Connecting to USB devices
+[x  ] Fast USB interface support
 [xx ] Connecting to network devices
 [xxx] Reading device data
 [xxx] Reading digital inputs
@@ -77,15 +78,14 @@ http://www.mypokeys.com/new-cross-platform-library-for-all-pokeys-devices
 [   ] Reading pin key codes
 [x  ] PWM operations
 [xxx] Pulse engine operations
-[   ] Matrix keyboard setup
-[   ] Matrix keyboard reading
+[x  ] Matrix keyboard setup
+[x  ] Matrix keyboard reading
 [xxx] Using encoders
 [x  ] I2C operations
 [x  ] SPI operation
 [x  ] PoIL operations
 [x  ] 1-wire operations
-[   ]
-[   ]
+[x  ] PoNET bus support
 [   ]
 [   ]
 [   ]
@@ -97,6 +97,7 @@ Author: Matevž Bošnak (matevz@poscope.com)
 
 
 ---- Change log ----
+25.08.2014: Fast USB interface supported (PoKeys56U), Multi-part PEv2 data introduced
 10.03.2014: Support for 1-wire included
 31.01.2014: Updated PoIL shared slot read/write (wrong indexing)
 17.01.2014: Ethernet device timeout configuration option added, bug fixes

@@ -47,6 +47,21 @@ int32_t PK_EnumerateUSBDevices()
     }
     hid_free_enumeration(devs);
 
+    devs = hid_enumerate(0x1DC3, 0x1002);
+    cur_dev = devs;
+
+    while (cur_dev)
+    {
+        /*printf("Device Found\n");
+        printf("  Serial:      %ls\n", cur_dev->serial_number);
+        printf("  Product:      %ls\n", cur_dev->product_string);
+        printf("  Interface:    %d\n",  cur_dev->interface_number);
+        printf("\n");*/
+        if (cur_dev->interface_number == -1) numDevices++;
+        cur_dev = cur_dev->next;
+    }
+    hid_free_enumeration(devs);
+
     return numDevices;
 }
 
@@ -339,6 +354,7 @@ sPoKeysDevice* PK_ConnectToDevice(uint32_t deviceIndex)
 
 				tmpDevice->connectionType = PK_DeviceType_USBDevice;
 
+
 				if (tmpDevice->devHandle != NULL)
 				{
                     InitializeNewDevice(tmpDevice);
@@ -357,9 +373,48 @@ sPoKeysDevice* PK_ConnectToDevice(uint32_t deviceIndex)
     }
     hid_free_enumeration(devs);
 
+    // Continue with 0x1002 devices
+    devs = hid_enumerate(0x1DC3, 0x1002);
+    cur_dev = devs;
+
+    while (cur_dev)
+    {
+        if (cur_dev->interface_number == -1)
+        {
+            if (numDevices == deviceIndex)
+            {
+                tmpDevice = (sPoKeysDevice*)malloc(sizeof(sPoKeysDevice));
+
+                //printf("Connect to this device...");
+                tmpDevice->devHandle = (void*)hid_open_path(cur_dev->path);
+                tmpDevice->devHandle2 = NULL;
+
+                tmpDevice->connectionType = PK_DeviceType_USBDevice;
+
+                if (tmpDevice->devHandle != NULL)
+                {
+                    InitializeNewDevice(tmpDevice);
+                } else
+                {
+                    free(tmpDevice);
+                    tmpDevice = NULL;
+                }
+                //hid_set_nonblocking(devHandle);
+                hid_free_enumeration(devs);
+                return tmpDevice;
+            }
+            numDevices++;
+        }
+        cur_dev = cur_dev->next;
+    }
+    hid_free_enumeration(devs);
+
     return NULL;
 }
 
+// Flags:
+// bits 7-1: deviceType specifier (2 - PoKeys56, 3 - PoKeys58, 4 - PoKeys16)
+// bit 0: use UDP
 sPoKeysDevice* PK_ConnectToPoKeysDevice(uint32_t serialNumber, uint32_t checkForNetworkDevicesAndTimeout, uint32_t flags)
 {
     int32_t numDevices = 0;
@@ -367,23 +422,55 @@ sPoKeysDevice* PK_ConnectToPoKeysDevice(uint32_t serialNumber, uint32_t checkFor
     int32_t k;
     sPoKeysDevice* tmpDevice;
     uint8_t serialSearch[8];
-    uint8_t serialSearch58[8];
+    //uint8_t serialSearch58[8];
 
     sPoKeysNetworkDeviceSummary * devices;
     int32_t iNet;
 
+    int devRange = 0;
+    uint8_t deviceTypeRequested = (flags >> 1) & 0x7F;
+
+
+#ifdef POKEYSLIB_USE_LIBUSB
+	// Try connecting to fast USB interface first
+	void * devData = ConnectToFastUSBInterface(serialNumber);
+	if (devData != NULL)
+	{
+		tmpDevice = (sPoKeysDevice*)malloc(sizeof(sPoKeysDevice));
+
+		tmpDevice->devHandle = NULL;
+        tmpDevice->devHandle2 = devData;
+
+        tmpDevice->connectionType = PK_DeviceType_FastUSBDevice;
+        InitializeNewDevice(tmpDevice);	
+		return tmpDevice;
+	}
+#endif
+
     devs = hid_enumerate(0x1DC3, 0x1001);
     cur_dev = devs;
 
-    sprintf(serialSearch, "2.%05lu", serialNumber % 100000);
-    sprintf(serialSearch58, "3.%05lu", serialNumber % 100000);
+    sprintf((char*)serialSearch, "x.%05lu", serialNumber % 100000);
+    //sprintf(serialSearch58, "3.%05lu", serialNumber % 100000);
 
     while (cur_dev)
     {
-        if (cur_dev->interface_number == 1)
+        if ((cur_dev->interface_number == 1 && devRange == 0) ||
+            (cur_dev->interface_number == 0 && devRange == 1))
         {
-            if (cur_dev->serial_number[0] != 'P')
+            if (cur_dev->serial_number != 0 && cur_dev->serial_number[0] != 'P')
             {
+                // Check the serial number first
+                for (k = 1; k < 8 && cur_dev->serial_number[k] != 0; k++)
+                {
+                    if (cur_dev->serial_number[k] != serialSearch[k]) break;
+                }
+
+                if (deviceTypeRequested == 2 && cur_dev->serial_number[0] != '2') k = 0;
+                if (deviceTypeRequested == 3 && cur_dev->serial_number[0] != '3') k = 0;
+                if (deviceTypeRequested == 4 && cur_dev->serial_number[0] != '4') k = 0;
+
+                /*
                 for (k = 0; k < 8 && cur_dev->serial_number[k] != 0; k++)
                 {
                     if (cur_dev->serial_number[k] != serialSearch[k]) break;
@@ -395,7 +482,7 @@ sPoKeysDevice* PK_ConnectToPoKeysDevice(uint32_t serialNumber, uint32_t checkFor
                     {
                         if (cur_dev->serial_number[k] != serialSearch58[k]) break;
                     }
-                }
+                }*/
 
                 if (k == 7)
                 {
@@ -435,11 +522,11 @@ sPoKeysDevice* PK_ConnectToPoKeysDevice(uint32_t serialNumber, uint32_t checkFor
                     hid_free_enumeration(devs);
                     return NULL;
                 }
-                hid_free_enumeration(devs);
 
                 tmpDevice->connectionType = PK_DeviceType_USBDevice;
                 if (tmpDevice->DeviceData.SerialNumber == serialNumber)
                 {
+	                hid_free_enumeration(devs);
                     return tmpDevice;
                 } else
                 {
@@ -451,6 +538,19 @@ sPoKeysDevice* PK_ConnectToPoKeysDevice(uint32_t serialNumber, uint32_t checkFor
             numDevices++;
         }
         cur_dev = cur_dev->next;
+
+        if (cur_dev == NULL)
+        {
+            devRange++;
+            switch (devRange)
+            {
+                case 1:
+                    hid_free_enumeration(devs);
+                    devs = hid_enumerate(0x1DC3, 0x1001);
+                    cur_dev = devs;
+                    break;
+            }
+        }
     }
     hid_free_enumeration(devs);
 
@@ -507,6 +607,12 @@ void PK_DisconnectDevice(sPoKeysDevice* device)
 			PK_DisconnectNetworkDevice(device);
 		} else
 		{
+#ifdef POKEYSLIB_USE_LIBUSB
+			// Disconnect the fast USB interface...
+			DisconnectFromFastUSBInterface(device->devHandle2);
+			device->devHandle2 = NULL;
+#endif
+
 			if ((hid_device*)device->devHandle != NULL)
 			{
 				hid_close((hid_device*)device->devHandle);
@@ -533,6 +639,17 @@ int32_t CreateRequest(unsigned char * request, unsigned char type, unsigned char
     return PK_OK;
 }
 
+int32_t PK_CustomRequest(sPoKeysDevice* device, unsigned char type, unsigned char param1, unsigned char param2, unsigned char param3, unsigned char param4)
+{
+    device->request[1] = type;
+    device->request[2] = param1;
+    device->request[3] = param2;
+    device->request[4] = param3;
+    device->request[5] = param4;
+
+    return SendRequest(device);
+}
+
 uint8_t getChecksum(uint8_t * data)
 {
     uint8_t temp = 0;
@@ -547,6 +664,25 @@ uint8_t getChecksum(uint8_t * data)
 
 int32_t LastRetryCount = 0;
 int32_t LastWaitCount = 0;
+
+
+//#define PK_COM_DEBUG
+int32_t SendRequest_multiPart(sPoKeysDevice* device)
+{
+    if (device == NULL) return PK_ERR_GENERIC;
+	if (device->connectionType == PK_DeviceType_NetworkDevice)
+	{
+		//return SendEthRequest(device);
+		return PK_ERR_TRANSFER;
+	}
+
+#ifdef POKEYSLIB_USE_LIBUSB
+	if (device->connectionType == PK_DeviceType_FastUSBDevice)
+		return SendRequestFastUSB_multiPart(device);
+	else
+		return PK_ERR_TRANSFER;
+#endif
+}
 
 
 //#define PK_COM_DEBUG
@@ -571,7 +707,10 @@ int32_t SendRequest(sPoKeysDevice* device)
 	{
 		return SendEthRequest(device);
 	}
-
+#ifdef POKEYSLIB_USE_LIBUSB
+		if (device->connectionType == PK_DeviceType_FastUSBDevice)
+			return SendRequestFastUSB(device);
+#endif
     devHandle = (hid_device*)device->devHandle;
 
 

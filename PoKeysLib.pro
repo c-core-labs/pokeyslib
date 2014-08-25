@@ -3,12 +3,21 @@
 # -------------------------------------------------
 QT -= core gui
 
+makeDLL {
+    DLL32 {
+        message("Building 32-bit DLL...")
+    } else {
+        message("Building 64-bit DLL...")
+    }
+    CONFIG += dll warn_on
+    DEFINES += POKEYSDLL POKEYSDLLEXPORT
+} else {
+    message("Building library")
+    CONFIG += staticlib warn_on
+}
 
 TEMPLATE = lib
 
-CONFIG += staticlib warn_on
-#CONFIG += dll warn_on
-#DEFINES += POKEYSDLL POKEYSDLLEXPORT
 
 SOURCES += PoKeysLibCore.c \
     PoKeysLibEncoders.c \
@@ -37,7 +46,15 @@ HEADERS += PoKeysLibCoreSockets.h \
 win32 {
     # x86
     LIBS += -lsetupapi -lWs2_32 -liphlpapi
-    TARGET = ../../lib/PoKeysLib
+    makeDLL {
+        DLL32 {
+            TARGET = ../../dll/32/PoKeysLib
+        } else {
+            TARGET = ../../dll/64/PoKeysLib
+        }
+    } else {
+        TARGET = ../../lib/PoKeysLib
+    }
 }
 unix:!macx {
     SOURCES += hid-libusb.c

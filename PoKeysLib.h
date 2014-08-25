@@ -26,20 +26,17 @@
         #include "stdint.h"
     #endif
 
-
-
     #ifndef _STDINT
-typedef signed char      int8_t;
-typedef short            int16_t;
-typedef int              int32_t;
+		typedef signed char      int8_t;
+		typedef short            int16_t;
+		typedef int              int32_t;
 
-typedef unsigned char    uint8_t;
-typedef unsigned short   uint16_t;
-typedef unsigned int     uint32_t;
+		typedef unsigned char    uint8_t;
+		typedef unsigned short   uint16_t;
+		typedef unsigned int     uint32_t;
 
-typedef long long        int64_t;
-typedef unsigned long long uint64_t;
-
+		typedef long long        int64_t;
+		typedef unsigned long long uint64_t;
     #endif
 
 #ifdef POKEYSDLL
@@ -133,7 +130,9 @@ typedef enum
     PK_DeviceMask_57            = (1<<20),
 
     PK_DeviceMask_58            = (1<<21),
-    PK_DeviceMask_PoPLC58       = (1<<22)
+    PK_DeviceMask_PoPLC58       = (1<<22),
+
+    PK_DeviceMask_PoKeys16RF    = (1<<23)
 } ePK_DeviceTypeMask;
 
 typedef enum
@@ -174,7 +173,8 @@ typedef struct
 enum ePK_DeviceConnectionType
 {
     PK_DeviceType_USBDevice     = 0,
-    PK_DeviceType_NetworkDevice = 1
+    PK_DeviceType_NetworkDevice = 1,
+	PK_DeviceType_FastUSBDevice = 2
 };
 
 enum ePK_DeviceConnectionParam
@@ -200,6 +200,9 @@ enum ePK_PEState
     PK_PEState_pePROBECOMPLETE  = 30,          // All axes are homed
     PK_PEState_pePROBE          = 31,          // Axes probing is in progress
     PK_PEState_pePROBEERROR     = 32,          // Error occured during probing
+
+	PK_PEState_peHYBRIDPROBE_STOPPING = 40,
+	PK_PEState_peHYBRIDPROBE_COMPLETE = 41,
 
     PK_PEState_peSTOP_LIMIT     = 100,         // Pulse engine stopped due to limit reached
     PK_PEState_peSTOP_EMERGENCY = 101          // Pulse engine stopped due to emergency switch
@@ -232,7 +235,8 @@ enum ePK_PEv2_AxisConfig
     PK_AC_INTERNAL_PLANNER   = (1 << 2),       // Axis uses internal motion planner
     PK_AC_POSITION_MODE      = (1 << 3),       // Internal motion planner for this axis is in position mode
     PK_AC_INVERTED_HOME      = (1 << 4),       // Axis homing direction is inverted
-    PK_AC_SOFT_LIMIT_ENABLED = (1 << 5)        // Use soft-limits for this axis
+    PK_AC_SOFT_LIMIT_ENABLED = (1 << 5),       // Use soft-limits for this axis
+	PK_AC_ENABLED_MASKED     = (1 << 7)        // Use output enable pin masking
 };
 
 enum ePK_PEv2_AxisSwitchOptions
@@ -266,6 +270,12 @@ enum ePK_I2C_STATUS
     PK_I2C_STAT_OK          = 1,               // All is OK
     PK_I2C_STAT_COMPLETE    = 1,               // Operation complete
     PK_I2C_STAT_IN_PROGRESS = 0x10             // Operation still in progress
+};
+
+enum ePK_LCD_MODE
+{
+    PK_LCD_MODE_DIRECT      = 0,
+    PK_LCD_MODE_BUFFERED    = 1
 };
 
 // PoKeys device information
@@ -357,7 +367,7 @@ typedef struct
     uint8_t         PinLimitMSwitch[8];        // Limit- switch pin (0 for external dedicated input)
     uint8_t         PinLimitPSwitch[8];        // Limit+ switch pin (0 for external dedicated input)
     uint8_t         AxisEnableOutputPins[8];   // Axis enabled output pin (0 for external dedicated output)
-    uint8_t         MotionBuffer[56];          // Motion buffer entries
+    uint8_t         reserved[56];              // Motion buffer entries - moved further down...
     uint8_t         ReservedSafety[8];
 
     // ------ 64-bit region boundary ------
@@ -379,7 +389,7 @@ typedef struct
     // State of pulse engine - see ePoKeysPEState
     uint8_t         PulseEngineState;
 
-    uint8_t         reserved0;
+    uint8_t         AxisEnabledMask;           // Bit-mapped ouput enabled mask
     uint8_t         reserved1;
     uint8_t         reserved2;
 
@@ -407,6 +417,9 @@ typedef struct
     uint8_t         ProbeStatus;               // Probe status (probe completion bit-mapped status)
 
     // ------ 64-bit region boundary ------
+	uint8_t			MotionBuffer[448];	       // Motion buffer
+
+    // ------ 64-bit region boundary ------
     float           ProbeSpeed;                // Probe speed (ratio of the maximum speed)
 
 } sPoKeysPEv2;
@@ -432,7 +445,7 @@ typedef struct
     uint8_t  ActivatedOptions;                 // Additional activated options - bit 0 for Pulse engine
     uint8_t  DeviceLockStatus;                 // Device lock status (if 1, device is locked)
     uint8_t  HWtype;                           // HW type reported by the device
-    uint8_t  reserved[1];
+    uint8_t  ProductID;
 } sPoKeysDevice_Data;
 
 // Pin-specific data
@@ -514,6 +527,8 @@ typedef struct
     uint8_t line2[20];                         // Line 2 buffer
     uint8_t line3[20];                         // Line 3 buffer
     uint8_t line4[20];                         // Line 4 buffer
+
+    uint8_t customCharacters[8][8];            // Buffer for custom characters
 } sPoKeysLCD;
 
 // Matrix LED specific data
@@ -589,9 +604,16 @@ typedef struct
 // PoNET module data
 typedef struct
 {
-    uint8_t status[16];
+    uint8_t statusIn[16];
+    uint8_t statusOut[16];
     uint8_t moduleID;
-    uint8_t reserved[3];
+	uint8_t i2cAddress;
+	uint8_t moduleType;
+    uint8_t moduleSize;
+	uint8_t moduleOptions;
+	uint8_t PWMduty;
+	uint8_t lightValue;
+	uint8_t PoNETstatus;
 } sPoNETmodule;
 
 
@@ -746,6 +768,8 @@ typedef struct
     uint32_t socketTimeout;
     uint8_t                   request[68];                   // Communication buffer
     uint8_t                   response[68];                  // Communication buffer
+
+	uint8_t					  multiPartData[448];			 // Multi-part request buffer
     uint64_t                  reserved64;
 } sPoKeysDevice;
 
@@ -765,6 +789,7 @@ POKEYSDECL sPoKeysDevice* PK_ConnectToDeviceWSerial(uint32_t serialNumber, uint3
 // Same as above, but uses UDP for connection
 POKEYSDECL sPoKeysDevice* PK_ConnectToDeviceWSerial_UDP(uint32_t serialNumber, uint32_t checkForNetworkDevicesAndTimeout);
 
+
 // Connect to a network PoKeys device. Returns NULL if the connection is not successfull
 POKEYSDECL sPoKeysDevice* PK_ConnectToNetworkDevice(sPoKeysNetworkDeviceSummary * device);
 // Disconnect from a PoKeys device
@@ -775,6 +800,11 @@ POKEYSDECL int32_t PK_GetCurrentDeviceConnectionType(sPoKeysDevice* device);
 POKEYSDECL int32_t PK_SaveConfiguration(sPoKeysDevice* device);
 // Clear configuration in device - sPoKeysDevice structure is not cleared, so it must be repopulated!
 POKEYSDECL int32_t PK_ClearConfiguration(sPoKeysDevice* device);
+// Exchange custom request
+POKEYSDECL int32_t PK_CustomRequest(sPoKeysDevice* device, unsigned char type, unsigned char param1, unsigned char param2, unsigned char param3, unsigned char param4);
+POKEYSDECL int32_t PK_GetDebugValues(sPoKeysDevice * device, int32_t * buffer);
+// Enable (1) or disable (0) fast USB interface in PoKeys56U/PoKeys57U devices
+POKEYSDECL int32_t PK_SetFastUSBEnableStatus(sPoKeysDevice * device, uint32_t newState);
 
 // Set device name (from device->DeviceData.DeviceName)
 POKEYSDECL int32_t PK_DeviceNameSet(sPoKeysDevice* device);
@@ -865,6 +895,26 @@ POKEYSDECL int32_t PK_LCDConfigurationGet(sPoKeysDevice* device);
 POKEYSDECL int32_t PK_LCDConfigurationSet(sPoKeysDevice* device);
 // Update LCD contents (only the lines with the refresh flag set)
 POKEYSDECL int32_t PK_LCDUpdate(sPoKeysDevice* device);
+// Transfer custom characters from device->LCD.customCharacters array
+POKEYSDECL int32_t PK_LCDSetCustomCharacters(sPoKeysDevice* device);
+// Change between modes PK_LCD_MODE_DIRECT and PK_LCD_MODE_BUFFERED
+POKEYSDECL int32_t PK_LCDChangeMode(sPoKeysDevice* device, uint8_t mode);
+
+// The following LCD-related functions can be used in PK_LCD_MODE_DIRECT mode only
+// Initialize LCD module
+POKEYSDECL int32_t PK_LCDInit(sPoKeysDevice* device);
+// Clear LCD screen contents
+POKEYSDECL int32_t PK_LCDClear(sPoKeysDevice* device);
+// Move cursor to the specified position
+POKEYSDECL int32_t PK_LCDMoveCursor(sPoKeysDevice* device, uint8_t row, uint8_t column);
+// Print string to LCD
+POKEYSDECL int32_t PK_LCDPrint(sPoKeysDevice* device, uint8_t * text, uint8_t textLen);
+// Put single character on LCD
+POKEYSDECL int32_t PK_LCDPutChar(sPoKeysDevice* device, uint8_t character);
+// Change LCD entry mode register
+POKEYSDECL int32_t PK_LCDEntryModeSet(sPoKeysDevice* device, uint8_t cursorMoveDirection, uint8_t displayShift);
+// Change LCD display on/off control register
+POKEYSDECL int32_t PK_LCDDisplayOnOffControl(sPoKeysDevice* device, uint8_t displayOnOff, uint8_t cursorOnOff, uint8_t cursorBlinking);
 
 // Set matrix LED configuration
 POKEYSDECL int32_t PK_MatrixLEDConfigurationSet(sPoKeysDevice* device);
@@ -935,6 +985,7 @@ POKEYSDECL int32_t PK_PEv2_ExternalOutputsSet(sPoKeysDevice * device);
 // The number of accepted entries is saved to motionBufferEntriesAccepted.
 // In addition, pulse engine state is read (PEv2_GetStatus)
 POKEYSDECL int32_t PK_PEv2_BufferFill(sPoKeysDevice * device);
+POKEYSDECL int32_t PK_PEv2_BufferFillLarge(sPoKeysDevice * device);
 // Clear motion buffer in device
 POKEYSDECL int32_t PK_PEv2_BufferClear(sPoKeysDevice * device);
 // Reboot pulse engine v2
@@ -950,9 +1001,11 @@ POKEYSDECL int32_t PK_PEv2_HomingFinish(sPoKeysDevice * device);
 // ProbeInput defines the extenal input (values 1-8) or PoKeys pin (0-based Pin ID + 9)
 // ProbeInputPolarity defines the polarity of the probe signal
 POKEYSDECL int32_t PK_PEv2_ProbingStart(sPoKeysDevice * device);
+POKEYSDECL int32_t PK_PEv2_ProbingHybridStart(sPoKeysDevice * device);
 // Finish the probing procedure. Probe position and status are saved to ProbePosition and ProbeStatus
 POKEYSDECL int32_t PK_PEv2_ProbingFinish(sPoKeysDevice * device);
-
+// Same as previous command, except for pulse engine states not being reset to 'STOPPED'
+POKEYSDECL int32_t PK_PEv2_ProbingFinishSimple(sPoKeysDevice * device);
 
 // I2C operations status return ePK_I2C_STATUS, described above
 // Set I2C status - does nothing in the device as I2C is ON all the time
@@ -972,7 +1025,14 @@ POKEYSDECL int32_t PK_I2CBusScanStart(sPoKeysDevice* device);
 // Get bus scan results. iMaxDevices specifies how big presentDevices buffer is. presentDevices returns one entry per device
 POKEYSDECL int32_t PK_I2CBusScanGetResults(sPoKeysDevice* device, uint8_t* status, uint8_t* presentDevices, uint8_t iMaxDevices);
 
+POKEYSDECL int32_t PK_PoNETGetPoNETStatus(sPoKeysDevice* device);
+POKEYSDECL int32_t PK_PoNETGetModuleSettings(sPoKeysDevice* device);
+POKEYSDECL int32_t PK_PoNETGetModuleStatusRequest(sPoKeysDevice* device);
+POKEYSDECL int32_t PK_PoNETGetModuleStatus(sPoKeysDevice* device);
 POKEYSDECL int32_t PK_PoNETSetModuleStatus(sPoKeysDevice* device);
+POKEYSDECL int32_t PK_PoNETSetModulePWM(sPoKeysDevice* device);
+POKEYSDECL int32_t PK_PoNETGetModuleLightRequest(sPoKeysDevice* device);
+POKEYSDECL int32_t PK_PoNETGetModuleLight(sPoKeysDevice* device);
 
 // 1-wire operations
 // Set 1-wire activation status

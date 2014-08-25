@@ -220,7 +220,7 @@ int32_t PK_PEv2_PulseEngineStateSet(sPoKeysDevice * device)
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
     // Create request
-    CreateRequest(device->request, 0x85, 0x02, device->PEv2.PulseEngineStateSetup, device->PEv2.LimitOverrideSetup, 0);
+	CreateRequest(device->request, 0x85, 0x02, device->PEv2.PulseEngineStateSetup, device->PEv2.LimitOverrideSetup, device->PEv2.AxisEnabledMask);
 
     // Send request
     return SendRequest(device);
@@ -290,6 +290,27 @@ int32_t PK_PEv2_BufferFill(sPoKeysDevice * device)
     return PK_OK;
 }
 
+int32_t PK_PEv2_BufferFillLarge(sPoKeysDevice * device)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;	
+
+    // Create request
+    CreateRequest(device->request, 0xB0, 0, 0xFF, device->PEv2.newMotionBufferEntries, device->PEv2.PulseEngineEnabled & 0x0F);
+
+    // Copy buffer
+    memcpy(device->multiPartData, device->PEv2.MotionBuffer, 448);
+
+    // Send request
+	if (SendRequest_multiPart(device) != PK_OK) return PK_ERR_TRANSFER;
+
+    device->PEv2.motionBufferEntriesAccepted = device->response[2];
+
+    // Decode status
+    PK_PEv2_DecodeStatus(device);
+
+    return PK_OK;
+}
+
 // Clear motion buffer in device
 int32_t PK_PEv2_BufferClear(sPoKeysDevice * device)
 {
@@ -333,12 +354,12 @@ int32_t PK_PEv2_HomingFinish(sPoKeysDevice * device)
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
     // Create request
-    CreateRequest(device->request, 0x85, 0x22, 0, 0, 0);
+	CreateRequest(device->request, 0x85, 0x22, device->PEv2.PulseEngineStateSetup, 0, 0);
     // Send request
     return SendRequest(device);
 }
 
-// Star the probing procedure.
+// Start the probing procedure.
 // ProbeMaxPosition defines the maximum position in position ticks where probing error will be thrown
 // ProbeSpeed defines the probing speed (1 = max speed)
 // ProbeInput defines the extenal input (values 1-8) or PoKeys pin (0-based Pin ID + 9)
@@ -352,6 +373,20 @@ int32_t PK_PEv2_ProbingStart(sPoKeysDevice * device)
 
     memcpy(&device->request[8], device->PEv2.ProbeMaxPosition, 8 * 4);
     *(float*)(&device->request[40]) = device->PEv2.ProbeSpeed;
+    device->request[44] = device->PEv2.ProbeInput;
+    device->request[45] = device->PEv2.ProbeInputPolarity;
+
+    // Send request
+    return SendRequest(device);
+}
+
+int32_t PK_PEv2_ProbingHybridStart(sPoKeysDevice * device)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Create request
+    CreateRequest(device->request, 0x85, 0x23, 0, 1, 0);
+
     device->request[44] = device->PEv2.ProbeInput;
     device->request[45] = device->PEv2.ProbeInputPolarity;
 
@@ -373,6 +408,22 @@ int32_t PK_PEv2_ProbingFinish(sPoKeysDevice * device)
     // Copy the probe result position
     memcpy(device->PEv2.ProbePosition, &device->response[8], 8*4);
     device->PEv2.ProbeStatus = device->response[40];
+
+    return PK_OK;
+}
+// Finish the probing procedure. Probe position and status are saved to ProbePosition and ProbeStatus
+int32_t PK_PEv2_ProbingFinishSimple(sPoKeysDevice * device)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Create request
+    CreateRequest(device->request, 0x85, 0x24, 1, 0, 0);
+
+    // Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+    // Copy the probe result position
+    memcpy(device->PEv2.ProbePosition, &device->response[8], 8*4);
 
     return PK_OK;
 }
