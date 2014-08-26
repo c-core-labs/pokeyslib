@@ -20,6 +20,7 @@ TEMPLATE = lib
 
 
 SOURCES += PoKeysLibCore.c \
+    PoKeysLibFastUSB.c \
     PoKeysLibEncoders.c \
     PoKeysLibPulseEngine.c \
     PoKeysLibMatrixLED.c \

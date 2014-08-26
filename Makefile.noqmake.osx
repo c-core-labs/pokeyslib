@@ -4,7 +4,7 @@ AR = ar
 
 CFLAGS = -shared -fPIC -I/opt/local/include/libusb-1.0/
 LIBS = -framework IOKit -framework CoreFoundation -L/usr/lib/ -L/opt/local/lib/ -lusb-1.0 
-OBJECTS = PoKeysLibCore.o PoKeysLibPoNET.o PoKeysLibI2C.o PoKeysLibEncoders.o PoKeysLibPulseEngine.o PoKeysLibMatrixLED.o PoKeysLibMatrixKB.o PoKeysLibLCD.o PoKeysLibIO.o PoKeysLibDeviceData.o PoKeysLibCoreSockets.o hid-mac.o
+OBJECTS = PoKeysLibCore.o PoKeysLibFastUSB.o PoKeysLibPoNET.o PoKeysLibI2C.o PoKeysLibEncoders.o PoKeysLibPulseEngine.o PoKeysLibMatrixLED.o PoKeysLibMatrixKB.o PoKeysLibLCD.o PoKeysLibIO.o PoKeysLibDeviceData.o PoKeysLibCoreSockets.o hid-mac.o
 
 install: all
 	cp libPoKeys.so /usr/lib
@@ -22,6 +22,9 @@ libPoKeys.so: $(OBJECTS)
 	
 PoKeysLibCore.o: PoKeysLibCore.c
 	$(CC) $(CFLAGS) -c PoKeysLibCore.c
+	
+PoKeysLibFastUSB.o: PoKeysLibFastUSB.c
+	$(CC) $(CFLAGS) -c PoKeysLibFastUSB.c
 
 PoKeysLibI2C.o: PoKeysLibI2C.c
   $(CC) $(CFLAGS) -c PoKeysLibI2C.c
