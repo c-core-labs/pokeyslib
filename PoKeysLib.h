@@ -26,17 +26,17 @@
         #include "stdint.h"
     #endif
 
-    #ifndef _STDINT
-		typedef signed char      int8_t;
-		typedef short            int16_t;
-		typedef int              int32_t;
+    #if defined(_STDINT) || defined(_STDINT_H)
+			typedef signed char      int8_t;
+			typedef short            int16_t;
+			typedef int              int32_t;
 
-		typedef unsigned char    uint8_t;
-		typedef unsigned short   uint16_t;
-		typedef unsigned int     uint32_t;
+			typedef unsigned char    uint8_t;
+			typedef unsigned short   uint16_t;
+			typedef unsigned int     uint32_t;
 
-		typedef long long        int64_t;
-		typedef unsigned long long uint64_t;
+			typedef long long        int64_t;
+			typedef unsigned long long uint64_t;
     #endif
 
 #ifdef POKEYSDLL
@@ -128,6 +128,10 @@ typedef enum
     PK_DeviceMask_27E           = (1<<19),
 
     PK_DeviceMask_57            = (1<<20),
+    PK_DeviceMask_57U           = (1<<24),
+    PK_DeviceMask_57E           = (1<<25),
+    PK_DeviceMask_57CNC         = (1<<26),
+
 
     PK_DeviceMask_58            = (1<<21),
     PK_DeviceMask_PoPLC58       = (1<<22),
@@ -151,8 +155,8 @@ typedef enum
     PK_DeviceID_27U           = 20,
     PK_DeviceID_27E           = 21,
 
-    PK_DeviceID_57U           = 17,
-    PK_DeviceID_57E           = 18,
+    PK_DeviceID_57U           = 30,
+    PK_DeviceID_57E           = 31,
 
     PK_DeviceID_58EU          = 40,
     PK_DeviceID_PoPLC58       = 50
@@ -445,7 +449,12 @@ typedef struct
     uint8_t  ActivatedOptions;                 // Additional activated options - bit 0 for Pulse engine
     uint8_t  DeviceLockStatus;                 // Device lock status (if 1, device is locked)
     uint8_t  HWtype;                           // HW type reported by the device
+    uint8_t  FWtype;                           // FW type reported by the device
     uint8_t  ProductID;
+
+    uint8_t  SecondaryFirmwareVersionMajor;
+    uint8_t  SecondaryFirmwareVersionMinor;
+    uint8_t  deviceIsBootloader;
 } sPoKeysDevice_Data;
 
 // Pin-specific data

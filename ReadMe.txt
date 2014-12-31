@@ -97,6 +97,8 @@ Author: Matevž Bošnak (matevz@poscope.com)
 
 
 ---- Change log ----
+31.12.2014: Improved support for newer devices, fixed Makefile
+09.10.2014: Added support for PoKeys57 series, misc bugs fixed
 25.08.2014: Fast USB interface supported (PoKeys56U), Multi-part PEv2 data introduced
 10.03.2014: Support for 1-wire included
 31.01.2014: Updated PoIL shared slot read/write (wrong indexing)

@@ -307,7 +307,7 @@ int32_t PK_IsCounterAvailableByDevice(uint32_t deviceTypeMask, uint8_t pinID)
         return 0;
     } else
     {
-        if (!(deviceTypeMask & PK_DeviceMask_56)) return 0;
+        if (!(deviceTypeMask & (PK_DeviceMask_56 | PK_DeviceMask_57))) return 0;
         if (pinID >= 55) return 0;
         return counterSupported[pinID];
     }

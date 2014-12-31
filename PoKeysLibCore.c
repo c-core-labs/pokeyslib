@@ -450,8 +450,8 @@ sPoKeysDevice* PK_ConnectToPoKeysDevice(uint32_t serialNumber, uint32_t checkFor
     devs = hid_enumerate(0x1DC3, 0x1001);
     cur_dev = devs;
 
-    sprintf((char*)serialSearch, "x.%05lu", serialNumber % 100000);
-    //sprintf(serialSearch58, "3.%05lu", serialNumber % 100000);
+    sprintf((char*)serialSearch, "x.%05u", serialNumber % 100000);
+    //sprintf(serialSearch58, "3.%05u", serialNumber % 100000);
 
     while (cur_dev)
     {
