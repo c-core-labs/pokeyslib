@@ -26,7 +26,7 @@
         #include "stdint.h"
     #endif
 
-    #if defined(_STDINT) || defined(_STDINT_H)
+    #if !defined(_STDINT) && !defined(_STDINT_H)
 			typedef signed char      int8_t;
 			typedef short            int16_t;
 			typedef int              int32_t;

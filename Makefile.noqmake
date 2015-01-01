@@ -1,7 +1,7 @@
 CC = gcc
 AR = ar
 
-CFLAGS=-I/usr/include/libusb-1.0/
+CFLAGS=-I/usr/include/libusb-1.0/ -fPIC
 LDFLAGS=-lusb-1.0 -lpthread
 SOURCES=PoKeysLibCore.c PoKeysLibFastUSB.c PoKeysLibPoNET.c PoKeysLibI2C.c PoKeysLibEncoders.c PoKeysLibPulseEngine.c PoKeysLibMatrixLED.c PoKeysLibMatrixKB.c PoKeysLibLCD.c PoKeysLibIO.c PoKeysLibDeviceData.c PoKeysLibCoreSockets.c hid-libusb.c
 OBJECTS=$(SOURCES:.c=.o)

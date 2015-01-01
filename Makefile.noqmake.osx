@@ -1,7 +1,7 @@
 CC = gcc
 AR = ar
 
-CFLAGS=-fPIC -I/opt/local/include/libusb-1.0/
+CFLAGS=-fPIC -I/opt/local/include/libusb-1.0/ -fPIC
 LDFLAGS=-lusb-1.0 -framework IOKit -framework CoreFoundation -L/usr/lib/ -L/opt/local/lib/ -lusb-1.0 
 SOURCES=PoKeysLibCore.c PoKeysLibFastUSB.c PoKeysLibPoNET.c PoKeysLibI2C.c PoKeysLibEncoders.c PoKeysLibPulseEngine.c PoKeysLibMatrixLED.c PoKeysLibMatrixKB.c PoKeysLibLCD.c PoKeysLibIO.c PoKeysLibDeviceData.c PoKeysLibCoreSockets.c hid-mac.c
 OBJECTS=$(SOURCES:.c=.o)
