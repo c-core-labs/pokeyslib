@@ -157,6 +157,10 @@ typedef enum
 
     PK_DeviceID_57U           = 30,
     PK_DeviceID_57E           = 31,
+    PK_DeviceID_PoKeys57CNC   = 32,
+
+    PK_DeviceID_57U_v0        = 28,
+    PK_DeviceID_57E_v0        = 29,
 
     PK_DeviceID_58EU          = 40,
     PK_DeviceID_PoPLC58       = 50
@@ -780,6 +784,7 @@ typedef struct
 
 	uint8_t					  multiPartData[448];			 // Multi-part request buffer
     uint64_t                  reserved64;
+    uint8_t*                  multiPartBuffer;
 } sPoKeysDevice;
 
 
@@ -874,6 +879,8 @@ POKEYSDECL int32_t PK_DigitalCounterGet(sPoKeysDevice* device);
 POKEYSDECL int32_t PK_IsCounterAvailable(sPoKeysDevice* device, uint8_t pinID);
 // Check digital counter availability by device, defined by device type mask (see ePK_DeviceTypeMask)
 POKEYSDECL int32_t PK_IsCounterAvailableByDevice(uint32_t deviceTypeMask, uint8_t pinID);
+// Check digital counter availability by device, defined by device ID (see ePK_DeviceTypeID)
+POKEYSDECL int32_t PK_IsCounterAvailableByTypeID(uint32_t deviceTypeID, uint8_t pinID);
 
 // Get analog input values
 POKEYSDECL int32_t PK_AnalogIOGet(sPoKeysDevice* device);

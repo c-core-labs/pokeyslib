@@ -159,6 +159,9 @@ void InitializeNewDevice(sPoKeysDevice* device)
     device->sendRetries = 3;
     device->readRetries = 10;
     device->socketTimeout = 100;
+
+    device-> multiPartBuffer = malloc(512);
+    if (device->multiPartBuffer <= 0) device->multiPartBuffer = 0;
 }
 
 void CleanDevice(sPoKeysDevice* device)
@@ -169,6 +172,7 @@ void CleanDevice(sPoKeysDevice* device)
 	free(device->PWM.PWMenabledChannels);
 	free(device->PoExtBusData);
 	free(device->MatrixLED);
+    free(device->multiPartBuffer);
 
     if (device->netDeviceData != 0)
     {
@@ -672,8 +676,9 @@ int32_t SendRequest_multiPart(sPoKeysDevice* device)
     if (device == NULL) return PK_ERR_GENERIC;
 	if (device->connectionType == PK_DeviceType_NetworkDevice)
 	{
+        return SendEthRequestBig(device);
 		//return SendEthRequest(device);
-		return PK_ERR_TRANSFER;
+        //return PK_ERR_TRANSFER;
 	}
 
 #ifdef POKEYSLIB_USE_LIBUSB

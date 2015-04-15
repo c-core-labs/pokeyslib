@@ -300,17 +300,78 @@ int32_t PK_IsCounterAvailableByDevice(uint32_t deviceTypeMask, uint8_t pinID)
                               1,  1,  1,  1,  0 , 1,  0 , 1,  1,  0 ,
                               0 , 0 , 0 , 0 , 0 , 0 , 0 };
 
+    //                          1   2   3   4   5   6   7   8   9   10
+    int counters_57CNC[]  =   { 1,  1,  1,  1,  1,  1,  0,  0,  1,  1,
+                                1,	0,	0,	0,	1,	1,	0,	0,	1,	1,
+                                0,	0,	0,  0,  0,  0,	0,  0,	0,	0,
+                                0,  0,	1,	1,	1,	1,	1,	1,	0,  0,
+                                1,	1,	1,	1,	0,  0,  0,  0,  0,  0,
+                                0,  0,  0,	0,  0};
+
     if (deviceTypeMask & PK_DeviceMask_Bootloader) return 0;
 
     if (deviceTypeMask & PK_DeviceMask_PoPLC58)
     {
         return 0;
-    } else
+    } else               
     {
-        if (!(deviceTypeMask & (PK_DeviceMask_56 | PK_DeviceMask_57))) return 0;
         if (pinID >= 55) return 0;
+
+        if (deviceTypeMask & PK_DeviceMask_57CNC) return counters_57CNC[pinID];
+        if (!(deviceTypeMask & (PK_DeviceMask_56 | PK_DeviceMask_57))) return 0;
         return counterSupported[pinID];
     }
+}
+
+int32_t PK_IsCounterAvailableByTypeID(uint32_t deviceTypeID, uint8_t pinID)
+{
+    //                        1   2   3   4   5   6   7   8   9   10
+    int counterSupported[] = {1,  1,  0 , 0 , 1,  1,  0 , 0 , 1,  0 ,
+                              1,  0 , 0 , 0 , 1,  1,  0 , 0 , 1,  1,
+                              1,  1,  1,  1,  1,  1,  1,  1,  0 , 0 ,
+                              0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+                              1,  1,  1,  1,  0 , 1,  0 , 1,  1,  0 ,
+                              0 , 0 , 0 , 0 , 0 , 0 , 0 };
+
+    //                          1   2   3   4   5   6   7   8   9   10
+    int counters_57CNC[]  =   { 1,  1,  1,  1,  1,  1,  0,  0,  1,  1,
+                                1,	0,	0,	0,	1,	1,	0,	0,	1,	1,
+                                0,	0,	0,  0,  0,  0,	0,  0,	0,	0,
+                                0,  0,	1,	1,	1,	1,	1,	1,	0,  0,
+                                1,	1,	1,	1,	0,  0,  0,  0,  0,  0,
+                                0,  0,  0,	0,  0};
+
+    switch (deviceTypeID)
+    {
+        case PK_DeviceID_27E:
+        case PK_DeviceID_27U:
+            return 0;
+
+        case PK_DeviceID_55v1:
+        case PK_DeviceID_55v2:
+        case PK_DeviceID_55v3:
+            return 0;
+
+        case PK_DeviceID_56E:
+        case PK_DeviceID_56U:
+        case PK_DeviceID_57E:
+        case PK_DeviceID_57E_v0:
+        case PK_DeviceID_57U:
+        case PK_DeviceID_57U_v0:
+            if (pinID >= 55) return 0;
+            return counterSupported[pinID];
+
+        case PK_DeviceID_PoKeys57CNC:
+            if (pinID >= 55) return 0;
+            return counters_57CNC[pinID];
+
+        case PK_DeviceID_58EU:
+            return 0;
+        case PK_DeviceID_PoPLC58:
+            return 0;
+    }
+
+    return 0;
 }
 
 int32_t PK_DigitalIOSet(sPoKeysDevice* device)

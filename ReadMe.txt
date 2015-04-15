@@ -59,44 +59,39 @@ http://www.mypokeys.com/new-cross-platform-library-for-all-pokeys-devices
 (coming soon)
 
 ---- Library status - verified commands ----
-[Windows Linux OSX]
-[xxx] Enumerating USB devices
-[xx ] Enumerating network devices
-[xxx] Connecting to USB devices
-[x  ] Fast USB interface support
-[xx ] Connecting to network devices
-[xxx] Reading device data
-[xxx] Reading digital inputs
-[xxx] Writing digital outputs
-[xxx] PoExtBus writing
-[xxx] PoExtBus reading
-[xxx] LCD operations
-[xxx] Matrix LED
-[xxx] Setting pin functions
-[xxx] Reading pin functions
-[   ] Setting pin key codes
-[   ] Reading pin key codes
-[x  ] PWM operations
-[xxx] Pulse engine operations
-[x  ] Matrix keyboard setup
-[x  ] Matrix keyboard reading
-[xxx] Using encoders
-[x  ] I2C operations
-[x  ] SPI operation
-[x  ] PoIL operations
-[x  ] 1-wire operations
-[x  ] PoNET bus support
-[   ]
-[   ]
-[   ]
-[   ]
-[   ]
+[x] Enumerating USB devices
+[x] Enumerating network devices
+[x] Connecting to USB devices
+[x] Fast USB interface support
+[x] Connecting to network devices
+[x] Reading device data
+[x] Reading digital inputs
+[x] Writing digital outputs
+[x] PoExtBus writing
+[x] PoExtBus reading
+[x] LCD operations
+[x] Matrix LED
+[x] Setting pin functions
+[x] Reading pin functions
+[ ] Setting pin key codes
+[ ] Reading pin key codes
+[x] PWM operations
+[x] Pulse engine operations
+[x] Matrix keyboard setup
+[x] Matrix keyboard reading
+[x] Using encoders
+[x] I2C operations
+[x] SPI operation
+[x] PoIL operations
+[x] 1-wire operations
+[x] PoNET bus support
 
 ---- Credits ----
 Author: Matevž Bošnak (matevz@poscope.com)
 
 
 ---- Change log ----
+15.04.2015: (Initial) support for new devices, bug fixes
 31.12.2014: Improved support for newer devices, fixed Makefile
 09.10.2014: Added support for PoKeys57 series, misc bugs fixed
 25.08.2014: Fast USB interface supported (PoKeys56U), Multi-part PEv2 data introduced

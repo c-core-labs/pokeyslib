@@ -36,7 +36,7 @@ int32_t PK_SPIWrite(sPoKeysDevice * device, uint8_t * buffer, uint8_t iDataLengt
     uint8_t i;
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
-    if (iDataLength > 16) iDataLength = 16;
+    if (iDataLength > 55) iDataLength = 55;
 
     CreateRequest(device->request, 0xE5, 0x10, iDataLength, pinCS, 0);
     for (i = 0; i < iDataLength; i++)
@@ -53,7 +53,7 @@ int32_t PK_SPIRead(sPoKeysDevice * device, uint8_t * buffer, uint8_t iDataLength
     uint8_t i;
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
-    if (iDataLength > 16) iDataLength = 16;
+    if (iDataLength > 55) iDataLength = 55;
 
     CreateRequest(device->request, 0xE5, 0x20, iDataLength, 0, 0);
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;

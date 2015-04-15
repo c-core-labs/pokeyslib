@@ -706,6 +706,158 @@ int32_t SendEthRequest(sPoKeysDevice* device)
 
 }
 
+int32_t SendEthRequestBig(sPoKeysDevice* device)
+{
+    uint32_t retries1 = 0;
+    uint32_t retries2 = 0;
+    int result;
+
+    fd_set fds;
+    struct timeval stimeout;
+
+    uint8_t * requestBuffer;
+    uint8_t * requestBufferPtr = 0;
+
+    uint32_t i;
+
+    if (device == NULL) return PK_ERR_GENERIC;
+    if (device->connectionType != PK_DeviceType_NetworkDevice) return PK_ERR_GENERIC;
+    if (device->devHandle == NULL) return PK_ERR_GENERIC;
+
+    if (device->multiPartBuffer == 0) return PK_ERR_GENERIC;
+    requestBuffer = device->multiPartBuffer;
+
+    while (1)
+    {
+        // Form the request packet
+        for (i = 0; i < 8; i++)
+        {
+            requestBufferPtr = &requestBuffer[i * 64];
+
+            memcpy(requestBufferPtr, device->request, 8);
+            requestBufferPtr[0] = 0xBB;
+
+            // Put packet ID and flags here...
+            requestBufferPtr[2] = i;
+            if (i == 0)
+                requestBufferPtr[2] |= (1<<3);
+            else if (i == 7)
+                requestBufferPtr[2] |= (1<<4);
+
+            requestBufferPtr[6] = ++device->requestID;
+            requestBufferPtr[7] = getChecksum(requestBufferPtr);
+
+            memcpy(requestBufferPtr + 8, device->multiPartData + i*56, 56);
+        }
+
+        debug_printf("\nSending...");
+        // Send the data
+
+        if (device->connectionParam == PK_ConnectionParam_UDP)
+        {
+#ifdef WIN32
+            if (sendto((SOCKET)device->devHandle, (char *)requestBuffer, 512, 0, (SOCKADDR *)device->devHandle2, sizeof(struct sockaddr_in)) == -1)
+#else
+            if (sendto(*(int*)device->devHandle, (char *)requestBuffer, 512, 0, (SOCKADDR *)device->devHandle2, sizeof(struct sockaddr_in)) == -1)
+#endif
+            {
+                debug_printf("Error sending UDP report\nAborting...\n");
+                return -1;
+            }
+        } else
+        {
+#ifdef WIN32
+            if (send((SOCKET)device->devHandle, (char *)requestBuffer, 512, 0) != 512)
+#else
+            if (send(*(int*)device->devHandle, (char *)requestBuffer, 512, 0) != 512)
+#endif
+            {
+                debug_printf("Error sending TCP report\nAborting...\n");
+                return -1;
+            }
+        }
+
+        // Wait for the response
+        while(1)
+        {
+#ifdef WIN32
+            FD_ZERO(&fds);
+            FD_SET((SOCKET)device->devHandle, &fds);
+
+            stimeout.tv_sec = 0;
+            stimeout.tv_usec = 1000 * 100;
+
+            result = select((SOCKET)device->devHandle + 1, &fds, NULL, NULL, &stimeout);
+
+            if (result == 0 || result == -1)
+            {
+                // Timeout...
+                debug_printf("Timeout!");
+                if (++retries1 > device->readRetries) break;
+                continue;
+            }
+
+            result = recv((SOCKET)device->devHandle, (char *)device->response, 64, 0);
+#else
+            FD_ZERO(&fds);
+            FD_SET(*(int*)device->devHandle, &fds);
+
+            stimeout.tv_sec = 0;
+            stimeout.tv_usec = 1000 * 100;
+
+            result = select(*(int*)device->devHandle + 1, &fds, NULL, NULL, &stimeout);
+
+            if (result == 0 || result == -1)
+            {
+                // Timeout...
+                debug_printf("Timeout!");
+                if (++retries1 > 10) break;
+                continue;
+            }
+
+            result = recv(*(int*)device->devHandle, (char *)device->response, 64, 0);
+#endif
+
+            // 64 bytes received?
+            if (result == 64)
+            {
+                if (device->response[0] == 0xAA && device->response[6] == device->requestID)
+                {
+                    if (device->response[7] == getChecksum(device->response))
+                    {
+                        debug_printf(" Received!");
+                        return PK_OK;
+                    } else
+                    {
+                        debug_printf("!! Wrong checksum...");
+                    }
+                } else
+                {
+                    debug_printf("!! Wrong response received!");
+                    break;
+                }
+            }
+            else if (result == 0)
+                debug_printf("Connection closed\n");
+            else
+#ifdef WIN32
+                debug_printf("recv failed: %d\n", WSAGetLastError());
+#else
+                debug_printf("recv failed\n");
+#endif
+
+
+            if (++retries1 > device->readRetries) break;
+        }
+
+        if (retries2++ > device->sendRetries) break;
+    }
+
+    debug_printf("Error - timeout...");
+    return PK_ERR_TRANSFER;
+
+}
+
 
 void PK_SetEthernetRetryCountAndTimeout(sPoKeysDevice * device, uint32_t sendRetries, uint32_t readRetries, uint32_t timeout)
 {

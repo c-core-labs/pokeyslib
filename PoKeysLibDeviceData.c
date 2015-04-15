@@ -23,6 +23,109 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "PoKeysLibCore.h"
 #include "stdio.h"
 
+
+#define MAX_PINS_COUNT 100
+typedef struct
+{
+    uint32_t pinID;
+    uint32_t pinCapabilities;
+} sPoKeys_PinDescriptor;
+
+typedef struct
+{
+    int deviceID;
+    sPoKeys_PinDescriptor pins[MAX_PINS_COUNT];
+} sPoKeys_DeviceDescriptor;
+
+
+#define PIN_DI (PK_AllPinCap_digitalInput | PK_AllPinCap_keyboardMapping | PK_AllPinCap_triggeredInput)
+#define PIN_DO (PK_AllPinCap_digitalOutput)
+#define PIN_DIO (PK_AllPinCap_digitalInput | PK_AllPinCap_digitalOutput | PK_AllPinCap_keyboardMapping | PK_AllPinCap_triggeredInput)
+
+const sPoKeys_DeviceDescriptor deviceDesc[] = {
+
+    // PoKeys57CNC Pins descriptor
+    { PK_DeviceID_PoKeys57CNC,  {
+          { 1, PIN_DIO | PK_AllPinCap_digitalCounter | PK_AllPinCap_fastEncoder1A },
+          { 2, PIN_DIO | PK_AllPinCap_digitalCounter | PK_AllPinCap_fastEncoder1B },
+          { 3, PIN_DI | PK_AllPinCap_digitalCounter | PK_AllPinCap_fastEncoder2A },
+          { 4, PIN_DI | PK_AllPinCap_digitalCounter | PK_AllPinCap_fastEncoder2B },
+          { 5, PIN_DI | PK_AllPinCap_digitalCounter | PK_AllPinCap_fastEncoder3A },
+          { 6, PIN_DI | PK_AllPinCap_digitalCounter | PK_AllPinCap_fastEncoder3B },
+
+          // Ultra-fast encoder pins
+          { 8, PIN_DIO },
+          { 12, PIN_DIO },
+          { 13, PIN_DIO },
+
+          // Pendant connector pins
+          { 9, PIN_DIO | PK_AllPinCap_digitalCounter },
+          { 10, PIN_DIO | PK_AllPinCap_digitalCounter },
+          { 11, PIN_DIO | PK_AllPinCap_digitalCounter },
+          { 15, PIN_DIO | PK_AllPinCap_digitalCounter },
+          { 16, PIN_DIO | PK_AllPinCap_digitalCounter },
+
+          // Spindle error input
+          { 14, PIN_DI },
+
+          // 0-10V output
+          { 17, PIN_DO | PK_AllPinCap_PWMOut },
+
+          // LCD contrast
+          { 18, PIN_DO | PK_AllPinCap_PWMOut },
+
+          // Probe input
+          { 19, PIN_DI | PK_AllPinCap_digitalCounter },
+
+          // PWM out, pin 20
+          { 20, PIN_DO | PK_AllPinCap_PWMOut },
+
+          // Pendant LED, PWM out, pin 21
+          { 21, PIN_DO | PK_AllPinCap_PWMOut },
+
+          // LCD backlight
+          { 22, PIN_DO | PK_AllPinCap_PWMOut },
+
+          // LCD pins
+          { 23, PIN_DIO },
+          { 24, PIN_DIO },
+          { 25, PIN_DIO },
+          { 26, PIN_DIO },
+          { 28, PIN_DIO },
+          { 29, PIN_DIO },
+          { 30, PIN_DIO },
+
+          // PoExtension2 connector pins
+          { 31, PIN_DIO },
+          { 32, PIN_DIO },
+          { 33, PIN_DIO | PK_AllPinCap_digitalCounter },
+          { 34, PIN_DIO | PK_AllPinCap_digitalCounter },
+          { 35, PIN_DIO | PK_AllPinCap_digitalCounter },
+          { 36, PIN_DIO | PK_AllPinCap_digitalCounter },
+          { 37, PIN_DIO | PK_AllPinCap_digitalCounter },
+          { 38, PIN_DIO | PK_AllPinCap_digitalCounter },
+
+          // Analog inputs
+          { 41, PIN_DIO | PK_AllPinCap_digitalCounter | PK_AllPinCap_analogInput },
+          { 42, PIN_DIO | PK_AllPinCap_digitalCounter | PK_AllPinCap_analogInput },
+          { 43, PIN_DIO | PK_AllPinCap_digitalCounter | PK_AllPinCap_analogInput },
+          { 44, PIN_DIO | PK_AllPinCap_digitalCounter | PK_AllPinCap_analogInput },
+          { 45, PIN_DIO | PK_AllPinCap_analogInput },
+
+          // Emergency switch input
+          { 51, PIN_DI },
+
+          // End of pin list
+          { -1, 0 }
+      }},
+
+
+    // End of device list
+    { -1, 0 }
+};
+
+
+
 // This structure is using real pin numbers
 const sPoKeys_PinCapabilities pinCaps[] = {
     { PK_AllPinCap_digitalInput,        1, 55, 0, PK_DeviceMask_55 | PK_DeviceMask_56 | PK_DeviceMask_57 | PK_DeviceMask_27 },
@@ -53,6 +156,22 @@ const sPoKeys_PinCapabilities pinCaps[] = {
     { PK_AllPinCap_digitalOutput,      20, 27, 0, PK_DeviceMask_PoPLC58 },
     { PK_AllPinCap_analogInput,         1,  8, 0, PK_DeviceMask_PoPLC58 },
     { PK_AllPinCap_MFanalogInput,       1,  8, 0, PK_DeviceMask_PoPLC58 },
+
+    /*
+    { PK_AllPinCap_digitalInput,        1, 6, 0, PK_DeviceMask_57CNC },
+    { PK_AllPinCap_digitalInput,        1, 6, 0, PK_DeviceMask_57CNC },
+
+
+    { PK_AllPinCap_digitalOutput,       1, 55, 0, PK_DeviceMask_57CNC },
+    { PK_AllPinCap_analogInput,        43, 47, 0, PK_DeviceMask_57CNC },
+    { PK_AllPinCap_analogInput,        41, 47, 0, PK_DeviceMask_57CNC },
+    { PK_AllPinCap_analogOutput,       43, 43, 0, PK_DeviceMask_57CNC },
+    { PK_AllPinCap_keyboardMapping,     1, 55, 0, PK_DeviceMask_57CNC },
+    { PK_AllPinCap_triggeredInput,      1, 55, 0, PK_DeviceMask_57CNC },
+    { PK_AllPinCap_digitalCounter,      1, 55, 1, PK_DeviceMask_57CNC },
+    { PK_AllPinCap_PWMOut,             17, 22, 0, PK_DeviceMask_57CNC },
+        */
+
     { -1, 0, 0, 0 }
 };
 
@@ -323,21 +442,23 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
                 break;
 
             // PoKeys57U
-            case 30:
+            case PK_DeviceID_57U_v0:
+            case PK_DeviceID_57U:
                 devSeries57 = 1;
                 devUSB = 1;
                 data->DeviceTypeID = PK_DeviceMask_57 | PK_DeviceMask_57U;
                 break;
 
             // PoKeys57E
-            case 31:
+            case PK_DeviceID_57E_v0:
+            case PK_DeviceID_57E:
                 devSeries57 = 1;
                 devEth = 1;
                 data->DeviceTypeID = PK_DeviceMask_57 | PK_DeviceMask_57E;
                 break;
 
             // PoKeys57CNC
-            case 32:
+            case PK_DeviceID_PoKeys57CNC:
                 devSeries57 = 1;
                 devEth = 1;
                 devUSB = 1;
@@ -793,6 +914,115 @@ int32_t PK_CheckPinCapabilityByDevice(long deviceTypeMask, unsigned int pin, ePK
     return 0;
 }
 
+int32_t PK_CheckPinCapabilityByTypeID(long deviceID, unsigned int pin, ePK_AllPinCap cap)
+{
+    const sPoKeys_PinCapabilities * ptr;
+    uint32_t deviceTypeMask = 0;
+    int iDev, iPin;
+
+    switch (deviceID)
+    {
+        // New approach
+        case PK_DeviceID_PoKeys57CNC:
+            // Find the device in the device list
+            if (cap == PK_AllPinCap_digitalCounter) return PK_IsCounterAvailableByDevice(deviceTypeMask, pin);
+
+            iDev = 0;
+            // Look for device...
+            while(deviceDesc[iDev].deviceID >= 0)
+            {
+                if (deviceDesc[iDev].deviceID == deviceID)
+                {
+                    iPin = 0;
+
+                    // Look for the specific pin
+                    while (deviceDesc[iDev].pins[iPin].pinID >= 0)
+                    {
+                        if (deviceDesc[iDev].pins[iPin].pinID == pin)
+                        {
+                            // Return 1 if pin has requested capability
+                            if (deviceDesc[iDev].pins[iPin].pinCapabilities & cap)
+                                return 1;
+                            else
+                                return 0;
+                        }
+                        iPin++;
+                    }
+                }
+                iDev++;
+            }
+            return 0;
+
+
+        // Previous approach...
+        case PK_DeviceID_27E:
+            deviceTypeMask = PK_DeviceMask_27 | PK_DeviceID_27E;
+            break;
+        case PK_DeviceID_27U:
+            deviceTypeMask = PK_DeviceMask_27 | PK_DeviceID_27U;
+            break;
+        case PK_DeviceID_55v1:
+        case PK_DeviceID_55v2:
+        case PK_DeviceID_55v3:
+            deviceTypeMask = PK_DeviceMask_55;
+            break;
+        case PK_DeviceID_56E:
+            deviceTypeMask = PK_DeviceMask_56 | PK_DeviceMask_56E;
+            break;
+        case PK_DeviceID_56U:
+            deviceTypeMask = PK_DeviceMask_56 | PK_DeviceMask_56U;
+            break;
+        case PK_DeviceID_57E:
+        case PK_DeviceID_57E_v0:
+            deviceTypeMask = PK_DeviceMask_57 | PK_DeviceMask_57E;
+            break;
+        case PK_DeviceID_57U:
+        case PK_DeviceID_57U_v0:
+            deviceTypeMask = PK_DeviceMask_57 | PK_DeviceMask_57U;
+            break;
+        case PK_DeviceID_58EU:
+            deviceTypeMask = PK_DeviceMask_58;
+            break;
+        case PK_DeviceID_PoPLC58:
+            deviceTypeMask = PK_DeviceMask_PoPLC58;
+            break;
+    }
+
+    ptr = &pinCaps[0];
+
+    while (ptr->cap != -1)
+    {
+        if ((ptr->devTypes & deviceTypeMask) && (ptr->cap == cap))
+        {
+            if (pin + 1 >= ptr->pinStart &&
+                pin + 1 <= ptr->pinEnd)
+            {
+                if (ptr->additionalCheck == 0) return 1;
+                switch (ptr->cap)
+                {
+                    case PK_AllPinCap_digitalCounter:
+                        return PK_IsCounterAvailableByDevice(deviceTypeMask, pin);
+
+                    case PK_AllPinCap_fastEncoder1I:
+                    case PK_AllPinCap_fastEncoder2I:
+                    case PK_AllPinCap_fastEncoder3I:
+                        if (deviceTypeMask & PK_DeviceMask_56) return 1; else return 0;
+
+                    case PK_AllPinCap_fastEncoder2A:
+                        if (deviceTypeMask & PK_DeviceMask_56) return 1; else return 0;
+                        break;
+                    case PK_AllPinCap_fastEncoder2B:
+                        if (deviceTypeMask & PK_DeviceMask_56) return 1; else return 0;
+                        break;
+                }
+            }
+        }
+        ptr++;
+    }
+
+
+    return 0;
+}
 
 
 
