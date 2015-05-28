@@ -497,6 +497,32 @@ int32_t PK_AnalogIOGetAsArray(sPoKeysDevice* device, uint32_t * buffer)
     return result;
 }
 
+int32_t PK_AnalogRCFilterGet(sPoKeysDevice* device)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Read the value of RC filter
+    CreateRequest(device->request, 0x38, 0, 0, 0, 0);
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+    memcpy(&device->otherPeripherals.AnalogRCFilter, device->response + 2, 4);
+    return PK_OK;
+}
+
+int32_t PK_AnalogRCFilterSet(sPoKeysDevice* device)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Set the value of RC filter
+    CreateRequest(device->request, 0x39, 0, 0, 0, 0);
+
+    memcpy(device->request + 2, &device->otherPeripherals.AnalogRCFilter, 4);
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+    return PK_OK;
+}
+
+
 int32_t PK_DigitalCounterGet(sPoKeysDevice* device)
 {
     // Get digital counter values

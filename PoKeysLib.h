@@ -740,6 +740,12 @@ typedef struct
     uint8_t  DHCP;                                           // DHCP setting of the device
 } sPoKeysNetworkDeviceInfo;
 
+// Other device peripheral data
+typedef struct
+{
+    uint32_t AnalogRCFilter;
+} sPoKeysOtherPeripherals;
+
 // Main PoKeys structure
 typedef struct
 {
@@ -763,6 +769,8 @@ typedef struct
     sPoNETmodule              PoNETmodule;
     sPoILStatus               PoIL;
     sPoKeysRTC                RTC;
+
+    sPoKeysOtherPeripherals   otherPeripherals;
 
     uint8_t                   FastEncodersConfiguration;     // Fast encoders configuration, invert settings and 4x sampling (see protocol specification for details)
     uint8_t                   FastEncodersOptions;           // Fast encoders additional options
@@ -886,6 +894,9 @@ POKEYSDECL int32_t PK_IsCounterAvailableByTypeID(uint32_t deviceTypeID, uint8_t 
 POKEYSDECL int32_t PK_AnalogIOGet(sPoKeysDevice* device);
 // Get analog input values as an array
 POKEYSDECL int32_t PK_AnalogIOGetAsArray(sPoKeysDevice* device, uint32_t * buffer);
+
+POKEYSDECL int32_t PK_AnalogRCFilterGet(sPoKeysDevice* device);
+POKEYSDECL int32_t PK_AnalogRCFilterSet(sPoKeysDevice* device);
 
 // Get matrix keyboard configuration
 POKEYSDECL int32_t PK_MatrixKBConfigurationGet(sPoKeysDevice* device);

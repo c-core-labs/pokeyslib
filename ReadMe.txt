@@ -91,6 +91,7 @@ Author: Matevž Bošnak (matevz@poscope.com)
 
 
 ---- Change log ----
+28.05.2015: Minor update (analog input low-pass filter support)
 15.04.2015: (Initial) support for new devices, bug fixes
 31.12.2014: Improved support for newer devices, fixed Makefile
 09.10.2014: Added support for PoKeys57 series, misc bugs fixed
