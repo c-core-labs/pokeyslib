@@ -93,6 +93,10 @@ void InitializeNewDevice(sPoKeysDevice* device)
 	memset(device->request, 0, 64);
 	memset(device->response, 0, 64);
 
+	device->sendRetries = 3;
+    device->readRetries = 10;
+    device->socketTimeout = 100;
+
     PK_DeviceDataGet(device);
 
     device->Pins = (sPoKeysPinData*)malloc(sizeof(sPoKeysPinData) * device->info.iPinCount);
@@ -124,6 +128,7 @@ void InitializeNewDevice(sPoKeysDevice* device)
     device->MatrixLED = (sPoKeysMatrixLED*)malloc(sizeof(sPoKeysMatrixLED) * device->info.iMatrixLED);
 	memset(device->MatrixLED, 0, sizeof(sPoKeysMatrixLED) * device->info.iMatrixLED);
 
+    /*
 	if (device->info.iPulseEngine)
 	{
 		device->PulseEngine = (sPoKeysPE*)malloc(sizeof(sPoKeysPE));
@@ -153,12 +158,9 @@ void InitializeNewDevice(sPoKeysDevice* device)
 		memset(device->PulseEngine->MPGaxisEncoder, 0, sizeof(unsigned char) * device->PulseEngine->info.nrOfAxes);
 
 	} else device->PulseEngine = NULL;
+    */
 
     memset(&device->PEv2, 0, sizeof(sPoKeysPEv2));
-
-    device->sendRetries = 3;
-    device->readRetries = 10;
-    device->socketTimeout = 100;
 
     device-> multiPartBuffer = malloc(512);
     if (device->multiPartBuffer <= 0) device->multiPartBuffer = 0;
@@ -180,6 +182,7 @@ void CleanDevice(sPoKeysDevice* device)
         device->netDeviceData = 0;
     }
 
+    /*
 	if (device->PulseEngine != NULL)
 	{
 		free(device->PulseEngine->buffer.buffer);
@@ -195,6 +198,7 @@ void CleanDevice(sPoKeysDevice* device)
 		free(device->PulseEngine->MPGaxisEncoder);
 		free(device->PulseEngine);
 	}
+    */
 }
 
 void PK_ReleaseDeviceStructure(sPoKeysDevice* device)
@@ -221,6 +225,7 @@ void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination
         destination->netDeviceData = 0;
     }
 
+    /*
     if (original->info.iPulseEngine)
     {
         destination->PulseEngine = (sPoKeysPE*)malloc(sizeof(sPoKeysPE));
@@ -250,8 +255,8 @@ void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination
                 = (unsigned char*)malloc(sizeof(unsigned char) * original->PulseEngine->info.nrOfAxes);
 
     } else destination->PulseEngine = NULL;
+    */
     destination->PoExtBusData = (unsigned char*)malloc(sizeof(unsigned char) * original->info.iPoExtBus);
-
 
 
     // Copy data
@@ -279,6 +284,7 @@ void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination
 
     destination->LCD = original->LCD;
 
+    /*
     if (original->info.iPulseEngine)
     {
         destination->PulseEngine->info = original->PulseEngine->info;
@@ -316,6 +322,7 @@ void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination
 
         destination->PulseEngine->EmergencySwitchPolarity = original->PulseEngine->EmergencySwitchPolarity;
     }
+    */
 
     destination->PoNETmodule = original->PoNETmodule;
     destination->PoIL = original->PoIL;
@@ -434,6 +441,7 @@ sPoKeysDevice* PK_ConnectToPoKeysDevice(uint32_t serialNumber, uint32_t checkFor
     int devRange = 0;
     uint8_t deviceTypeRequested = (flags >> 1) & 0x7F;
 
+	
 
 #ifdef POKEYSLIB_USE_LIBUSB
 	// Try connecting to fast USB interface first

@@ -2,7 +2,7 @@ PoKeysLib
 
 ---- About ----
 PoKeysLib is a multi-platform library which allows an application to interface 
-PoKeys55, PoKeys56U and PoKeys56E devices.
+PoKeys55, PoKeys56 and PoKeys57 series of PoKeys devices.
 It is meant as a replacement and enhancement of the original .NET-based commun-
 ication library for Windows.
 
@@ -91,6 +91,7 @@ Author: Matevž Bošnak (matevz@poscope.com)
 
 
 ---- Change log ----
+18.10.2015: Updates to support new devices, cleaning up the code, support for new features, precompiled binaries for Windows included
 28.05.2015: Minor update (analog input low-pass filter support)
 15.04.2015: (Initial) support for new devices, bug fixes
 31.12.2014: Improved support for newer devices, fixed Makefile

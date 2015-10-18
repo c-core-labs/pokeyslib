@@ -25,98 +25,114 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 
 #define MAX_PINS_COUNT 100
+#define MAX_CAPS_PER_PIN 20
+
 typedef struct
 {
-    uint32_t pinID;
-    uint32_t pinCapabilities;
+    int32_t pinID;
+    int32_t pinCapabilities[MAX_CAPS_PER_PIN];
 } sPoKeys_PinDescriptor;
 
 typedef struct
 {
-    int deviceID;
+    int32_t deviceID;
     sPoKeys_PinDescriptor pins[MAX_PINS_COUNT];
 } sPoKeys_DeviceDescriptor;
 
 
-#define PIN_DI (PK_AllPinCap_digitalInput | PK_AllPinCap_keyboardMapping | PK_AllPinCap_triggeredInput)
-#define PIN_DO (PK_AllPinCap_digitalOutput)
-#define PIN_DIO (PK_AllPinCap_digitalInput | PK_AllPinCap_digitalOutput | PK_AllPinCap_keyboardMapping | PK_AllPinCap_triggeredInput)
+
+/*
+PK_PinCap_pinRestricted  = 0,           // Pin is not used
+    PK_PinCap_reserved       = 1,           // --
+    PK_PinCap_digitalInput   = 2,           // Digital input
+    PK_PinCap_digitalOutput  = 4,           // Digital output
+    PK_PinCap_analogInput    = 8,           // Analog input (only on selected pins)
+    PK_PinCap_analogOutput   = 16,          // Analog output (only on selected pins)
+    PK_PinCap_triggeredInput = 32,          // Triggered input
+    PK_PinCap_digitalCounter = 64,          // Digital counter (only on selected pins)
+    PK_PinCap_invertPin      = 128          // Invert digital pin polarity (set together with digital input, output or triggered input)*/
+
+#define PIN_DI PK_AllPinCap_digitalInput, PK_AllPinCap_keyboardMapping, PK_AllPinCap_triggeredInput
+#define PIN_DO PK_AllPinCap_digitalOutput
+#define PIN_DIO PK_AllPinCap_digitalInput, PK_AllPinCap_digitalOutput, PK_AllPinCap_keyboardMapping, PK_AllPinCap_triggeredInput
+
+#define CAP(...) { __VA_ARGS__, -1 }
 
 const sPoKeys_DeviceDescriptor deviceDesc[] = {
 
     // PoKeys57CNC Pins descriptor
     { PK_DeviceID_PoKeys57CNC,  {
-          { 1, PIN_DIO | PK_AllPinCap_digitalCounter | PK_AllPinCap_fastEncoder1A },
-          { 2, PIN_DIO | PK_AllPinCap_digitalCounter | PK_AllPinCap_fastEncoder1B },
-          { 3, PIN_DI | PK_AllPinCap_digitalCounter | PK_AllPinCap_fastEncoder2A },
-          { 4, PIN_DI | PK_AllPinCap_digitalCounter | PK_AllPinCap_fastEncoder2B },
-          { 5, PIN_DI | PK_AllPinCap_digitalCounter | PK_AllPinCap_fastEncoder3A },
-          { 6, PIN_DI | PK_AllPinCap_digitalCounter | PK_AllPinCap_fastEncoder3B },
+		  { 1, CAP( PIN_DIO, PK_AllPinCap_digitalCounter, PK_AllPinCap_fastEncoder1A ) },
+		  { 2, CAP( PIN_DIO, PK_AllPinCap_digitalCounter, PK_AllPinCap_fastEncoder1B ) },
+          { 3, CAP( PIN_DI,  PK_AllPinCap_digitalCounter, PK_AllPinCap_fastEncoder2A ) },
+          { 4, CAP( PIN_DI,  PK_AllPinCap_digitalCounter, PK_AllPinCap_fastEncoder2B ) },
+          { 5, CAP( PIN_DI,  PK_AllPinCap_digitalCounter, PK_AllPinCap_fastEncoder3A ) },
+          { 6, CAP( PIN_DI,  PK_AllPinCap_digitalCounter, PK_AllPinCap_fastEncoder3B ) },
 
           // Ultra-fast encoder pins
-          { 8, PIN_DIO },
-          { 12, PIN_DIO },
-          { 13, PIN_DIO },
+		  { 8,  CAP( PIN_DIO ) },
+		  { 12, CAP( PIN_DIO ) },
+		  { 13, CAP( PIN_DIO ) },
 
           // Pendant connector pins
-          { 9, PIN_DIO | PK_AllPinCap_digitalCounter },
-          { 10, PIN_DIO | PK_AllPinCap_digitalCounter },
-          { 11, PIN_DIO | PK_AllPinCap_digitalCounter },
-          { 15, PIN_DIO | PK_AllPinCap_digitalCounter },
-          { 16, PIN_DIO | PK_AllPinCap_digitalCounter },
+		  { 9,  CAP( PIN_DIO, PK_AllPinCap_digitalCounter ) },
+          { 10, CAP( PIN_DIO, PK_AllPinCap_digitalCounter ) },
+          { 11, CAP( PIN_DIO, PK_AllPinCap_digitalCounter ) },
+          { 15, CAP( PIN_DIO, PK_AllPinCap_digitalCounter ) },
+          { 16, CAP( PIN_DIO, PK_AllPinCap_digitalCounter ) },
 
           // Spindle error input
-          { 14, PIN_DI },
+		  { 14, CAP( PIN_DI ) },
 
           // 0-10V output
-          { 17, PIN_DO | PK_AllPinCap_PWMOut },
+		  { 17, CAP( PIN_DO, PK_AllPinCap_PWMOut ) },
 
           // LCD contrast
-          { 18, PIN_DO | PK_AllPinCap_PWMOut },
+          { 18, CAP( PIN_DO, PK_AllPinCap_PWMOut ) },
 
           // Probe input
-          { 19, PIN_DI | PK_AllPinCap_digitalCounter },
+		  { 19, CAP( PIN_DI, PK_AllPinCap_digitalCounter ) },
 
           // PWM out, pin 20
-          { 20, PIN_DO | PK_AllPinCap_PWMOut },
+		  { 20, CAP( PIN_DO, PK_AllPinCap_PWMOut ) },
 
           // Pendant LED, PWM out, pin 21
-          { 21, PIN_DO | PK_AllPinCap_PWMOut },
+		  { 21, CAP( PIN_DO, PK_AllPinCap_PWMOut ) },
 
           // LCD backlight
-          { 22, PIN_DO | PK_AllPinCap_PWMOut },
+		  { 22, CAP( PIN_DO, PK_AllPinCap_PWMOut ) },
 
           // LCD pins
-          { 23, PIN_DIO },
-          { 24, PIN_DIO },
-          { 25, PIN_DIO },
-          { 26, PIN_DIO },
-          { 28, PIN_DIO },
-          { 29, PIN_DIO },
-          { 30, PIN_DIO },
+		  { 23, CAP( PIN_DIO ) },
+          { 24, CAP( PIN_DIO ) },
+          { 25, CAP( PIN_DIO ) },
+          { 26, CAP( PIN_DIO ) },
+          { 28, CAP( PIN_DIO ) },
+          { 29, CAP( PIN_DIO ) },
+          { 30, CAP( PIN_DIO ) },
 
           // PoExtension2 connector pins
-          { 31, PIN_DIO },
-          { 32, PIN_DIO },
-          { 33, PIN_DIO | PK_AllPinCap_digitalCounter },
-          { 34, PIN_DIO | PK_AllPinCap_digitalCounter },
-          { 35, PIN_DIO | PK_AllPinCap_digitalCounter },
-          { 36, PIN_DIO | PK_AllPinCap_digitalCounter },
-          { 37, PIN_DIO | PK_AllPinCap_digitalCounter },
-          { 38, PIN_DIO | PK_AllPinCap_digitalCounter },
+          { 31, CAP( PIN_DIO ) },
+          { 32, CAP( PIN_DIO ) },
+		  { 33, CAP( PIN_DIO, PK_AllPinCap_digitalCounter ) },
+          { 34, CAP( PIN_DIO, PK_AllPinCap_digitalCounter ) },
+          { 35, CAP( PIN_DIO, PK_AllPinCap_digitalCounter ) },
+          { 36, CAP( PIN_DIO, PK_AllPinCap_digitalCounter ) },
+          { 37, CAP( PIN_DIO, PK_AllPinCap_digitalCounter ) },
+          { 38, CAP( PIN_DIO, PK_AllPinCap_digitalCounter ) },
 
           // Analog inputs
-          { 41, PIN_DIO | PK_AllPinCap_digitalCounter | PK_AllPinCap_analogInput },
-          { 42, PIN_DIO | PK_AllPinCap_digitalCounter | PK_AllPinCap_analogInput },
-          { 43, PIN_DIO | PK_AllPinCap_digitalCounter | PK_AllPinCap_analogInput },
-          { 44, PIN_DIO | PK_AllPinCap_digitalCounter | PK_AllPinCap_analogInput },
-          { 45, PIN_DIO | PK_AllPinCap_analogInput },
+          { 41, CAP( PIN_DIO, PK_AllPinCap_digitalCounter, PK_AllPinCap_analogInput ) },
+          { 42, CAP( PIN_DIO, PK_AllPinCap_digitalCounter, PK_AllPinCap_analogInput ) },
+          { 43, CAP( PIN_DIO, PK_AllPinCap_digitalCounter, PK_AllPinCap_analogInput ) },
+          { 44, CAP( PIN_DIO, PK_AllPinCap_digitalCounter, PK_AllPinCap_analogInput ) },
+          { 45, CAP( PIN_DIO, PK_AllPinCap_analogInput ) },
 
           // Emergency switch input
-          { 51, PIN_DI },
+          { 52, CAP( PIN_DI ) },
 
           // End of pin list
-          { -1, 0 }
+		  { -1, CAP( -1) }
       }},
 
 
@@ -483,31 +499,33 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
         case 3:
             sprintf(data->DeviceTypeName, "PoKeys55 - recovery");
 			break;
-        case 10:
+        case PK_DeviceID_56U:
             sprintf(data->DeviceTypeName, "PoKeys56U");
 			break;
-        case 11:
+        case PK_DeviceID_56E:
             sprintf(data->DeviceTypeName, "PoKeys56E");
 			break;
-        case 15:
+        case PK_DeviceID_Bootloader56U:
             sprintf(data->DeviceTypeName, "PoKeys56U - recovery");
 			break;
-        case 16:
+        case PK_DeviceID_Bootloader56E:
             sprintf(data->DeviceTypeName, "PoKeys56E - recovery");
 			break;
-        case 20:
+        case PK_DeviceID_27U:
             sprintf(data->DeviceTypeName, "PoTLog27U");
 			break;
-        case 21:
+        case PK_DeviceID_27E:
             sprintf(data->DeviceTypeName, "PoTLog27E");
 			break;            
-        case 30:
+        case PK_DeviceID_57U:
+        case PK_DeviceID_57U_v0:
             sprintf(data->DeviceTypeName, "PoKeys57U");
             break;
-        case 31:
+        case PK_DeviceID_57E_v0:
+        case PK_DeviceID_57E:
             sprintf(data->DeviceTypeName, "PoKeys57E");
             break;
-        case 32:
+        case PK_DeviceID_PoKeys57CNC:
             sprintf(data->DeviceTypeName, "PoKeys57CNC");
             break;
         case 40:
@@ -551,8 +569,8 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
 			break;
         
 		// PoKeys56U, PoKeys56E
-		case 10:
-		case 11:
+		case PK_DeviceID_56U:
+		case PK_DeviceID_56E:
 			info->iPinCount = 55;
 			info->iEncodersCount = 26;
 			info->iBasicEncoderCount = 25;
@@ -562,8 +580,8 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
 			break;
 
 		// PoKeys56U, PoKeys56E bootloader
-		case 15:
-        case 16:
+		case PK_DeviceID_Bootloader56U:
+        case PK_DeviceID_Bootloader56E:
 			info->iPinCount = 0;
 			info->iEncodersCount = 0;
 			info->iBasicEncoderCount = 0;
@@ -579,9 +597,11 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
 			info->iPWMCount = 0;
 			break;
 
-        // PoKeys56U, PoKeys56E
-        case 30:
-        case 31:
+        // PoKeys57U, PoKeys57E
+		case PK_DeviceID_57E_v0:
+        case PK_DeviceID_57U_v0:
+        case PK_DeviceID_57U:
+        case PK_DeviceID_57E:
             info->iPinCount = 55;
             info->iEncodersCount = 26;
             info->iBasicEncoderCount = 25;
@@ -590,8 +610,9 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
             device->info.PWMinternalFrequency = 25000000;
             break;
 
+
         // PoKeys57CNC
-        case 32:
+        case PK_DeviceID_PoKeys57CNC:
             info->iPinCount = 55;
             info->iEncodersCount = 26;
             info->iBasicEncoderCount = 25;
@@ -874,7 +895,7 @@ int32_t PK_ClearConfiguration(sPoKeysDevice* device)
     return PK_OK;
 }
 
-int32_t PK_CheckPinCapabilityByDevice(long deviceTypeMask, unsigned int pin, ePK_AllPinCap cap)
+int32_t PK_CheckPinCapabilityByDevice(uint64_t deviceTypeMask, uint32_t pin, ePK_AllPinCap cap)
 {
     const sPoKeys_PinCapabilities * ptr;
 
@@ -891,7 +912,7 @@ int32_t PK_CheckPinCapabilityByDevice(long deviceTypeMask, unsigned int pin, ePK
                 switch (ptr->cap)
                 {
                     case PK_AllPinCap_digitalCounter:
-                        return PK_IsCounterAvailableByDevice(deviceTypeMask, pin);
+                        return PK_IsCounterAvailableByDevice((uint32_t)deviceTypeMask, pin);
 
                     case PK_AllPinCap_fastEncoder1I:
                     case PK_AllPinCap_fastEncoder2I:
@@ -914,18 +935,18 @@ int32_t PK_CheckPinCapabilityByDevice(long deviceTypeMask, unsigned int pin, ePK
     return 0;
 }
 
-int32_t PK_CheckPinCapabilityByTypeID(long deviceID, unsigned int pin, ePK_AllPinCap cap)
+int32_t PK_CheckPinCapabilityByTypeID(uint64_t deviceID, uint32_t pin, ePK_AllPinCap cap)
 {
     const sPoKeys_PinCapabilities * ptr;
     uint32_t deviceTypeMask = 0;
-    int iDev, iPin;
+    uint32_t iDev, iPin, iCap;
 
     switch (deviceID)
     {
         // New approach
         case PK_DeviceID_PoKeys57CNC:
             // Find the device in the device list
-            if (cap == PK_AllPinCap_digitalCounter) return PK_IsCounterAvailableByDevice(deviceTypeMask, pin);
+            //if (cap == PK_AllPinCap_digitalCounter) return PK_IsCounterAvailableByDevice(deviceTypeMask, pin);
 
             iDev = 0;
             // Look for device...
@@ -938,16 +959,21 @@ int32_t PK_CheckPinCapabilityByTypeID(long deviceID, unsigned int pin, ePK_AllPi
                     // Look for the specific pin
                     while (deviceDesc[iDev].pins[iPin].pinID >= 0)
                     {
-                        if (deviceDesc[iDev].pins[iPin].pinID == pin)
+                        if (deviceDesc[iDev].pins[iPin].pinID == pin + 1)
                         {
-                            // Return 1 if pin has requested capability
-                            if (deviceDesc[iDev].pins[iPin].pinCapabilities & cap)
-                                return 1;
-                            else
-                                return 0;
+							iCap = 0;
+
+							while (deviceDesc[iDev].pins[iPin].pinCapabilities[iCap] >= 0)
+							{
+								// Return 1 if pin has requested capability
+								if (deviceDesc[iDev].pins[iPin].pinCapabilities[iCap] == cap) return 1;
+								iCap++;
+							}
                         }
                         iPin++;
                     }
+
+					return 0;
                 }
                 iDev++;
             }

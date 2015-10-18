@@ -88,6 +88,22 @@ int32_t PK_PEv2_StatusGet(sPoKeysDevice * device)
 
 }
 
+
+
+int32_t PK_PEv2_Status2Get(sPoKeysDevice * device)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Send request
+    CreateRequest(device->request, 0x85, 0x08, 0, 0, 0);
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	device->PEv2.DedicatedLimitNInputs = device->response[8];
+	device->PEv2.DedicatedLimitPInputs = device->response[9];
+	device->PEv2.DedicatedHomeInputs = device->response[10];
+	return PK_OK;
+}
+
 // Configure (setup) the pulse engine
 int32_t PK_PEv2_PulseEngineSetup(sPoKeysDevice * device)
 {
@@ -426,4 +442,151 @@ int32_t PK_PEv2_ProbingFinishSimple(sPoKeysDevice * device)
     memcpy(device->PEv2.ProbePosition, &device->response[8], 8*4);
 
     return PK_OK;
+}
+
+int32_t PK_PEv2_ThreadingPrepareForTrigger(sPoKeysDevice * device)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Create request
+    CreateRequest(device->request, 0x85, 0x30, 0, 0, 0);
+
+    // Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	return PK_OK;
+}
+
+int32_t PK_PEv2_ThreadingForceTriggerReady(sPoKeysDevice * device)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Create request
+    CreateRequest(device->request, 0x85, 0x31, 0, 0, 0);
+
+    // Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	return PK_OK;
+}
+
+int32_t PK_PEv2_ThreadingTrigger(sPoKeysDevice * device)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Create request
+    CreateRequest(device->request, 0x85, 0x32, 0, 0, 0);
+
+    // Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	return PK_OK;
+}
+
+int32_t PK_PEv2_ThreadingRelease(sPoKeysDevice * device)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Create request
+    CreateRequest(device->request, 0x85, 0x33, 0, 0, 0);
+
+    // Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	return PK_OK;
+}
+
+int32_t PK_PEv2_ThreadingCancel(sPoKeysDevice * device)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Create request
+    CreateRequest(device->request, 0x85, 0x34, 0, 0, 0);
+
+    // Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	return PK_OK;
+}
+
+int32_t PK_PEv2_ThreadingStatusGet(sPoKeysDevice * device)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Create request
+    CreateRequest(device->request, 0x85, 0x35, 0, 0, 0);
+
+    // Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+
+	device->PEv2.TriggerPreparing = device->response[8];
+	device->PEv2.TriggerPrepared = device->response[9];
+	device->PEv2.TriggerPending = device->response[10];
+	device->PEv2.TriggerActive = device->response[11];
+
+	device->PEv2.SpindleSpeedEstimate = *(int32_t*)(device->response + 12);
+	device->PEv2.SpindlePositionError = *(int32_t*)(device->response + 16);
+	device->PEv2.SpindleRPM =			*(int32_t*)(device->response + 20);
+	return PK_OK;
+
+}
+
+int32_t PK_PEv2_ThreadingSetup(sPoKeysDevice * device, uint8_t sensorMode, uint16_t ticksPerRevolution, uint16_t tagetSpindleRPM)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Create request
+    CreateRequest(device->request, 0x85, 0x36, 0, 0, 0);
+
+	device->request[8] = sensorMode;
+	*(uint16_t*)(device->request + 12) = ticksPerRevolution;
+	*(uint16_t*)(device->request + 14) = tagetSpindleRPM;
+
+    // Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	return PK_OK;
+}
+
+int32_t PK_PEv2_BacklashCompensationSettings_Get(sPoKeysDevice * device)
+{
+	int32_t i;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Create request
+    CreateRequest(device->request, 0x85, 0x40, 0, 0, 0);
+
+	// Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	for (i = 0; i < 8; i++)
+	{
+		device->PEv2.BacklashWidth[i] = *(uint16_t*)(device->response + 8 + i * 4);
+		device->PEv2.BacklashAcceleration[i] = device->response[10 + i * 4];
+		device->PEv2.BacklashRegister[i] = *(int16_t*)(device->response + 40 + i * 2);
+	}
+	device->PEv2.BacklashCompensationEnabled = device->response[3];
+			
+	return PK_OK;
+}
+
+int32_t PK_PEv2_BacklashCompensationSettings_Set(sPoKeysDevice * device)
+{
+	int32_t i;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+	// Create request
+    CreateRequest(device->request, 0x85, 0x41, device->PEv2.BacklashCompensationEnabled, 0, 0);
+
+	for (i = 0; i < 8; i++)
+	{
+		*(uint16_t*)(device->request + 8 + i * 4) = device->PEv2.BacklashWidth[i];
+		device->request[10 + i * 4] = device->PEv2.BacklashAcceleration[i];
+	}		
+
+	// Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	return PK_OK;
 }

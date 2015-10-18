@@ -3,6 +3,10 @@
 # -------------------------------------------------
 QT -= core gui
 
+# Create a configuration for 32-bit and 64-bit libraries:
+# 32-bit: "CONFIG+=makeDLL DLL32"
+# 64-bit: "CONFIG+=makeDLL DLL64"        not needed: "QMAKE_LFLAGS_WINDOWS+=/NODEFAULTLIB:LIBCMT"
+
 makeDLL {
     DLL32 {
         message("Building 32-bit DLL...")
@@ -22,7 +26,6 @@ TEMPLATE = lib
 SOURCES += PoKeysLibCore.c \
     PoKeysLibFastUSB.c \
     PoKeysLibEncoders.c \
-    PoKeysLibPulseEngine.c \
     PoKeysLibMatrixLED.c \
     PoKeysLibMatrixKB.c \
     PoKeysLibLCD.c \
@@ -45,16 +48,21 @@ HEADERS += PoKeysLibCoreSockets.h \
     PoKeysLib.h \
 
 win32 {
-    # x86
     LIBS += -lsetupapi -lWs2_32 -liphlpapi
+
     makeDLL {
         DLL32 {
-            TARGET = ../../dll/32/PoKeysLib
+            message("x86 build")
+            #TARGET = ../../dll/32/PoKeysLib
+            TARGET = ../../pokeyslib/binaries/windows/dll/32/PoKeyslib
         } else {
-            TARGET = ../../dll/64/PoKeysLib
+            message("x86_64 build")
+            #TARGET = ../../dll/64/PoKeysLib
+            TARGET = ../../pokeyslib/binaries/windows/dll/64/PoKeyslib
         }
     } else {
-        TARGET = ../../lib/PoKeysLib
+        message("lib build")
+        TARGET = ../../pokeyslib/binaries/windows/lib/PoKeysLib
     }
 }
 unix:!macx {

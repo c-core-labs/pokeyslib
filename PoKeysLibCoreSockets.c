@@ -628,7 +628,7 @@ int32_t SendEthRequest(sPoKeysDevice* device)
             FD_SET((SOCKET)device->devHandle, &fds);
 
             stimeout.tv_sec = 0;
-            stimeout.tv_usec = 1000 * 100;
+			stimeout.tv_usec = 1000 * device->socketTimeout;
 
             result = select((SOCKET)device->devHandle + 1, &fds, NULL, NULL, &stimeout);
 
@@ -649,7 +649,7 @@ int32_t SendEthRequest(sPoKeysDevice* device)
             FD_SET(*(int*)device->devHandle, &fds);
 
             stimeout.tv_sec = 0;
-            stimeout.tv_usec = 1000 * 100;
+            stimeout.tv_usec = 1000 * device->socketTimeout;
 
             result = select(*(int*)device->devHandle + 1, &fds, NULL, NULL, &stimeout);
 
@@ -711,14 +711,13 @@ int32_t SendEthRequestBig(sPoKeysDevice* device)
     uint32_t retries1 = 0;
     uint32_t retries2 = 0;
     int result;
+	uint32_t i;
 
     fd_set fds;
     struct timeval stimeout;
 
     uint8_t * requestBuffer;
     uint8_t * requestBufferPtr = 0;
-
-    uint32_t i;
 
     if (device == NULL) return PK_ERR_GENERIC;
     if (device->connectionType != PK_DeviceType_NetworkDevice) return PK_ERR_GENERIC;
@@ -785,7 +784,7 @@ int32_t SendEthRequestBig(sPoKeysDevice* device)
             FD_SET((SOCKET)device->devHandle, &fds);
 
             stimeout.tv_sec = 0;
-            stimeout.tv_usec = 1000 * 100;
+            stimeout.tv_usec = 1000 * device->socketTimeout;
 
             result = select((SOCKET)device->devHandle + 1, &fds, NULL, NULL, &stimeout);
 
@@ -803,7 +802,7 @@ int32_t SendEthRequestBig(sPoKeysDevice* device)
             FD_SET(*(int*)device->devHandle, &fds);
 
             stimeout.tv_sec = 0;
-            stimeout.tv_usec = 1000 * 100;
+            stimeout.tv_usec = 1000 * device->socketTimeout;
 
             result = select(*(int*)device->devHandle + 1, &fds, NULL, NULL, &stimeout);
 

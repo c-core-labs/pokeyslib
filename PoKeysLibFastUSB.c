@@ -196,7 +196,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 			waits = 0;
 			// Request receiving loop
-			while (waits++ < 50)
+			while (waits++ < 10)
 			{
 				result = libusb_bulk_transfer(devh, 0x82, device->response, 64, &bytesTransferred, 10);
 
@@ -204,7 +204,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 				if (result < 0)
 				{
 						//printf(" Receive ERR %u", result);
-						break;
+					if (result == LIBUSB_ERROR_TIMEOUT) // Timeout
+						continue;
+
+					break;
 				}
 
 				// Check the header and the request ID
@@ -249,7 +252,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 
 		// Request sending loop
-		while (retries++ < 2)
+		while (retries++ < 4)
 		{
 			for (i = 0; i < 8; i++)
 			{

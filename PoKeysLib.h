@@ -430,6 +430,26 @@ typedef struct
     // ------ 64-bit region boundary ------
     float           ProbeSpeed;                // Probe speed (ratio of the maximum speed)
 
+	uint16_t		BacklashWidth[8];			// half of real backlash width
+	int16_t			BacklashRegister[8];		// current value of the backlash register
+	uint8_t			BacklashAcceleration[8];	// in pulses per ms^2
+	uint8_t			BacklashCompensationEnabled;
+	uint8_t			reserved_back[3];
+
+	uint8_t			TriggerPreparing;
+	uint8_t			TriggerPrepared;
+	uint8_t			TriggerPending;
+	uint8_t			TriggerActive;
+
+	int32_t			SpindleSpeedEstimate;
+	int32_t			SpindlePositionError;
+	uint32_t		SpindleRPM;
+
+	uint8_t			DedicatedLimitNInputs;
+	uint8_t			DedicatedLimitPInputs;
+	uint8_t			DedicatedHomeInputs;
+	uint8_t			reserved_end;
+
 } sPoKeysPEv2;
 
 
@@ -553,66 +573,6 @@ typedef struct
     uint8_t RefreshFlag;                       // Flag for refreshing data - set to 1 to refresh the display
     uint8_t data[8];                           // Matrix LED buffer - one byte per row (assumes 8 columns)
 } sPoKeysMatrixLED;
-
-// Pulse engine information
-typedef struct
-{
-    uint8_t nrOfAxes;                          // Number of supported axes
-    uint8_t maxPulseFrequency;                 // Maximum pulse frequency
-    uint8_t bufferDepth;                       // Motion buffer depth
-    uint8_t slotTiming;                        // Slot timing for buffer mode (in ms)
-} sPoKeysPEinfo;
-
-// Pulse engine buffer
-typedef struct
-{
-    uint8_t * buffer;                          // Motion buffer (see the bufferDepth above for buffer size), 1 byte per axis (3 bytes per slot entry for 3-axis pulse engine)
-    uint8_t   newEntries;                      // Number of new entries included in the buffer
-    uint8_t   entriesAccepted;                 // Number of the entries accepted by the device
-    uint8_t   FreeBufferSize;                  // Number of free slots in the device's buffer
-    uint8_t   reserved;                        // placeholder
-} sPoKeysPEbuffer;
-
-// Pulse engine structure
-typedef struct
-{
-    sPoKeysPEinfo   info;                      // Pulse engine information
-    sPoKeysPEbuffer buffer;                    // Pulse engine buffer stuff
-
-    uint32_t *      ReferencePosition;         // Reference position (32-bit for each axis)
-    uint32_t *      CurrentPosition;           // Current position (32-bit for each axis)
-    uint32_t *      MaxSpeed;                  // Maximum speed (in pulses / second)
-    uint32_t *      MaxAcceleration;           // Maximum acceleration (in pulses / second / second)
-    uint32_t *      MaxDecceleration;          // Maximum decceleration (in pulses / second / second)
-    uint8_t *       AxisState;                 // Axes state values - see ePK_PEAxisState for possible values
-
-    uint32_t *      MPGjogMultiplier;          // Multiplier for the internal MPG jog mode (for each axis)
-    uint8_t *       MPGaxisEncoder;            // Encoder ID for the internal MPG jog mode (for each axis)
-    uint8_t         MPGjogActivated;           // Internal MPG jog mode configuration (set to 1 to enable)
-
-    uint8_t         PulseEngineEnabled;        // Pulse engine enabled flag (0: disabled, 1: enabled)
-    uint8_t         PulseEngineState;          // Pulse engine state - see ePK_PEState for possible values
-
-    uint8_t         LimitConfigP;              // Limit (positive direction) switch configuration (bit-mapped, bit 0: axis 1 switch present, bit 1: axis 2 switch present, ...)
-    uint8_t         LimitConfigN;              // Limit (negative direction) switch configuration (bit-mapped, bit 0: axis 1 switch present, bit 1: axis 2 switch present, ...)
-    uint8_t         LimitStatusP;              // Limit (positive direction) switch status (bit-mapped)
-    uint8_t         LimitStatusN;              // Limit (negative direction) switch status (bit-mapped)
-    uint8_t         HomeConfig;                // Home switch configuration (bit-mapped)
-    uint8_t         HomeStatus;                // Home switch status (bit-mapped)
-
-    uint8_t         DirectionChange;           // Direction change configuration (bit-mapped) - if bit is set, the appropriate axis direction is inverted
-
-    uint8_t         HomingDirectionChange;     // Homing direction change (bit-mapped) - if bit is set, the appropriate axis homing direction is inverted, default motion is in negative direction
-    uint8_t         HomingSpeed;               // Homing speed in % of maximum speed
-    uint8_t         HomingReturnSpeed;         // Homing speed in second step in % of maximum speed
-    uint8_t         AxesHomingFlags;           // Flags for setting which axis should start homing procedure
-
-    uint8_t         kb48CNCenabled;            // If set to 1, kbd48CNC is used directly by PoKeys device for Pulse engine control
-    uint8_t         ChargePumpEnabled;         // Charge pump configuration (set to 1 to enable 5 kHz charge pump output on pin 53)
-
-    uint8_t         EmergencySwitchPolarity;   // Polarity change of the emergency switch (by default, normally-closed emergency switch should be used between pin 52 and GND)
-    uint8_t         reserved[3];               // placeholder
-} sPoKeysPE;
 
 // PoNET module data
 typedef struct
@@ -763,7 +723,6 @@ typedef struct
     sPoKeysPWM                PWM;                           // PWM outputs structure
     sPoKeysMatrixLED*         MatrixLED;                     // Matrix LED structure
     sPoKeysLCD                LCD;                           // LCD structure
-    sPoKeysPE*                PulseEngine;                   // Pulse engine structure (available only when Pulse engine is supported and activated)
     sPoKeysPEv2               PEv2;                          // Pulse engine v2 structure
 
     sPoNETmodule              PoNETmodule;
@@ -834,7 +793,8 @@ POKEYSDECL int32_t PK_DeviceNameSet(sPoKeysDevice* device);
 // Check pin capabilities
 POKEYSDECL int32_t PK_CheckPinCapability(sPoKeysDevice* device, uint32_t pin, ePK_AllPinCap cap);
 // Check pin capabilities by device, defined by device type mask (see ePK_DeviceTypeMask)
-POKEYSDECL int32_t PK_CheckPinCapabilityByDevice(long deviceTypeMask, uint32_t pin, ePK_AllPinCap cap);
+POKEYSDECL int32_t PK_CheckPinCapabilityByDevice(uint64_t deviceTypeMask, uint32_t pin, ePK_AllPinCap cap);
+POKEYSDECL int32_t PK_CheckPinCapabilityByTypeID(uint64_t deviceID, uint32_t pin, ePK_AllPinCap cap);
 
 // Clone an existing device data structure into a new one
 POKEYSDECL void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination);
@@ -950,48 +910,12 @@ POKEYSDECL int32_t PK_MatrixLEDConfigurationGet(sPoKeysDevice* device);
 // Update matrix LED (only the displays with refresh flag set)
 POKEYSDECL int32_t PK_MatrixLEDUpdate(sPoKeysDevice* device);
 
-// Get pulse engine information
-POKEYSDECL int32_t PK_PEInfoGet(sPoKeysDevice* device);
-// Get pulse engine status (current position, limit/home status, axes status)
-POKEYSDECL int32_t PK_PEStatusGet(sPoKeysDevice* device);
-// Set pulse engine status (to enable/disable the pulse engine and the charge pump)
-POKEYSDECL int32_t PK_PEStatusSet(sPoKeysDevice* device);
-// Set pulse engine state
-POKEYSDECL int32_t PK_PEStateSet(sPoKeysDevice* device);
-// Set current position
-POKEYSDECL int32_t PK_PECurrentPositionSet(sPoKeysDevice* device);
-// Get pulse engine configuration for each axis (limit, home switches, directions)
-POKEYSDECL int32_t PK_PEAxisConfigurationGet(sPoKeysDevice* device);
-// Set pulse engine configuration for each axis (limit, home switches, directions)
-POKEYSDECL int32_t PK_PEAxisConfigurationSet(sPoKeysDevice* device);
-// Enable/Disable kbd48CNC
-POKEYSDECL int32_t PK_PEKeyboardConfigurationGet(sPoKeysDevice* device);
-// Get enable/disable kbd48CNC status
-POKEYSDECL int32_t PK_PEKeyboardConfigurationSet(sPoKeysDevice* device);
-// Start homing procedure for selected axes
-POKEYSDECL int32_t PK_PEHomingStart(sPoKeysDevice* device);
-// Get pulse engine parameters (speeds, accelerations for each axis, homing speed and direction, emergency switch polarity)
-POKEYSDECL int32_t PK_PEParametersGet(sPoKeysDevice* device);
-// Set pulse engine parameters (speeds, accelerations for each axis, homing speed and direction, emergency switch polarity)
-POKEYSDECL int32_t PK_PEParametersSet(sPoKeysDevice* device);
-// Execute internal controller move action (only when internal controller is activated)
-POKEYSDECL int32_t PK_PEMove(sPoKeysDevice* device);
-// Transfer motion buffer to device, also retrieves the free space in the device's motion buffer
-POKEYSDECL int32_t PK_PEBufferFill(sPoKeysDevice* device);
-// Flush motion buffer in the device
-POKEYSDECL int32_t PK_PEBufferFlush(sPoKeysDevice* device);
-// Retrieve the amount of free space in the device's motion buffer
-POKEYSDECL int32_t PK_PEBufferFreeSizeGet(sPoKeysDevice* device);
-// Get configuration for MPG internal jogging
-POKEYSDECL int32_t PK_PEMPGJogConfigurationGet(sPoKeysDevice* device);
-// Set configuration for MPG internal jogging
-POKEYSDECL int32_t PK_PEMPGJogConfigurationSet(sPoKeysDevice* device);
-
-
 // Pulse engine v2 commands
 
 // Get status of Pulse engine
 POKEYSDECL int32_t PK_PEv2_StatusGet(sPoKeysDevice * device);
+// Get additional status data
+POKEYSDECL int32_t PK_PEv2_Status2Get(sPoKeysDevice * device);
 // Configure (setup) the pulse engine
 POKEYSDECL int32_t PK_PEv2_PulseEngineSetup(sPoKeysDevice * device);
 // Retrieve single axis parameters. Axis ID is in param1
@@ -1033,6 +957,17 @@ POKEYSDECL int32_t PK_PEv2_ProbingHybridStart(sPoKeysDevice * device);
 POKEYSDECL int32_t PK_PEv2_ProbingFinish(sPoKeysDevice * device);
 // Same as previous command, except for pulse engine states not being reset to 'STOPPED'
 POKEYSDECL int32_t PK_PEv2_ProbingFinishSimple(sPoKeysDevice * device);
+
+POKEYSDECL int32_t PK_PEv2_ThreadingPrepareForTrigger(sPoKeysDevice * device);
+POKEYSDECL int32_t PK_PEv2_ThreadingForceTriggerReady(sPoKeysDevice * device);
+POKEYSDECL int32_t PK_PEv2_ThreadingTrigger(sPoKeysDevice * device);
+POKEYSDECL int32_t PK_PEv2_ThreadingRelease(sPoKeysDevice * device);
+POKEYSDECL int32_t PK_PEv2_ThreadingStatusGet(sPoKeysDevice * device);
+POKEYSDECL int32_t PK_PEv2_ThreadingCancel(sPoKeysDevice * device);
+POKEYSDECL int32_t PK_PEv2_ThreadingSetup(sPoKeysDevice * device, uint8_t sensorMode, uint16_t ticksPerRevolution, uint16_t tagetSpindleRPM);
+
+POKEYSDECL int32_t PK_PEv2_BacklashCompensationSettings_Get(sPoKeysDevice * device);
+POKEYSDECL int32_t PK_PEv2_BacklashCompensationSettings_Set(sPoKeysDevice * device);
 
 // I2C operations status return ePK_I2C_STATUS, described above
 // Set I2C status - does nothing in the device as I2C is ON all the time
