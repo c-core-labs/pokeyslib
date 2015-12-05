@@ -20,7 +20,7 @@ from PoKeys import *
 import time
 
 # Enter the device's serial number here
-deviceSerial = 21568
+deviceSerial = 45000
 
 
 # Load PoKeysLib dll library and list all PoKeys devices detected
@@ -34,8 +34,10 @@ if mydevice.PK_ConnectToDeviceWSerial(deviceSerial) != 0:
     print("Device not found, quitting!")
     sys.exit(0)
 
+
 # Read pin configuration
 mydevice.PK_PinConfigurationGet()
+
 
 # Pin I/O...
 testIO = False
@@ -303,7 +305,7 @@ def PEv2_example1(dev):
 
 
 
-testPE = True
+testPE = False
 if testPE:
     print("Testing Pulse engine...")
     mydevice.PK_PEv2_StatusGet()
@@ -331,5 +333,30 @@ if testPE:
     PEv2_example1(mydevice)
 
 
+testEasySensors = True
+if testEasySensors:
+    if mydevice.device.contents.info.iEasySensors > 0:
+
+        print("Retrieving sensor configuration...")
+        mydevice.PK_EasySensorsSetupGet()
+        print("Retrieving sensor values...")
+        mydevice.PK_EasySensorsValueGetAll()
+
+        print(mydevice.device.contents)
+        # Print the configuration
+        for i in range(mydevice.device.contents.info.iEasySensors):
+            S = mydevice.device.contents.EasySensors[i]
+
+            if S.sensorType != 0:
+                print("Sensor ", i, ": value=", S.sensorValue / 100)
+                print(" - type: ", S.sensorType)
+                print(" - reading: ", S.sensorReadingID)
+                print(" - refreshPeriod: ", S.sensorRefreshPeriod)
+                print(" - failsafe: ", S.sensorFailsafeConfig)
+
+                print(" - ID", ":".join("{:02x}".format(c) for c in S.sensorID))
+
+
 
 mydevice.Disconnect()
+

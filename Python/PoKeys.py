@@ -244,7 +244,10 @@ class sPoKeysDevice_Info(Structure):
         ("iFailSafeSettings", c_uint32),       # Device supports fail-safe mode
         ("iJoystickHATswitch", c_uint32),       # Device supports joystick HAT switch mapping
         ("iPulseEngine", c_uint32),         # Device supports Pulse engine
-        ("iPulseEnginev2", c_uint32)]         # Device supports Pulse engine v2
+        ("iPulseEnginev2", c_uint32),         # Device supports Pulse engine v2
+        ("iEasySensors", c_uint32),         # Device supports EasySensors
+        ("reserved", c_uint32*3)]         # Placeholder
+
 
 class sPoKeysPEv2info(Structure):
     _fields_ = [
@@ -360,8 +363,42 @@ class sPoKeysPEv2(Structure):
 
         ("DedicatedLimitNInputs", c_uint8),
         ("DedicatedLimitPInputs", c_uint8),
-        ("DedicatedHomeInputs", c_uint8) ]     
+        ("DedicatedHomeInputs", c_uint8),
+        ("reserved_end", c_uint8)]     
 
+
+# PoStep driver configuration
+class sPoPoStepDriverConfig(Structure):
+    _fields_ = [
+        # Status
+        ("SupplyVoltage", c_uint8),
+        ("Temperature", c_uint8),
+        ("InputStatus", c_uint8),
+        ("DriverStatus", c_uint8),
+        ("FaultStatus", c_uint8),
+        ("UpdateState", c_uint8),
+
+        # Settings
+        ("DriverMode", c_uint8),
+        ("StepMode", c_uint8),
+        ("Current_FS", c_uint16),
+        ("Current_Idle", c_uint16),
+        ("Current_Overheat", c_uint16),
+        ("TemperatureLimit", c_uint8),
+
+        # Configuration
+        ("AddressI2C", c_uint8),
+        ("DriverType", c_uint8),
+        ("UpdateConfig", c_uint8),
+
+        ("reserved", c_uint8 * 6)]
+
+# PoKeys-PoStep interface
+class sPoKeysPoStepInterface(Structure):
+        _fields_ = [
+            ("drivers", sPoPoStepDriverConfig * 8),
+            ("EnablePoStepCommunication", c_uint8),
+            ("reserved", c_uint8 * 7)]
 
     
 
@@ -545,6 +582,32 @@ class sPoILStatus(Structure):
         ("taskCount", c_uint8),
         ("reserved", c_uint8*2)]
 
+
+
+# EasySensor structure
+class sPoKeysEasySensor(Structure):
+    _fields_ = [
+        ("sensorValue", c_int32),             # Current sensor value
+
+        ("sensorType", c_uint8),              # Type of the sensor
+        ("sensorRefreshPeriod", c_uint8),     # Refresh period in 0.1s
+        ("sensorFailsafeConfig", c_uint8),    # Failsafe configuration (bits 0-5: timeout in seconds, bit 6: invalid=0, bit 7: invalid=0x7FFFFFFF)
+        ("sensorReadingID", c_uint8),         # Sensor reading selection (see Protocol description document for details)
+        ("sensorID", c_uint8 * 8),            # 8 byte sensor ID - see protocol specifications for details
+
+        ("sensorOKstatus", c_uint8),          # Sensor OK status
+        ("reserved", c_uint8 * 7)]
+
+
+# Custom sensor unit descriptor
+class sPoKeysCustomSensorUnit(Structure):
+    _fields_ = [
+    ("HTMLcode", c_uint8 * 32),            # 32 character custom sensor unit HTML code
+    ("simpleText", c_uint8 * 8)]           # 8 character custom sensor unit text
+
+
+
+
 class sPoKeysRTC(Structure):
     _fields_ = [
         ("SEC", c_uint8),
@@ -595,11 +658,14 @@ class sPoKeysDevice(Structure):
         ("PWM", sPoKeysPWM),        # PWM outputs structure
         ("MatrixLED", POINTER(sPoKeysMatrixLED)),    # Matrix LED structure
         ("LCD", sPoKeysLCD),        # LCD structure
-        ("PEv2", sPoKeysPEv2),    # Pulse engine v2 structure
-        
+        ("PEv2", sPoKeysPEv2),    # Pulse engine v2 structure        
+        ("PoSteps", sPoKeysPoStepInterface), # PoKeys-PoStep interface
+
         ("PoNETmodule", sPoNETmodule),  
         ("PoIL", sPoILStatus),  
         ("RTC", sPoKeysRTC),
+
+        ("EasySensors", POINTER(sPoKeysEasySensor)),    # EasySensors array
 
         ("otherPeripherals", sPoKeysOtherPeripherals),
         
@@ -655,7 +721,7 @@ class PoKeysDevice:
 
     def ShowAllDevices(self):
         devConnect = self.libObj.PK_ConnectToDevice
-        devConnect.restype=sPoKeysDevicePtr
+        devConnect.restype = sPoKeysDevicePtr
         
         i = self.libObj.PK_EnumerateUSBDevices()
 
@@ -676,8 +742,10 @@ class PoKeysDevice:
             self.libObj.PK_DisconnectDevice(testDev)
             
     def PK_ConnectToDeviceWSerial(self, serial, checkEthernet = 0):
+        self.Disconnect()
+
         devConnect = self.libObj.PK_ConnectToDeviceWSerial
-        devConnect.restype=sPoKeysDevicePtr
+        devConnect.restype = sPoKeysDevicePtr
 
         self.device = devConnect(serial, checkEthernet)
 
@@ -688,8 +756,26 @@ class PoKeysDevice:
             print("Requested device not found!")
             return -1
 
+    def PK_ConnectToDevice(self, index):
+        self.Disconnect()
+
+        devConnect = self.libObj.PK_ConnectToDevice
+        devConnect.restype = sPoKeysDevicePtr
+
+        self.device = devConnect(index)
+
+        try:
+            print("Connected to device " + str(self.device.contents.DeviceData.DeviceName.decode("ascii")))
+            return 0
+        except ValueError:
+            print("Requested device not found!")
+            return -1
+
+
     def Disconnect(self):
-        self.libObj.PK_DisconnectDevice(self.device)
+        if self.device != 0:
+            self.libObj.PK_DisconnectDevice(self.device)
+            self.device = 0
 
 
     def PK_GetCurrentDeviceConnectionType(self):
@@ -961,6 +1047,15 @@ class PoKeysDevice:
         return self.libObj.PK_PEv2_BacklashCompensationSettings_Set(self.device)
 
 
+    # Get the configuration of EasySensors
+    def PK_EasySensorsSetupGet(self):
+        return self.libObj.PK_EasySensorsSetupGet(self.device)
+    # Set the configuration of EasySensors
+    def PK_EasySensorsSetupSet(self):
+        return self.libObj.PK_EasySensorsSetupSet(self.device)
+    # Get all EasySensors values
+    def PK_EasySensorsValueGetAll(self):
+        return self.libObj.PK_EasySensorsValueGetAll(self.device)
 
 
         

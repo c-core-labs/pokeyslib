@@ -117,6 +117,15 @@ void InitializeNewDevice(sPoKeysDevice* device)
 	device->Encoders = (sPoKeysEncoder*)malloc(sizeof(sPoKeysEncoder) * device->info.iEncodersCount);
 	memset(device->Encoders, 0, sizeof(sPoKeysEncoder) * device->info.iEncodersCount);
 
+    if (device->info.iEasySensors)
+    {
+        device->EasySensors = (sPoKeysEasySensor*)malloc(sizeof(sPoKeysEasySensor) * device->info.iEasySensors);
+        memset(device->EasySensors, 0, sizeof(sPoKeysEasySensor) * device->info.iEasySensors);
+    } else
+    {
+        device->EasySensors = NULL;
+    }
+
 	device->PWM.PWMduty = (uint32_t*)malloc(sizeof(uint32_t) * device->info.iPWMCount);
 	memset(device->PWM.PWMduty, 0, sizeof(uint32_t) * device->info.iPWMCount);
 
@@ -128,38 +137,6 @@ void InitializeNewDevice(sPoKeysDevice* device)
     device->MatrixLED = (sPoKeysMatrixLED*)malloc(sizeof(sPoKeysMatrixLED) * device->info.iMatrixLED);
 	memset(device->MatrixLED, 0, sizeof(sPoKeysMatrixLED) * device->info.iMatrixLED);
 
-    /*
-	if (device->info.iPulseEngine)
-	{
-		device->PulseEngine = (sPoKeysPE*)malloc(sizeof(sPoKeysPE));
-
-		PK_PEInfoGet(device);
-
-		// Allocate buffer
-		device->PulseEngine->buffer.buffer = (unsigned char*)malloc(sizeof(unsigned char) * device->PulseEngine->info.bufferDepth);
-		memset(device->PulseEngine->buffer.buffer, 0, sizeof(unsigned char) * device->PulseEngine->info.bufferDepth);
-
-		device->PulseEngine->ReferencePosition = (uint32_t*)malloc(sizeof(uint32_t) * device->PulseEngine->info.nrOfAxes);
-		memset(device->PulseEngine->ReferencePosition, 0, sizeof(uint32_t) * device->PulseEngine->info.nrOfAxes);
-		device->PulseEngine->CurrentPosition = (uint32_t*)malloc(sizeof(uint32_t) * device->PulseEngine->info.nrOfAxes);
-		memset(device->PulseEngine->CurrentPosition, 0, sizeof(uint32_t) * device->PulseEngine->info.nrOfAxes);
-		device->PulseEngine->MaxSpeed = (uint32_t*)malloc(sizeof(uint32_t) * device->PulseEngine->info.nrOfAxes);
-		memset(device->PulseEngine->MaxSpeed, 0, sizeof(uint32_t) * device->PulseEngine->info.nrOfAxes);
-		device->PulseEngine->MaxAcceleration = (uint32_t*)malloc(sizeof(uint32_t) * device->PulseEngine->info.nrOfAxes);
-		memset(device->PulseEngine->MaxAcceleration, 0, sizeof(uint32_t) * device->PulseEngine->info.nrOfAxes);
-		device->PulseEngine->MaxDecceleration = (uint32_t*)malloc(sizeof(uint32_t) * device->PulseEngine->info.nrOfAxes);
-		memset(device->PulseEngine->MaxDecceleration, 0, sizeof(uint32_t) * device->PulseEngine->info.nrOfAxes);
-		device->PulseEngine->AxisState = (unsigned char*)malloc(sizeof(unsigned char) * device->PulseEngine->info.nrOfAxes);
-		memset(device->PulseEngine->AxisState, 0, sizeof(unsigned char) * device->PulseEngine->info.nrOfAxes);
-
-		device->PulseEngine->MPGjogMultiplier = (uint32_t*)malloc(sizeof(uint32_t) * device->PulseEngine->info.nrOfAxes);
-		memset(device->PulseEngine->MPGjogMultiplier, 0, sizeof(uint32_t) * device->PulseEngine->info.nrOfAxes);
-		device->PulseEngine->MPGaxisEncoder = (unsigned char*)malloc(sizeof(unsigned char) * device->PulseEngine->info.nrOfAxes);
-		memset(device->PulseEngine->MPGaxisEncoder, 0, sizeof(unsigned char) * device->PulseEngine->info.nrOfAxes);
-
-	} else device->PulseEngine = NULL;
-    */
-
     memset(&device->PEv2, 0, sizeof(sPoKeysPEv2));
 
     device-> multiPartBuffer = malloc(512);
@@ -167,38 +144,31 @@ void InitializeNewDevice(sPoKeysDevice* device)
 }
 
 void CleanDevice(sPoKeysDevice* device)
-{
+{    
 	free(device->Pins);
 	free(device->Encoders);
 	free(device->PWM.PWMduty);
 	free(device->PWM.PWMenabledChannels);
 	free(device->PoExtBusData);
 	free(device->MatrixLED);
-    free(device->multiPartBuffer);
 
-    if (device->netDeviceData != 0)
+    if (device->multiPartBuffer != NULL)
     {
-        free(device->netDeviceData);
-        device->netDeviceData = 0;
+        free(device->multiPartBuffer);
+        device->multiPartBuffer = NULL;
     }
 
-    /*
-	if (device->PulseEngine != NULL)
-	{
-		free(device->PulseEngine->buffer.buffer);
-		
-		free(device->PulseEngine->ReferencePosition);
-		free(device->PulseEngine->CurrentPosition);
-		free(device->PulseEngine->MaxSpeed);
-		free(device->PulseEngine->MaxAcceleration);
-		free(device->PulseEngine->MaxDecceleration);
-		free(device->PulseEngine->AxisState);
+    if (device->EasySensors != NULL)
+    {
+        free(device->EasySensors);
+        device->EasySensors = NULL;
+    }
 
-		free(device->PulseEngine->MPGjogMultiplier);
-		free(device->PulseEngine->MPGaxisEncoder);
-		free(device->PulseEngine);
-	}
-    */
+    if (device->netDeviceData != NULL)
+    {
+        free(device->netDeviceData);
+        device->netDeviceData = NULL;
+    }
 }
 
 void PK_ReleaseDeviceStructure(sPoKeysDevice* device)
@@ -215,6 +185,14 @@ void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination
     destination->PWM.PWMenabledChannels = (unsigned char*)malloc(sizeof(unsigned char) * original->info.iPWMCount);
     destination->MatrixLED = (sPoKeysMatrixLED*)malloc(sizeof(sPoKeysMatrixLED) * original->info.iMatrixLED);
 
+    if (original->info.iEasySensors)
+    {
+        destination->EasySensors = (sPoKeysEasySensor*)malloc(sizeof(sPoKeysEasySensor) * original->info.iEasySensors);
+    } else
+    {
+        destination->EasySensors = 0;
+    }
+
     // Network device information structure...
     if (original->netDeviceData != 0)
     {
@@ -224,38 +202,6 @@ void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination
     {
         destination->netDeviceData = 0;
     }
-
-    /*
-    if (original->info.iPulseEngine)
-    {
-        destination->PulseEngine = (sPoKeysPE*)malloc(sizeof(sPoKeysPE));
-
-        // Allocate buffer
-        destination->PulseEngine->buffer.buffer
-                = (unsigned char*)malloc(sizeof(unsigned char) * original->PulseEngine->info.bufferDepth);
-        memset(destination->PulseEngine->buffer.buffer, 0,
-               sizeof(unsigned char) * original->PulseEngine->info.bufferDepth);
-
-        destination->PulseEngine->ReferencePosition
-                = (uint32_t*)malloc(sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
-        destination->PulseEngine->CurrentPosition
-                = (uint32_t*)malloc(sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
-        destination->PulseEngine->MaxSpeed
-                = (uint32_t*)malloc(sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
-        destination->PulseEngine->MaxAcceleration
-                = (uint32_t*)malloc(sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
-        destination->PulseEngine->MaxDecceleration
-                = (uint32_t*)malloc(sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
-        destination->PulseEngine->AxisState
-                = (unsigned char*)malloc(sizeof(unsigned char) * original->PulseEngine->info.nrOfAxes);
-
-        destination->PulseEngine->MPGjogMultiplier
-                = (uint32_t*)malloc(sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
-        destination->PulseEngine->MPGaxisEncoder
-                = (unsigned char*)malloc(sizeof(unsigned char) * original->PulseEngine->info.nrOfAxes);
-
-    } else destination->PulseEngine = NULL;
-    */
     destination->PoExtBusData = (unsigned char*)malloc(sizeof(unsigned char) * original->info.iPoExtBus);
 
 
@@ -271,6 +217,13 @@ void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination
     memcpy(&destination->Encoders[0], &original->Encoders[0],
             original->info.iEncodersCount * sizeof(sPoKeysEncoder));
 
+
+    if (original->info.iEasySensors)
+    {
+        memcpy(&destination->EasySensors[0], &original->EasySensors[0],
+                original->info.iEasySensors * sizeof(sPoKeysEasySensor));
+    }
+
     destination->matrixKB = original->matrixKB;
 
     destination->PWM.PWMperiod = original->PWM.PWMperiod;
@@ -284,50 +237,9 @@ void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination
 
     destination->LCD = original->LCD;
 
-    /*
-    if (original->info.iPulseEngine)
-    {
-        destination->PulseEngine->info = original->PulseEngine->info;
-
-        memcpy(destination->PulseEngine->ReferencePosition, original->PulseEngine->ReferencePosition, sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
-        memcpy(destination->PulseEngine->CurrentPosition,   original->PulseEngine->CurrentPosition, sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
-        memcpy(destination->PulseEngine->MaxSpeed,          original->PulseEngine->MaxSpeed, sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
-        memcpy(destination->PulseEngine->MaxAcceleration,   original->PulseEngine->MaxAcceleration, sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
-        memcpy(destination->PulseEngine->MaxDecceleration,  original->PulseEngine->MaxDecceleration, sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
-        memcpy(destination->PulseEngine->AxisState,         original->PulseEngine->AxisState, sizeof(unsigned char) * original->PulseEngine->info.nrOfAxes);
-        memcpy(destination->PulseEngine->MPGjogMultiplier,  original->PulseEngine->MPGjogMultiplier, sizeof(uint32_t) * original->PulseEngine->info.nrOfAxes);
-        memcpy(destination->PulseEngine->MPGaxisEncoder,    original->PulseEngine->MPGaxisEncoder, sizeof(unsigned char) * original->PulseEngine->info.nrOfAxes);
-
-        destination->PulseEngine->MPGjogActivated = original->PulseEngine->MPGjogActivated;
-
-        destination->PulseEngine->PulseEngineEnabled = original->PulseEngine->PulseEngineEnabled;
-        destination->PulseEngine->PulseEngineState = original->PulseEngine->PulseEngineState;
-
-        destination->PulseEngine->LimitConfigP = original->PulseEngine->LimitConfigP;
-        destination->PulseEngine->LimitConfigN = original->PulseEngine->LimitConfigN;
-        destination->PulseEngine->LimitStatusP = original->PulseEngine->LimitStatusP;
-        destination->PulseEngine->LimitStatusN = original->PulseEngine->LimitStatusN;
-        destination->PulseEngine->HomeConfig = original->PulseEngine->HomeConfig;
-        destination->PulseEngine->HomeStatus = original->PulseEngine->HomeStatus;
-
-        destination->PulseEngine->DirectionChange = original->PulseEngine->DirectionChange;
-
-        destination->PulseEngine->HomingDirectionChange = original->PulseEngine->HomingDirectionChange;
-        destination->PulseEngine->HomingSpeed = original->PulseEngine->HomingSpeed;
-        destination->PulseEngine->HomingReturnSpeed = original->PulseEngine->HomingReturnSpeed;
-        destination->PulseEngine->AxesHomingFlags = original->PulseEngine->AxesHomingFlags;
-
-        destination->PulseEngine->kb48CNCenabled = original->PulseEngine->kb48CNCenabled;
-        destination->PulseEngine->ChargePumpEnabled = original->PulseEngine->ChargePumpEnabled;
-
-        destination->PulseEngine->EmergencySwitchPolarity = original->PulseEngine->EmergencySwitchPolarity;
-    }
-    */
-
     destination->PoNETmodule = original->PoNETmodule;
     destination->PoIL = original->PoIL;
     destination->RTC = original->RTC;
-
 
     destination->FastEncodersConfiguration =    original->FastEncodersConfiguration;
     destination->FastEncodersOptions =          original->FastEncodersOptions;
@@ -694,6 +606,8 @@ int32_t SendRequest_multiPart(sPoKeysDevice* device)
 		return SendRequestFastUSB_multiPart(device);
 	else
 		return PK_ERR_TRANSFER;
+#else
+    return PK_ERR_TRANSFER;
 #endif
 }
 

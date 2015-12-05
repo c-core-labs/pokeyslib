@@ -38,7 +38,8 @@ SOURCES += PoKeysLibCore.c \
     PoKeysLibRTC.c \
     PoKeysLibSPI.c \
     PoKeysLibPulseEngine_v2.c \
-    PoKeysLib1Wire.c
+    PoKeysLib1Wire.c \
+    PoKeysLibEasySensors.c
 
 win32: SOURCES += hid.c
 
@@ -90,3 +91,10 @@ macx {
 
 OTHER_FILES += \
     ReadMe.txt
+
+DISTFILES += \
+    Makefile.noqmake \
+    Makefile.noqmake.osx \
+    Python/PoKeys.py \
+    Python/PoKeysUsage.py \
+    Python/ConvertCtoPython_RegExp.txt

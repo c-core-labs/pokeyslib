@@ -799,6 +799,7 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
     } else if (devSeries57)
     {
         info->iPulseEnginev2 = 1;
+        info->iEasySensors = 100;
     }
 
 	return PK_OK;

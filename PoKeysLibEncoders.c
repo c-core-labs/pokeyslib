@@ -96,7 +96,10 @@ int32_t PK_EncoderConfigurationGet(sPoKeysDevice* device)
 			} else return PK_ERR_TRANSFER;
 		}
 
-	}
+    } else
+    {
+        return PK_ERR_NOT_SUPPORTED;
+    }
 	return PK_OK;
 }
 
@@ -159,7 +162,10 @@ int32_t PK_EncoderConfigurationSet(sPoKeysDevice* device)
 			if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
 		}
 
-	}
+    } else
+    {
+        return PK_ERR_NOT_SUPPORTED;
+    }
 	return PK_OK;
 }
 

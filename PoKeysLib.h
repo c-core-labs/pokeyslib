@@ -268,6 +268,7 @@ enum ePK_RETURN_CODES
     PK_ERR_NOT_CONNECTED    = -5,
     PK_ERR_TRANSFER         = -10,
     PK_ERR_PARAMETER        = -20,
+    PK_ERR_NOT_SUPPORTED    = -30,
     PK_ERR_CANNOT_CLAIM_USB = -100,
     PK_ERR_CANNOT_CONNECT   = -101
 };
@@ -306,6 +307,7 @@ typedef struct
     uint32_t iJoystickAnalogToDigitalMapping;  // Device supports mapping of analog inputs to digital keys
     uint32_t iMacros;                          // Device supports customizable macro sequences
     uint32_t iMatrixKeyboard;                  // Device supports matrix keyboard
+
     uint32_t iMatrixKeyboardTriggeredMapping;  // Device supports matrix keyboard triggered key mapping
     uint32_t iLCD;                             // Device supports alphanumeric LCD display
     uint32_t iMatrixLED;                       // Device supports matrix LED display
@@ -314,6 +316,7 @@ typedef struct
     uint32_t iPoNET;                           // Device supports PoNET bus devices
     uint32_t iAnalogFiltering;                 // Device supports analog inputs low-pass digital filtering
     uint32_t iInitOutputsStart;                // Device supports initializing outputs at startup
+
     uint32_t iprotI2C;                         // Device supports I2C bus (master)
     uint32_t iprot1wire;                       // Device supports 1-wire bus (master)
     uint32_t iAdditionalOptions;               // Device supports additional options with activation keys
@@ -322,10 +325,13 @@ typedef struct
     uint32_t iPoTLog27support;                 // Device supports PoTLog27 firmware
     uint32_t iSensorList;                      // Device supports sensor lists
     uint32_t iWebInterface;                    // Device supports web interface
+
     uint32_t iFailSafeSettings;                // Device supports fail-safe mode
     uint32_t iJoystickHATswitch;               // Device supports joystick HAT switch mapping
     uint32_t iPulseEngine;                     // Device supports Pulse engine
     uint32_t iPulseEnginev2;                   // Device supports Pulse engine v2
+    uint32_t iEasySensors;                     // Device supports EasySensors
+    uint32_t reserved[3];
 } sPoKeysDevice_Info;
 
 
@@ -452,7 +458,40 @@ typedef struct
 
 } sPoKeysPEv2;
 
+// PoStep driver configuration
+typedef struct
+{
+    // Status
+    uint8_t SupplyVoltage;
+    uint8_t Temperature;
+    uint8_t InputStatus;
+    uint8_t DriverStatus;
+    uint8_t FaultStatus;
+    uint8_t UpdateState;
 
+    // Settings
+    uint8_t DriverMode;
+    uint8_t StepMode;
+    uint16_t Current_FS;
+    uint16_t Current_Idle;
+    uint16_t Current_Overheat;
+    uint8_t TemperatureLimit;
+
+    // Configuration
+    uint8_t AddressI2C;
+    uint8_t DriverType;
+    uint8_t UpdateConfig;
+
+	uint8_t reserved[6];
+} sPoPoStepDriverConfig;
+
+// PoKeys-PoStep interface
+typedef struct
+{
+	sPoPoStepDriverConfig drivers[8];
+	uint8_t EnablePoStepCommunication;
+	uint8_t reserved[7];
+} sPoKeysPoStepInterface;
 
 // Device-specific data of the PoKeys device
 typedef struct
@@ -656,6 +695,32 @@ typedef struct
 } sPoILStatus;
 
 
+// EasySensor structure
+typedef struct
+{
+    int32_t sensorValue;            // Current sensor value
+
+    uint8_t sensorType;             // Type of the sensor
+    uint8_t sensorRefreshPeriod;    // Refresh period in 0.1s
+    uint8_t sensorFailsafeConfig;   // Failsafe configuration (bits 0-5: timeout in seconds, bit 6: invalid=0, bit 7: invalid=0x7FFFFFFF)
+    uint8_t sensorReadingID;        // Sensor reading selection (see Protocol description document for details)
+    uint8_t sensorID[8];            // 8 byte sensor ID - see protocol specifications for details
+
+    uint8_t sensorOKstatus;         // Sensor OK status
+    uint8_t reserved[7];
+} sPoKeysEasySensor;
+
+
+// Custom sensor unit descriptor
+typedef struct
+{
+    uint8_t HTMLcode[32];           // 32 character custom sensor unit HTML code
+    uint8_t simpleText[8];          // 8 character custom sensor unit text
+} sPoKeysCustomSensorUnit;
+
+
+
+
 
 typedef struct
 {
@@ -724,10 +789,13 @@ typedef struct
     sPoKeysMatrixLED*         MatrixLED;                     // Matrix LED structure
     sPoKeysLCD                LCD;                           // LCD structure
     sPoKeysPEv2               PEv2;                          // Pulse engine v2 structure
+	sPoKeysPoStepInterface	  PoSteps;						 // PoKeys-PoStep interface
 
     sPoNETmodule              PoNETmodule;
     sPoILStatus               PoIL;
     sPoKeysRTC                RTC;
+
+    sPoKeysEasySensor*        EasySensors;                   // EasySensors array
 
     sPoKeysOtherPeripherals   otherPeripherals;
 
@@ -969,6 +1037,12 @@ POKEYSDECL int32_t PK_PEv2_ThreadingSetup(sPoKeysDevice * device, uint8_t sensor
 POKEYSDECL int32_t PK_PEv2_BacklashCompensationSettings_Get(sPoKeysDevice * device);
 POKEYSDECL int32_t PK_PEv2_BacklashCompensationSettings_Set(sPoKeysDevice * device);
 
+POKEYSDECL int32_t PK_PoStep_ConfigurationGet(sPoKeysDevice * device);
+POKEYSDECL int32_t PK_PoStep_ConfigurationSet(sPoKeysDevice * device);
+POKEYSDECL int32_t PK_PoStep_StatusGet(sPoKeysDevice * device);
+POKEYSDECL int32_t PK_PoStep_DriverConfigurationGet(sPoKeysDevice * device);
+POKEYSDECL int32_t PK_PoStep_DriverConfigurationSet(sPoKeysDevice * device);
+
 // I2C operations status return ePK_I2C_STATUS, described above
 // Set I2C status - does nothing in the device as I2C is ON all the time
 POKEYSDECL int32_t PK_I2CSetStatus(sPoKeysDevice* device, uint8_t activated);
@@ -998,13 +1072,21 @@ POKEYSDECL int32_t PK_PoNETGetModuleLight(sPoKeysDevice* device);
 
 // 1-wire operations
 // Set 1-wire activation status
-int32_t PK_1WireStatusSet(sPoKeysDevice* device, uint8_t activated);
+POKEYSDECL int32_t PK_1WireStatusSet(sPoKeysDevice* device, uint8_t activated);
 // Get 1-wire activation status
-int32_t PK_1WireStatusGet(sPoKeysDevice* device, uint8_t* activated);
+POKEYSDECL int32_t PK_1WireStatusGet(sPoKeysDevice* device, uint8_t* activated);
 // Start 1-wire write and read operation
-int32_t PK_1WireWriteReadStart(sPoKeysDevice* device, uint8_t WriteCount, uint8_t ReadCount, uint8_t * data);
+POKEYSDECL int32_t PK_1WireWriteReadStart(sPoKeysDevice* device, uint8_t WriteCount, uint8_t ReadCount, uint8_t * data);
 // Get the result of the read operation
-int32_t PK_1WireReadStatusGet(sPoKeysDevice* device, uint8_t * readStatus, uint8_t * ReadCount, uint8_t * data);
+POKEYSDECL int32_t PK_1WireReadStatusGet(sPoKeysDevice* device, uint8_t * readStatus, uint8_t * ReadCount, uint8_t * data);
+
+// Get the configuration of EasySensors
+POKEYSDECL int32_t PK_EasySensorsSetupGet(sPoKeysDevice* device);
+// Set the configuration of EasySensors
+POKEYSDECL int32_t PK_EasySensorsSetupSet(sPoKeysDevice* device);
+// Get all EasySensors values
+POKEYSDECL int32_t PK_EasySensorsValueGetAll(sPoKeysDevice* device);
+
 
 // SPI operations
 POKEYSDECL int32_t PK_SPIConfigure(sPoKeysDevice * device, uint8_t prescaler, uint8_t frameFormat);

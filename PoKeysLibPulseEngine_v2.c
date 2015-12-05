@@ -370,7 +370,7 @@ int32_t PK_PEv2_HomingFinish(sPoKeysDevice * device)
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
     // Create request
-	CreateRequest(device->request, 0x85, 0x22, device->PEv2.PulseEngineStateSetup, 0, 0);
+	CreateRequest(device->request, 0x85, 0x22, device->PEv2.PulseEngineStateSetup, 1, 0);
     // Send request
     return SendRequest(device);
 }
