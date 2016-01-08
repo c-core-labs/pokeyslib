@@ -590,3 +590,17 @@ int32_t PK_PEv2_BacklashCompensationSettings_Set(sPoKeysDevice * device)
 
 	return PK_OK;
 }
+
+int32_t PK_PEv2_SyncedPWMSetup(sPoKeysDevice * device, uint8_t enabled, uint8_t srcAxis, uint8_t dstPWMChannel)
+{
+    int32_t i;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Create request
+    CreateRequest(device->request, 0x85, 0x0A, enabled, srcAxis, dstPWMChannel);
+
+    // Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+    return PK_OK;
+}

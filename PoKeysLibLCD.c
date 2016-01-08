@@ -25,6 +25,7 @@ int32_t PK_LCDConfigurationGet(sPoKeysDevice* device)
 {	
 	// Get LCD configuration
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
+	if (device->info.iLCD == 0) return PK_ERR_NOT_SUPPORTED;
 
     CreateRequest(device->request, 0xD0, 1, 0, 0, 0);
 	if (SendRequest(device) == PK_OK)
@@ -40,6 +41,7 @@ int32_t PK_LCDConfigurationGet(sPoKeysDevice* device)
 int32_t PK_LCDConfigurationSet(sPoKeysDevice* device)
 {
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
+	if (device->info.iLCD == 0) return PK_ERR_NOT_SUPPORTED;
 
     // Set LCD configuration
     CreateRequest(device->request, 0xD0, 0, device->LCD.Configuration, device->LCD.Rows, device->LCD.Columns);
@@ -63,6 +65,7 @@ int32_t PK_LCDUpdate(sPoKeysDevice* device)
     int32_t i, n;
 
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
+	if (device->info.iLCD == 0) return PK_ERR_NOT_SUPPORTED;
 
     lines[0] = device->LCD.line1;
     lines[1] = device->LCD.line2;
@@ -91,6 +94,7 @@ int32_t PK_LCDSetCustomCharacters(sPoKeysDevice* device)
     int32_t i, n;
 
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
+	if (device->info.iLCD == 0) return PK_ERR_NOT_SUPPORTED;
 
     // Update LCD custom characters
     for (n = 0; n < 8; n++)
@@ -110,6 +114,7 @@ int32_t PK_LCDSetCustomCharacters(sPoKeysDevice* device)
 int32_t PK_LCDChangeMode(sPoKeysDevice* device, uint8_t mode)
 {
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
+	if (device->info.iLCD == 0) return PK_ERR_NOT_SUPPORTED;
 
     CreateRequest(device->request, 0xD1, 0x80, mode, 0, 0);
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
@@ -121,6 +126,7 @@ int32_t PK_LCDChangeMode(sPoKeysDevice* device, uint8_t mode)
 int32_t PK_LCDInit(sPoKeysDevice* device)
 {
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
+	if (device->info.iLCD == 0) return PK_ERR_NOT_SUPPORTED;
 
     CreateRequest(device->request, 0xD1, 0, 0, 0, 0);
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
@@ -130,6 +136,7 @@ int32_t PK_LCDInit(sPoKeysDevice* device)
 int32_t PK_LCDClear(sPoKeysDevice* device)
 {
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
+	if (device->info.iLCD == 0) return PK_ERR_NOT_SUPPORTED;
 
     CreateRequest(device->request, 0xD1, 0x10, 0, 0, 0);
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
@@ -139,6 +146,7 @@ int32_t PK_LCDClear(sPoKeysDevice* device)
 int32_t PK_LCDMoveCursor(sPoKeysDevice* device, uint8_t row, uint8_t column)
 {
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
+	if (device->info.iLCD == 0) return PK_ERR_NOT_SUPPORTED;
 
     CreateRequest(device->request, 0xD1, 0x20, column, row, 0);
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
@@ -149,6 +157,7 @@ int32_t PK_LCDPrint(sPoKeysDevice* device, uint8_t * text, uint8_t textLen)
 {
     int32_t i;
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
+	if (device->info.iLCD == 0) return PK_ERR_NOT_SUPPORTED;
 
     if (textLen > 20) textLen = 20;
 
@@ -165,6 +174,7 @@ int32_t PK_LCDPrint(sPoKeysDevice* device, uint8_t * text, uint8_t textLen)
 int32_t PK_LCDPutChar(sPoKeysDevice* device, uint8_t character)
 {
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
+	if (device->info.iLCD == 0) return PK_ERR_NOT_SUPPORTED;
 
     CreateRequest(device->request, 0xD1, 0x31, 0, 0, 0);
     device->request[8] = character;
@@ -175,6 +185,7 @@ int32_t PK_LCDPutChar(sPoKeysDevice* device, uint8_t character)
 int32_t PK_LCDEntryModeSet(sPoKeysDevice* device, uint8_t cursorMoveDirection, uint8_t displayShift)
 {
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
+	if (device->info.iLCD == 0) return PK_ERR_NOT_SUPPORTED;
 
     CreateRequest(device->request, 0xD1, 0x50, 0, 0, 0);
     device->request[8] = cursorMoveDirection;
@@ -186,6 +197,7 @@ int32_t PK_LCDEntryModeSet(sPoKeysDevice* device, uint8_t cursorMoveDirection, u
 int32_t PK_LCDDisplayOnOffControl(sPoKeysDevice* device, uint8_t displayOnOff, uint8_t cursorOnOff, uint8_t cursorBlinking)
 {
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
+	if (device->info.iLCD == 0) return PK_ERR_NOT_SUPPORTED;
 
     CreateRequest(device->request, 0xD1, 0x60, 0, 0, 0);
     device->request[8] = displayOnOff;

@@ -131,6 +131,10 @@ void InitializeNewDevice(sPoKeysDevice* device)
 
 	device->PWM.PWMenabledChannels = (unsigned char*)malloc(sizeof(unsigned char) * device->info.iPWMCount);
 	memset(device->PWM.PWMenabledChannels, 0, sizeof(unsigned char) * device->info.iPWMCount);
+	device->PWM.PWMpinIDs = (unsigned char*)malloc(sizeof(unsigned char) * device->info.iPWMCount);
+	memset(device->PWM.PWMpinIDs, 0, sizeof(unsigned char) * device->info.iPWMCount);
+
+	PK_FillPWMPinNumbers(device);
 
 	device->PoExtBusData = (unsigned char*)malloc(sizeof(unsigned char) * device->info.iPoExtBus);
 
@@ -149,6 +153,7 @@ void CleanDevice(sPoKeysDevice* device)
 	free(device->Encoders);
 	free(device->PWM.PWMduty);
 	free(device->PWM.PWMenabledChannels);
+	free(device->PWM.PWMpinIDs);
 	free(device->PoExtBusData);
 	free(device->MatrixLED);
 
@@ -183,6 +188,7 @@ void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination
     destination->Encoders = (sPoKeysEncoder*)malloc(sizeof(sPoKeysEncoder) * original->info.iEncodersCount);
     destination->PWM.PWMduty = (uint32_t*)malloc(sizeof(uint32_t) * original->info.iPWMCount);
     destination->PWM.PWMenabledChannels = (unsigned char*)malloc(sizeof(unsigned char) * original->info.iPWMCount);
+    destination->PWM.PWMpinIDs = (unsigned char*)malloc(sizeof(unsigned char) * original->info.iPWMCount);
     destination->MatrixLED = (sPoKeysMatrixLED*)malloc(sizeof(sPoKeysMatrixLED) * original->info.iMatrixLED);
 
     if (original->info.iEasySensors)
@@ -230,6 +236,8 @@ void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination
     memcpy(destination->PWM.PWMduty, original->PWM.PWMduty,
            sizeof(uint32_t) * original->info.iPWMCount);
     memcpy(destination->PWM.PWMenabledChannels, original->PWM.PWMenabledChannels,
+           sizeof(unsigned char) * original->info.iPWMCount);
+	memcpy(destination->PWM.PWMpinIDs, original->PWM.PWMpinIDs,
            sizeof(unsigned char) * original->info.iPWMCount);
 
     memcpy(destination->MatrixLED, original->MatrixLED,

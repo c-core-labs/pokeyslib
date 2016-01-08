@@ -131,6 +131,7 @@ typedef enum
     PK_DeviceMask_57U           = (1<<24),
     PK_DeviceMask_57E           = (1<<25),
     PK_DeviceMask_57CNC         = (1<<26),
+	PK_DeviceMask_57CNCdb25     = (1<<27),
 
 
     PK_DeviceMask_58            = (1<<21),
@@ -158,6 +159,7 @@ typedef enum
     PK_DeviceID_57U           = 30,
     PK_DeviceID_57E           = 31,
     PK_DeviceID_PoKeys57CNC   = 32,
+	PK_DeviceID_PoKeys57CNCdb25 = 38,
 
     PK_DeviceID_57U_v0        = 28,
     PK_DeviceID_57E_v0        = 29,
@@ -307,7 +309,6 @@ typedef struct
     uint32_t iJoystickAnalogToDigitalMapping;  // Device supports mapping of analog inputs to digital keys
     uint32_t iMacros;                          // Device supports customizable macro sequences
     uint32_t iMatrixKeyboard;                  // Device supports matrix keyboard
-
     uint32_t iMatrixKeyboardTriggeredMapping;  // Device supports matrix keyboard triggered key mapping
     uint32_t iLCD;                             // Device supports alphanumeric LCD display
     uint32_t iMatrixLED;                       // Device supports matrix LED display
@@ -316,7 +317,6 @@ typedef struct
     uint32_t iPoNET;                           // Device supports PoNET bus devices
     uint32_t iAnalogFiltering;                 // Device supports analog inputs low-pass digital filtering
     uint32_t iInitOutputsStart;                // Device supports initializing outputs at startup
-
     uint32_t iprotI2C;                         // Device supports I2C bus (master)
     uint32_t iprot1wire;                       // Device supports 1-wire bus (master)
     uint32_t iAdditionalOptions;               // Device supports additional options with activation keys
@@ -325,7 +325,6 @@ typedef struct
     uint32_t iPoTLog27support;                 // Device supports PoTLog27 firmware
     uint32_t iSensorList;                      // Device supports sensor lists
     uint32_t iWebInterface;                    // Device supports web interface
-
     uint32_t iFailSafeSettings;                // Device supports fail-safe mode
     uint32_t iJoystickHATswitch;               // Device supports joystick HAT switch mapping
     uint32_t iPulseEngine;                     // Device supports Pulse engine
@@ -566,6 +565,7 @@ typedef struct
     uint32_t  PWMperiod;                       // PWM period, shared among all channels
     uint32_t *PWMduty;                         // PWM duty cycles (range between 0 and PWM period)
     uint8_t * PWMenabledChannels;              // List of enabled PWM channels
+	uint8_t * PWMpinIDs;
 } sPoKeysPWM;
 
 // Matrix keyboard specific data
@@ -1025,6 +1025,7 @@ POKEYSDECL int32_t PK_PEv2_ProbingHybridStart(sPoKeysDevice * device);
 POKEYSDECL int32_t PK_PEv2_ProbingFinish(sPoKeysDevice * device);
 // Same as previous command, except for pulse engine states not being reset to 'STOPPED'
 POKEYSDECL int32_t PK_PEv2_ProbingFinishSimple(sPoKeysDevice * device);
+POKEYSDECL int32_t PK_PEv2_SyncedPWMSetup(sPoKeysDevice * device, uint8_t enabled, uint8_t srcAxis, uint8_t dstPWMChannel);
 
 POKEYSDECL int32_t PK_PEv2_ThreadingPrepareForTrigger(sPoKeysDevice * device);
 POKEYSDECL int32_t PK_PEv2_ThreadingForceTriggerReady(sPoKeysDevice * device);
@@ -1050,7 +1051,7 @@ POKEYSDECL int32_t PK_I2CSetStatus(sPoKeysDevice* device, uint8_t activated);
 POKEYSDECL int32_t PK_I2CGetStatus(sPoKeysDevice* device, uint8_t* activated);
 // Execute write to the specified address. iDataLength specifies how many bytes should be sent from the buffer (0 to 32)
 POKEYSDECL int32_t PK_I2CWriteStart(sPoKeysDevice* device, uint8_t address, uint8_t* buffer, uint8_t iDataLength);
-// Get write operation status
+// Get write operation status (1 if successfull, 0 unsuccessfull, 0x10 – operation still executing)
 POKEYSDECL int32_t PK_I2CWriteStatusGet(sPoKeysDevice* device, uint8_t* status);
 // Execute read from the specified address. iDataLength specifies how many bytes should be requested
 POKEYSDECL int32_t PK_I2CReadStart(sPoKeysDevice* device, uint8_t address, uint8_t iDataLength);

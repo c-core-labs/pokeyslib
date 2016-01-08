@@ -135,6 +135,33 @@ const sPoKeys_DeviceDescriptor deviceDesc[] = {
 		  { -1, CAP( -1) }
       }},
 
+	  // PoKeys57CNC Pins descriptor
+	  { PK_DeviceID_PoKeys57CNCdb25,  {
+		  { 1, CAP( PIN_DO ) },
+		  { 2, CAP( PIN_DO ) },
+          { 3, CAP( PIN_DO ) },
+          { 4, CAP( PIN_DO ) },
+          { 5, CAP( PIN_DO ) },
+          { 6, CAP( PIN_DO ) },
+          { 7, CAP( PIN_DO ) },
+          { 8, CAP( PIN_DO ) },
+          { 9, CAP( PIN_DO ) },
+
+		  { 10, CAP( PIN_DI ) },
+		  { 11, CAP( PIN_DI ) },
+		  { 12, CAP( PIN_DI ) },
+		  { 13, CAP( PIN_DI ) },
+
+          { 14, CAP( PIN_DO ) },
+
+		  { 15, CAP( PIN_DI ) },
+
+          { 16, CAP( PIN_DO ) },
+          { 17, CAP( PIN_DO ) },
+
+          // End of pin list
+		  { -1, CAP( -1) }
+      }},
 
     // End of device list
     { -1, 0 }
@@ -190,6 +217,8 @@ const sPoKeys_PinCapabilities pinCaps[] = {
 
     { -1, 0, 0, 0 }
 };
+
+
 
 int32_t CompareName(int8_t *device, int8_t *search)
 {
@@ -480,6 +509,13 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
                 devUSB = 1;
                 data->DeviceTypeID = PK_DeviceMask_57 | PK_DeviceMask_57CNC;
                 break;
+
+			// PoKeys57CNCdb25
+            case PK_DeviceID_PoKeys57CNCdb25:
+                devSeries57 = 1;
+                devUSB = 1;
+                data->DeviceTypeID = PK_DeviceMask_57 | PK_DeviceMask_57CNCdb25;
+                break;
         }
     }
 
@@ -527,6 +563,9 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
             break;
         case PK_DeviceID_PoKeys57CNC:
             sprintf(data->DeviceTypeName, "PoKeys57CNC");
+            break;
+        case PK_DeviceID_PoKeys57CNCdb25:
+            sprintf(data->DeviceTypeName, "PoKeys57CNCdb25");
             break;
         case 40:
             sprintf(data->DeviceTypeName, "PoKeys58EU");
@@ -621,6 +660,16 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
             device->info.PWMinternalFrequency = 25000000;
             break;
 
+		// PoKeys57CNCdb25
+        case PK_DeviceID_PoKeys57CNCdb25:
+            info->iPinCount = 17;
+            info->iEncodersCount = 0;
+            info->iBasicEncoderCount = 0;
+            info->iPWMCount = 6;
+
+            device->info.PWMinternalFrequency = 25000000;
+            break;
+
         // PoKeys58EU
         case 40:
             break;
@@ -691,18 +740,25 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
         device->netDeviceData = 0;
     }
 
-    if (!devExtendedID)
+    // Read device name
+    CreateRequest(device->request, 0x06, 0, 0, 0, 0);
+    if (SendRequest(device) == PK_OK)
     {
-        // Read device name
-        CreateRequest(device->request, 0x06, 0, 0, 0, 0);
-        if (SendRequest(device) == PK_OK)
-        {
-            for (i = 0; i < 10; i++)
-            {
-                data->DeviceName[i] = device->response[8 + i];
-            }
-        } else return PK_ERR_TRANSFER;
-    }
+		// Check if long name is supported...
+		for (i = 0; i < 10; i++)
+		{
+			if (device->response[8 + i] != device->response[35 + i]) break;
+		}
+
+		if (i == 10)
+		{
+			// Ok, names match - use the long name!
+			memcpy(data->DeviceName, device->response + 35, 20);
+		} else
+		{
+			memcpy(data->DeviceName, device->response + 8, 10);		
+		}
+    } else return PK_ERR_TRANSFER;
 
 	// If the device name is empty, rewrite the name with the type name
     if (strlen(data->DeviceName) == 0)
@@ -771,6 +827,20 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
         if (!devSeries27 && !devSeries16)	info->iLoadStatus = 1;
 	}
 
+	// Special handling
+	if (data->DeviceType == PK_DeviceID_PoKeys57CNCdb25)
+	{
+		info->iDigitalCounters = 0;
+		info->iFastEncoders = 0;
+		info->iUltraFastEncoders = 0;
+		info->iAnalogInputs = 0;
+		info->iAnalogFiltering = 0;
+		info->iSensorList = 0;
+		info->iLCD = 0;
+		info->iMatrixLED = 0;
+		info->iprot1wire = 0;
+	}
+
     if (devSeries27 || devSeries55 || devSeries56 || devSeries57 || devSeries58)
     {
         // Read activated options
@@ -802,6 +872,23 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
         info->iEasySensors = 100;
     }
 
+	return PK_OK;
+}
+
+int32_t PK_FillPWMPinNumbers(sPoKeysDevice * device)
+{
+	uint8_t PWM_PK_pins[] = { 17, 18, 19, 20, 21, 22 };
+	uint8_t PWM_db25_pins[] = { 17, 1, 14, 2, 3, 16 };
+
+	if (device->info.iPWMCount == 0) return PK_ERR_NOT_SUPPORTED;
+
+	if (device->DeviceData.DeviceType == PK_DeviceID_PoKeys57CNCdb25)
+	{
+		memcpy(device->PWM.PWMpinIDs, &PWM_db25_pins, 6);
+	} else
+	{
+		memcpy(device->PWM.PWMpinIDs, &PWM_PK_pins, 6);
+	}
 	return PK_OK;
 }
 

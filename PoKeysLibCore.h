@@ -35,6 +35,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 	int32_t SendRequest(sPoKeysDevice * device);
 	int32_t SendRequest_multiPart(sPoKeysDevice* device);
 
+
+	int32_t PK_FillPWMPinNumbers(sPoKeysDevice * device);
+
+
 	#ifdef POKEYSLIB_USE_LIBUSB
 		void * ConnectToFastUSBInterface(int32_t serial);
 		void DisconnectFromFastUSBInterface(void * device);

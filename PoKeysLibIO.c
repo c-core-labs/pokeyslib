@@ -310,7 +310,7 @@ int32_t PK_IsCounterAvailableByDevice(uint32_t deviceTypeMask, uint8_t pinID)
 
     if (deviceTypeMask & PK_DeviceMask_Bootloader) return 0;
 
-    if (deviceTypeMask & PK_DeviceMask_PoPLC58)
+	if ((deviceTypeMask & PK_DeviceMask_PoPLC58) || (deviceTypeMask & PK_DeviceMask_57CNCdb25))
     {
         return 0;
     } else               
@@ -467,6 +467,8 @@ int32_t PK_AnalogIOGet(sPoKeysDevice* device)
     uint32_t i;
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
+	if (device->info.iAnalogInputs == 0) return PK_ERR_NOT_SUPPORTED;
+
 	// Get analog inputs
 	CreateRequest(device->request, 0x3A, 1, 0, 0, 0);
 	if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;   
@@ -486,6 +488,8 @@ int32_t PK_AnalogIOGetAsArray(sPoKeysDevice* device, uint32_t * buffer)
 
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
+	if (device->info.iAnalogInputs == 0) return PK_ERR_NOT_SUPPORTED;
+
     result = PK_AnalogIOGet(device);
     if (result == PK_OK)
     {
@@ -501,6 +505,8 @@ int32_t PK_AnalogRCFilterGet(sPoKeysDevice* device)
 {
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
+	if (device->info.iAnalogFiltering == 0) return PK_ERR_NOT_SUPPORTED;
+
     // Read the value of RC filter
     CreateRequest(device->request, 0x38, 0, 0, 0, 0);
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
@@ -513,7 +519,9 @@ int32_t PK_AnalogRCFilterSet(sPoKeysDevice* device)
 {
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
-    // Set the value of RC filter
+	if (device->info.iAnalogFiltering == 0) return PK_ERR_NOT_SUPPORTED;
+
+	// Set the value of RC filter
     CreateRequest(device->request, 0x39, 0, 0, 0, 0);
 
     memcpy(device->request + 2, &device->otherPeripherals.AnalogRCFilter, 4);
@@ -532,6 +540,8 @@ int32_t PK_DigitalCounterGet(sPoKeysDevice* device)
     uint32_t i, j;
 
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+	if (device->info.iDigitalCounters == 0) return PK_ERR_NOT_SUPPORTED;
 
     CreateRequest(device->request, 0xD8, 0, 0, 0, 0);
 
