@@ -19,8 +19,9 @@
 from PoKeys import *
 import time
 
+
 # Enter the device's serial number here
-deviceSerial = 45000
+deviceSerial = 36029
 
 
 # Load PoKeysLib dll library and list all PoKeys devices detected
@@ -28,12 +29,21 @@ mydevice = PoKeysDevice("PoKeysLib.dll")
 print("List of detected devices ------------------------------------")
 mydevice.ShowAllDevices()
 
-# Connect to a specific PoKeys device
+# Connect to a specific PoKeys device, use UDP connection if possible
 print("Connecting to the selected device...")
-if mydevice.PK_ConnectToDeviceWSerial(deviceSerial) != 0:
+if mydevice.PK_ConnectToDeviceWSerial(deviceSerial, 1, True) != 0:
     print("Device not found, quitting!")
     sys.exit(0)
 
+
+def dump(name, obj):
+   for attr in dir(obj):
+       if not attr.startswith('_'):
+           if hasattr( obj, attr ):
+               print(name + ".%s = %s" % (attr, getattr(obj, attr)))
+
+#dump("info", mydevice.device.contents.info)
+#dump("DeviceData", mydevice.device.contents.DeviceData)
 
 # Read pin configuration
 mydevice.PK_PinConfigurationGet()
@@ -94,7 +104,7 @@ if testPWM:
     # PWM output with index 5 is found on pin 17
 
     # Set the PWM frequency to 5 kHz -> set the period to PWM internal frequency / target PWM frequency
-    mydevice.device.contents.PWM.PWMperiod = mydevice.device.contents.info.PWMinternalFrequency / 5000
+    mydevice.device.contents.PWM.PWMperiod = int(mydevice.device.contents.info.PWMinternalFrequency / 5000)
     # Enable PWM on pins 17 and 18
     mydevice.device.contents.PWM.PWMenabledChannels[5] = 1
     mydevice.device.contents.PWM.PWMenabledChannels[4] = 1
@@ -333,6 +343,15 @@ if testPE:
     PEv2_example1(mydevice)
 
 
+    
+
+# Test RTC
+mydevice.PK_RTCGet()
+print(mydevice.device.contents.RTC.HOUR, mydevice.device.contents.RTC.MIN, mydevice.device.contents.RTC.SEC)
+
+
+print(mydevice.PK_1WireScan(54))
+
 testEasySensors = True
 if testEasySensors:
     if mydevice.device.contents.info.iEasySensors > 0:
@@ -341,14 +360,13 @@ if testEasySensors:
         mydevice.PK_EasySensorsSetupGet()
         print("Retrieving sensor values...")
         mydevice.PK_EasySensorsValueGetAll()
-
-        print(mydevice.device.contents)
+        #print(mydevice.device.contents)
         # Print the configuration
         for i in range(mydevice.device.contents.info.iEasySensors):
             S = mydevice.device.contents.EasySensors[i]
 
             if S.sensorType != 0:
-                print("Sensor ", i, ": value=", S.sensorValue / 100)
+                print("Sensor ", i, ": value=", float(S.sensorValue) / 100)
                 print(" - type: ", S.sensorType)
                 print(" - reading: ", S.sensorReadingID)
                 print(" - refreshPeriod: ", S.sensorRefreshPeriod)
@@ -356,7 +374,6 @@ if testEasySensors:
 
                 print(" - ID", ":".join("{:02x}".format(c) for c in S.sensorID))
 
-
-
+print("Done...")
 mydevice.Disconnect()
 

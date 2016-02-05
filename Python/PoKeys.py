@@ -255,6 +255,7 @@ class sPoKeysPEv2info(Structure):
         ("maxPulseFrequency", c_uint8),
         ("bufferDepth", c_uint8),
         ("slotTiming", c_uint8),
+
         ("reserved", c_uint8 * 4)]
 
 # Pulse engine v2 structure...
@@ -344,7 +345,7 @@ class sPoKeysPEv2(Structure):
 
             # ------ 64-bit region boundary ------
         ("ProbeSpeed", c_float),                # Probe speed (ratio of the maximum speed)
-
+        ("reservedf", c_float),
 
         ("BacklashWidth", c_uint16*8),          # Half of real backlash width
         ("BacklashRegister", c_int16*8),        # Current value of the backlash register
@@ -422,7 +423,8 @@ class sPoKeysDevice_Data(Structure):
         ("ProductID", c_uint8),              
         ("SecondaryFirmwareVersionMajor", c_uint8),   
         ("SecondaryFirmwareVersionMinor", c_uint8),   
-        ("deviceIsBootloader", c_uint8)]              
+        ("deviceIsBootloader", c_uint8),
+        ("reserved", c_uint8*4)]
 
 class sPoKeysPinData(Structure):
     _fields_ = [("DigitalCounterValue", c_uint32),
@@ -438,7 +440,8 @@ class sPoKeysPinData(Structure):
         ("downKeyCode_MacroID", c_uint8),
         ("downKeyModifier", c_uint8),
         ("upKeyCode_MacroID", c_uint8),
-        ("upKeyModifier", c_uint8) ]
+        ("upKeyModifier", c_uint8),
+        ("reserved", c_uint8*4)]
 
 # Encoder-specific data
 class sPoKeysEncoder(Structure):
@@ -458,14 +461,16 @@ class sPoKeysEncoder(Structure):
         ("dirAkeyModifier", c_uint8),      # USB keyboard key modifier for direction A
         ("dirBkeyCode", c_uint8),        # USB keyboard key code for direction B
         ("dirBkeyModifier", c_uint8),      # USB keyboard key modifier for direction B
-        ("reserved", c_uint8) ]        # placeholder
+        ("reserved", c_uint8*5) ]        # placeholder
 
 # PWM-specific data
 class sPoKeysPWM(Structure):
     _fields_ = [
         ("PWMperiod", c_uint32),      # PWM period, shared among all channels
+        ("reserved", c_uint32),
         ("PWMduty", POINTER(c_uint32)),          # PWM duty cycles (range between 0 and PWM period)
-        ("PWMenabledChannels", POINTER(c_uint8))]  # List of enabled PWM channels
+        ("PWMenabledChannels", POINTER(c_uint8)),  # List of enabled PWM channels
+        ("PWMpinIDs", POINTER(c_uint8))]
 
 # Matrix keyboard specific data
 class sMatrixKeyboard(Structure):
@@ -473,7 +478,7 @@ class sMatrixKeyboard(Structure):
         ("matrixKBconfiguration", c_uint8),  # Matrix keyboard configuration (set to 1 to enable matrix keyboard support)
         ("matrixKBwidth", c_uint8),    # Matrix keyboard width (number of columns)
         ("matrixKBheight", c_uint8),    # Matrix keyboard height (number of rows)
-        ("reserved", c_uint8),      # placeholder
+        ("reserved", c_uint8*5),      # placeholder
         ("matrixKBcolumnsPins", c_uint8 * 8),  # List of matrix keyboard column connections
         ("matrixKBrowsPins", c_uint8 * 16),  # List of matrix keyboard row connections
         ("macroMappingOptions", c_uint8 * 128),    # Selects between direct key mapping and mapping to macro sequence for each key (assumes fixed width of 8 columns)
@@ -492,6 +497,9 @@ class sPoKeysLCD(Structure):
         ("Rows", c_uint8),      # Number of LCD module rows
         ("Columns", c_uint8),      # Number of LCD module columns
         ("RowRefreshFlags", c_uint8),    # Flag for refreshing data - bit 0: row 1, bit 1: row 2, bit 2: row 3, bit 3: row 4
+
+        ("reserved", c_uint8 * 4),
+
         ("line1", c_uint8 * 20),    # Line 1 buffer
         ("line2", c_uint8 * 20),    # Line 2 buffer
         ("line3", c_uint8 * 20),    # Line 3 buffer
@@ -505,7 +513,8 @@ class sPoKeysMatrixLED(Structure):
         ("rows", c_uint8),      # Number of Matrix LED rows
         ("columns", c_uint8),      # Number of Matrix LED columns
         ("RefreshFlag", c_uint8),    # Flag for refreshing data - set to 1 to refresh the display
-        ("data", c_uint8 * 8)]      # Matrix LED buffer - one byte per row (assumes 8 columns)
+        ("data", c_uint8 * 8),      # Matrix LED buffer - one byte per row (assumes 8 columns)
+        ("reserved", c_uint8 * 4) ]
 
 
 # PoNET module data
@@ -530,7 +539,8 @@ class sPoILinfo(Structure):
     _fields_ = [
         ("DataMemorySize", c_uint32),
         ("CodeMemorySize", c_uint32),
-        ("Version", c_uint32)]
+        ("Version", c_uint32),
+        ("reserved", c_uint32)]
 
 # PoIL stack info
 class sPoILStack(Structure):
@@ -544,7 +554,7 @@ class sPoILmemoryChunk(Structure):
     _fields_ = [
         ("address", c_uint16),
         ("chunkLength", c_uint8),
-        ("reserved", c_uint8)]
+        ("reserved", c_uint8*5)]
 
 class sPoILTask(Structure):
     _fields_ = [
@@ -568,6 +578,7 @@ class sPoILStatus(Structure):
         ("CoreState", c_uint32),
         ("CoreDebugMode", c_uint32),
         ("CoreDebugBreakpoint", c_uint32),
+        ("reserved0", c_uint32),
 
         ("functionStack", sPoILStack),
         ("dataStack", sPoILStack),
@@ -618,7 +629,8 @@ class sPoKeysRTC(Structure):
         ("tmp", c_uint8),
         ("DOY", c_uint16),
         ("MONTH", c_uint16),
-        ("YEAR", c_uint16) ]
+        ("YEAR", c_uint16),
+        ("reserved", c_uint32)]
 
 
 
@@ -692,7 +704,7 @@ class sPoKeysDevice(Structure):
 
         ("multiPartData", c_uint8*448),        # Communication buffer
         ("reserved64", c_uint64),
-        ("Encoders", c_void_p)]
+        ("multiPartBuffer", c_void_p)]
         
 
 sPoKeysDevicePtr = POINTER(sPoKeysDevice)
@@ -741,10 +753,14 @@ class PoKeysDevice:
 
             self.libObj.PK_DisconnectDevice(testDev)
             
-    def PK_ConnectToDeviceWSerial(self, serial, checkEthernet = 0):
+    def PK_ConnectToDeviceWSerial(self, serial, checkEthernet = 0, useUDP = True):
         self.Disconnect()
 
-        devConnect = self.libObj.PK_ConnectToDeviceWSerial
+        if useUDP:
+            devConnect = self.libObj.PK_ConnectToDeviceWSerial_UDP
+        else:
+            devConnect = self.libObj.PK_ConnectToDeviceWSerial
+
         devConnect.restype = sPoKeysDevicePtr
 
         self.device = devConnect(serial, checkEthernet)
@@ -776,7 +792,6 @@ class PoKeysDevice:
         if self.device != 0:
             self.libObj.PK_DisconnectDevice(self.device)
             self.device = 0
-
 
     def PK_GetCurrentDeviceConnectionType(self):
         return self.libObj.PK_GetCurrentDeviceConnectionType(self.device)
@@ -1205,8 +1220,10 @@ class PoKeysDevice:
         status = c_uint8(0)
         self.libObj.PK_1WireStatusGet(self.device, POINTER(status))
         return status
+
+
     # Start 1-wire write and read operation
-    def PK_1WireWriteReadStart(self, read_count, data):
+    def PK_1WireWriteReadStart(self, read_count, data, pinID = 0):
         # If user provided only single integer, transfer it...
         if isinstance(data, int):
             numBytes = 1
@@ -1223,7 +1240,7 @@ class PoKeysDevice:
             for i in range(0, numBytes):
                 buf[i] = data[i]
 
-        return self.libObj.PK_1WireWriteReadStart(self.device,  numBytes, read_count, buf)
+        return self.libObj.PK_1WireWriteReadStartEx(self.device, pinID, numBytes, read_count, buf)
 
     # Get the result of the read operation
     def PK_1WireReadStatusGet(self):
@@ -1256,6 +1273,63 @@ class PoKeysDevice:
                 print("Error - returned " + hex(status))
             return []
         return []
+
+    # Scan for 1-wire devices on the selected pin
+    def PK_1WireScan(self, pinID):
+        # Stop any previous scans
+        if self.libObj.PK_1WireBusScanStop(self.device) != ePK_RETURN_CODES.PK_OK:
+            return []
+
+        # Start the scan
+        status = self.libObj.PK_1WireBusScanStart(self.device, pinID)
+        if status != ePK_RETURN_CODES.PK_OK:
+            return []
+
+        t0 = time.time()
+        sensors = []
+
+        # Scan for up to 2 seconds
+        while time.time() - t0 < 2:
+            time.sleep(0.05)
+
+            opResult = c_uint8(0)
+            scanResult = c_uint8(0)
+            tmpROM = c_uint8 * 8
+            ptrROM = tmpROM()
+
+            func = self.libObj.PK_1WireBusScanGetResults
+            func.argtypes = [sPoKeysDevicePtr, POINTER(c_uint8), POINTER(c_uint8), POINTER(tmpROM)]
+
+            func(self.device, opResult, scanResult, ptrROM)
+
+            if scanResult.value == 0:
+                # Scan still pending
+                continue
+            elif scanResult.value == 2:
+                # Scan was complete, no more sensors
+                break
+
+            elif (scanResult.value & 1) == 1:
+                # Sensor ROM address received
+                ROM = [ptrROM[i] for i in range(0, 8)]
+                sensors.append(ROM)
+
+                if self.libObj.PK_1WireBusScanContinue(self.device) != ePK_RETURN_CODES.PK_OK:
+                    return []
+
+                if scanResult.value == 3:
+                    # This was the last sensor
+                    break
+
+            else:
+                # Unknown operation result
+                break
+
+        # Stop the scan
+        self.libObj.PK_1WireBusScanStop(self.device)
+
+        return sensors
+
 
     # SPI operations
     #

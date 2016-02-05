@@ -434,6 +434,7 @@ typedef struct
 
     // ------ 64-bit region boundary ------
     float           ProbeSpeed;                // Probe speed (ratio of the maximum speed)
+    float 			reservedf;
 
 	uint16_t		BacklashWidth[8];			// half of real backlash width
 	int16_t			BacklashRegister[8];		// current value of the backlash register
@@ -517,6 +518,7 @@ typedef struct
     uint8_t  SecondaryFirmwareVersionMajor;
     uint8_t  SecondaryFirmwareVersionMinor;
     uint8_t  deviceIsBootloader;
+    uint8_t  reserved[4];
 } sPoKeysDevice_Data;
 
 // Pin-specific data
@@ -536,6 +538,7 @@ typedef struct
     uint8_t  downKeyModifier;                  // USB keyboard down key modifier (for triggered mapping)
     uint8_t  upKeyCodeMacroID;                 // USB keyboard up key code (for triggered mapping)
     uint8_t  upKeyModifier;                    // USB keyboard up key modifier (for triggered mapping)
+    uint8_t  reserved[4];
 } sPoKeysPinData;
 
 // Encoder-specific data
@@ -556,13 +559,14 @@ typedef struct
     uint8_t dirAkeyModifier;                   // USB keyboard key modifier for direction A
     uint8_t dirBkeyCode;                       // USB keyboard key code for direction B
     uint8_t dirBkeyModifier;                   // USB keyboard key modifier for direction B
-    uint8_t reserved;                          // placeholder
+    uint8_t reserved[5];                       // placeholder
 } sPoKeysEncoder;
 
 // PWM-specific data
 typedef struct
 {
     uint32_t  PWMperiod;                       // PWM period, shared among all channels
+    uint32_t  reserved;
     uint32_t *PWMduty;                         // PWM duty cycles (range between 0 and PWM period)
     uint8_t * PWMenabledChannels;              // List of enabled PWM channels
 	uint8_t * PWMpinIDs;
@@ -574,7 +578,7 @@ typedef struct
     uint8_t matrixKBconfiguration;             // Matrix keyboard configuration (set to 1 to enable matrix keyboard support)
     uint8_t matrixKBwidth;                     // Matrix keyboard width (number of columns)
     uint8_t matrixKBheight;                    // Matrix keyboard height (number of rows)
-    uint8_t reserved;                          // placeholder
+    uint8_t reserved[5];                       // placeholder
     uint8_t matrixKBcolumnsPins[8];            // List of matrix keyboard column connections
     uint8_t matrixKBrowsPins[16];              // List of matrix keyboard row connections
     uint8_t macroMappingOptions[128];          // Selects between direct key mapping and mapping to macro sequence for each key (assumes fixed width of 8 columns)
@@ -594,6 +598,8 @@ typedef struct
     uint8_t Rows;                              // Number of LCD module rows
     uint8_t Columns;                           // Number of LCD module columns
     uint8_t RowRefreshFlags;                   // Flag for refreshing data - bit 0: row 1, bit 1: row 2, bit 2: row 3, bit 3: row 4
+    
+    uint8_t reserved[4];
 
     uint8_t line1[20];                         // Line 1 buffer
     uint8_t line2[20];                         // Line 2 buffer
@@ -611,6 +617,7 @@ typedef struct
     uint8_t columns;                           // Number of Matrix LED columns
     uint8_t RefreshFlag;                       // Flag for refreshing data - set to 1 to refresh the display
     uint8_t data[8];                           // Matrix LED buffer - one byte per row (assumes 8 columns)
+    uint8_t reserved[4];
 } sPoKeysMatrixLED;
 
 // PoNET module data
@@ -637,6 +644,7 @@ typedef struct
     uint32_t DataMemorySize;
     uint32_t CodeMemorySize;
     uint32_t Version;
+    uint32_t reserved;
 } sPoILinfo;
 
 // PoIL stack info
@@ -654,6 +662,7 @@ typedef struct
     uint16_t address;
     uint8_t  chunkLength;
     uint8_t  reserved;
+    uint32_t reserved2;
 } sPoILmemoryChunk;
 
 typedef struct
@@ -679,6 +688,7 @@ typedef struct
     uint32_t         CoreState;
     uint32_t         CoreDebugMode;
     uint32_t         CoreDebugBreakpoint;
+    uint32_t 		 reserved0;
 
     sPoILStack       functionStack;
     sPoILStack       dataStack;
@@ -733,6 +743,7 @@ typedef struct
     uint16_t DOY;
     uint16_t MONTH;
     uint16_t YEAR;
+    uint32_t reserved;
 } sPoKeysRTC;
 
 // Network device structure - used for network device enumeration
@@ -1078,8 +1089,21 @@ POKEYSDECL int32_t PK_1WireStatusSet(sPoKeysDevice* device, uint8_t activated);
 POKEYSDECL int32_t PK_1WireStatusGet(sPoKeysDevice* device, uint8_t* activated);
 // Start 1-wire write and read operation
 POKEYSDECL int32_t PK_1WireWriteReadStart(sPoKeysDevice* device, uint8_t WriteCount, uint8_t ReadCount, uint8_t * data);
+// Start 1-wire write and read operation on specific pin (only PoKeys57 series devices)
+POKEYSDECL int32_t PK_1WireWriteReadStartEx(sPoKeysDevice* device, uint8_t pinID, uint8_t WriteCount, uint8_t ReadCount, uint8_t * data);
 // Get the result of the read operation
 POKEYSDECL int32_t PK_1WireReadStatusGet(sPoKeysDevice* device, uint8_t * readStatus, uint8_t * ReadCount, uint8_t * data);
+
+// Start scanning for 1-wire devices
+POKEYSDECL int32_t PK_1WireBusScanStart(sPoKeysDevice* device, uint8_t pinID);
+// Get scan result
+POKEYSDECL int32_t PK_1WireBusScanGetResults(sPoKeysDevice* device, uint8_t * operationStatus, uint8_t * scanResult, uint8_t * deviceROM);
+// Continue with device scanning
+POKEYSDECL int32_t PK_1WireBusScanContinue(sPoKeysDevice* device);
+// Stop the device scan
+POKEYSDECL int32_t PK_1WireBusScanStop(sPoKeysDevice* device);
+
+
 
 // Get the configuration of EasySensors
 POKEYSDECL int32_t PK_EasySensorsSetupGet(sPoKeysDevice* device);
