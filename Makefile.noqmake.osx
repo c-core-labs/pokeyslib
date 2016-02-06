@@ -3,7 +3,14 @@ AR = ar
 
 CFLAGS=-fPIC -I/opt/local/include/libusb-1.0/ -fPIC
 LDFLAGS=-lusb-1.0 -framework IOKit -framework CoreFoundation -L/usr/lib/ -L/opt/local/lib/ -lusb-1.0 
-SOURCES=PoKeysLibCore.c PoKeysLibFastUSB.c PoKeysLibPoNET.c PoKeysLibEasySensors.c PoKeysLibI2C.c PoKeysLibEncoders.c PoKeysLibPulseEngine_v2.c PoKeysLibMatrixLED.c PoKeysLibMatrixKB.c PoKeysLibLCD.c PoKeysLibIO.c PoKeysLibDeviceData.c PoKeysLibCoreSockets.c hid-mac.c
+
+SOURCES=PoKeysLibCore.c PoKeysLibCoreSockets.c hid-mac.c PoKeysLibFastUSB.c \
+        PoKeysLibDeviceData.c \
+        PoKeysLibIO.c PoKeysLibEncoders.c PoKeysLibMatrixLED.c PoKeysLibMatrixKB.c \
+        PoKeysLibPoNET.c PoKeysLibLCD.c PoKeysLibRTC.c \
+        PoKeysLibEasySensors.c PoKeysLibI2C.c PoKeysLib1Wire.c PoKeysLibSPI.c \
+        PoKeysLibPulseEngine_v2.c
+
 OBJECTS=$(SOURCES:.c=.o)
 
 install: all
