@@ -21,7 +21,7 @@ import time
 
 
 # Enter the device's serial number here
-deviceSerial = 36029
+deviceSerial = 25000
 
 
 # Load PoKeysLib dll library and list all PoKeys devices detected
@@ -345,14 +345,17 @@ if testPE:
 
     
 
-# Test RTC
+# Read RTC
 mydevice.PK_RTCGet()
-print(mydevice.device.contents.RTC.HOUR, mydevice.device.contents.RTC.MIN, mydevice.device.contents.RTC.SEC)
+print("Time: %02d:%02d:%02d" % (mydevice.device.contents.RTC.HOUR, mydevice.device.contents.RTC.MIN, mydevice.device.contents.RTC.SEC))
 
 
-print(mydevice.PK_1WireScan(54))
+
+
 
 testEasySensors = True
+autoAdd1Wire = True
+
 if testEasySensors:
     if mydevice.device.contents.info.iEasySensors > 0:
 
@@ -361,6 +364,9 @@ if testEasySensors:
         print("Retrieving sensor values...")
         mydevice.PK_EasySensorsValueGetAll()
         #print(mydevice.device.contents)
+
+        existingROMs = []
+        
         # Print the configuration
         for i in range(mydevice.device.contents.info.iEasySensors):
             S = mydevice.device.contents.EasySensors[i]
@@ -373,6 +379,50 @@ if testEasySensors:
                 print(" - failsafe: ", S.sensorFailsafeConfig)
 
                 print(" - ID", ":".join("{:02x}".format(c) for c in S.sensorID))
+
+                # Save 1-wire ROMs
+                if S.sensorType >= 0x18 and S.sensorType <= 0x1A:
+                    types = { 0x18:0x10, 0x19:0x28, 0x1A:0x3A }
+                    tmp = [S.sensorID[i] for i in range(8)]
+                    tmp[0] = types[S.sensorType]
+
+                    existingROMs.append(tmp)
+
+
+        # Search for new 1-wire sensors
+        pin = 54
+        print("1-wire sensors found on pin ", pin+1)
+        ROMs = mydevice.PK_1WireScan(pin, 5)
+        print(ROMs)
+
+        if autoAdd1Wire:
+            # Configure all that haven't been added before...
+            for s in range(len(ROMs)):
+                newROM = ROMs[s]
+
+                result = False
+                # Check if it exists already...
+                for e in range(len(existingROMs)):
+                    if all([existingROMs[e][i] == newROM[i] for i in range(8)]):
+                        result = True
+                        break
+
+                # If ROM has already been found, just skip to next one...
+                if result == True:
+                    continue            
+
+                # Find first empty slot...
+                slot = -1
+                for i in range(100):                
+                    if mydevice.device.contents.EasySensors[i].sensorType == 0:
+                        slot = i
+                        break
+
+                if slot >= 0:
+                    print("Saving ROM: ", newROM, " to EasySensors slot ", slot)
+                    # Add 1-wire sensor to the list
+                    mydevice.PK_EasySensorConfigure_1wire(slot, pin, newROM, 0, 10, 0)
+
 
 print("Done...")
 mydevice.Disconnect()

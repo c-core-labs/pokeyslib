@@ -1073,11 +1073,40 @@ class PoKeysDevice:
         return self.libObj.PK_EasySensorsValueGetAll(self.device)
 
 
+
+
+
+    def PK_EasySensorConfigure_1wire(self, slot, pinID, ROM, readingID, period, failsafe):
+        if slot >= self.device.contents.info.iEasySensors:
+            return False
+
+        S = self.device.contents.EasySensors[slot]
+
+        if ROM[0] == 0x10: # DS18S20
+            S.sensorType = 0x18
+        elif ROM[0] == 0x28: # DS18B20
+            S.sensorType = 0x19
+        elif ROM[0] == 0x3A: # DS2413
+            S.sensorType = 0x1A
+        else:
+            # Unknown type
+            return False
+
+        S.sensorID[0] = pinID
+        for i in range(1,8):
+            S.sensorID[i] = ROM[i]
+
+        S.sensorFailsafeConfig = failsafe
+        S.sensorReadingID = readingID
+        S.sensorRefreshPeriod = period
+
+        return self.PK_EasySensorsSetupSet() == ePK_RETURN_CODES.PK_OK
+
         
     # I2C operations status return ePK_I2C_STATUS, described above
     # Set I2C status - does nothing in the device as I2C is ON all the time
     def PK_I2CSetStatus(self, activated):
-        self.libOjb.PK_I2CSetStatus(self.device, activated)
+        self.libObj.PK_I2CSetStatus(self.device, activated)
     
     
     # Retrieves I2C bus activation status
@@ -1274,8 +1303,35 @@ class PoKeysDevice:
             return []
         return []
 
+    def PK_1WireScan(self, pinID, retries = 5):
+        ROMs = []
+
+        for r in range(retries):
+            scanROMs = self.PK_1WireScan_int(pinID)
+
+            # Check each found device
+            for i in range(len(scanROMs)):
+                tmp = scanROMs[i]
+                if tmp[7] != self.GetDallasCRC(tmp, 7) or tmp[0] == 0:
+                    # CRC is not correct...
+                    continue
+
+                # Check if tmp is already in ROMs
+                result = False
+                for e in range(len(ROMs)):
+                    if all([ROMs[e][i] == tmp[i] for i in range(8)]):
+                        result = True
+                        break
+
+                if result == False:
+                    ROMs.append(tmp)
+
+                time.sleep(0.1)
+
+        return ROMs
+
     # Scan for 1-wire devices on the selected pin
-    def PK_1WireScan(self, pinID):
+    def PK_1WireScan_int(self, pinID):
         # Stop any previous scans
         if self.libObj.PK_1WireBusScanStop(self.device) != ePK_RETURN_CODES.PK_OK:
             return []
@@ -1330,6 +1386,24 @@ class PoKeysDevice:
 
         return sensors
 
+
+    def GetDallasCRC(self, data, length):
+        shift_reg = 0
+        data_bit = 0
+        sr_lsb = 0
+        fb_bit = 0
+
+        for i in range(length):
+            for j in range(8):
+                data_bit = (data[i] >> j) & 1
+                sr_lsb = shift_reg & 1
+                fb_bit = (data_bit ^ sr_lsb) & 1
+                shift_reg >>= 1
+
+                if fb_bit:
+                    shift_reg ^= 0x8c
+
+        return shift_reg & 0xff
 
     # SPI operations
     #
