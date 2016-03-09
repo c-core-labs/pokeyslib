@@ -21,13 +21,14 @@ import time
 
 
 # Enter the device's serial number here
-deviceSerial = 25000
+deviceSerial = 36022
 
 
 # Load PoKeysLib dll library and list all PoKeys devices detected
 mydevice = PoKeysDevice("PoKeysLib.dll")
 print("List of detected devices ------------------------------------")
 mydevice.ShowAllDevices()
+
 
 # Connect to a specific PoKeys device, use UDP connection if possible
 print("Connecting to the selected device...")

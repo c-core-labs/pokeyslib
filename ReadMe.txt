@@ -45,6 +45,14 @@ Also:
 qmake can be used to build the librray using the attached project file 
 PoKeysLib.pro.
 
+---- Allowing the regular users access USB PoKeys device ----
+Create a new file in the /etc/udev/rules.d named 90-usb-pokeys.rules with 
+the following contents (insert your username in the group parameter):
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1dc3", ATTRS{idProduct}=="1001", GROUP="<your username or group you belong to>", MODE="664"
+
+Save the file, then execute
+udevadm control --reload-rules
+
 
 ---- Usage ----
 PoKeysLib library has to be linked or included in the client application. 
