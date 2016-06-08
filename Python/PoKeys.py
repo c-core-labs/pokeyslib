@@ -715,8 +715,8 @@ class sPoKeysNetworkDeviceSummary(Structure):
         ("SerialNumber", c_long),      # Serial number
         ("IPaddress", c_ubyte*4),      # IP address of the device
         ("hostIP", c_ubyte*4),      # IP address of the host PC
-        ("FirmwareVersionMajor", c_long),    # Firmware version - major
-        ("FirmwareVersionMinor", c_long),    # Firmware version - minor
+        ("FirmwareVersionMajor", c_ubyte),    # Firmware version - major
+        ("FirmwareVersionMinor", c_ubyte),    # Firmware version - minor
         ("UserID", c_ubyte),      # User ID
         ("DHCP", c_ubyte),        # DHCP setting of the device
         ("HWtype", c_ubyte),        # HW type, reported by device

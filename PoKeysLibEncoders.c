@@ -241,3 +241,9 @@ int32_t PK_EncoderValuesSet(sPoKeysDevice* device)
 	}
 	return PK_OK;
 }
+
+uint32_t PK_SL_EncoderValueGet(sPoKeysDevice* device, uint8_t index)
+{
+    if (device == NULL) return 0;
+    return device->Encoders[index].encoderValue;
+}

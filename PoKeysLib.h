@@ -1137,6 +1137,19 @@ POKEYSDECL int32_t PK_PoILTaskStatus(sPoKeysDevice * device);
 POKEYSDECL int32_t PK_RTCGet(sPoKeysDevice* device);
 POKEYSDECL int32_t PK_RTCSet(sPoKeysDevice* device);
 
+// Simplified interface...
+POKEYSDECL void PK_SL_SetPinFunction(sPoKeysDevice* device, uint8_t pin, uint8_t function);
+POKEYSDECL uint8_t PK_SL_GetPinFunction(sPoKeysDevice* device, uint8_t pin);
+POKEYSDECL void PK_SL_DigitalOutputSet(sPoKeysDevice* device, uint8_t pin, uint8_t value);
+POKEYSDECL uint8_t PK_SL_DigitalInputGet(sPoKeysDevice* device, uint8_t pin);
+POKEYSDECL uint32_t PK_SL_AnalogInputGet(sPoKeysDevice* device, uint8_t pin);
+
+POKEYSDECL uint32_t PK_SL_EncoderValueGet(sPoKeysDevice* device, uint8_t index);
+POKEYSDECL uint32_t PK_SL_PWMConfig(sPoKeysDevice* device, uint8_t index);
+POKEYSDECL int32_t PK_SL_PWM_SetPeriod(sPoKeysDevice* device, uint32_t PWMperiod);
+POKEYSDECL int32_t PK_SL_PWM_SetChannelEnabled(sPoKeysDevice* device, uint8_t channel, uint8_t enabled, uint32_t defaultDuty);
+POKEYSDECL int32_t PK_SL_PWM_SetDuty(sPoKeysDevice* device, uint8_t channel, uint32_t duty);
+
 extern int32_t LastRetryCount;
 extern int32_t LastWaitCount;
 #ifdef __cplusplus

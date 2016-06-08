@@ -718,3 +718,33 @@ int32_t SendRequest(sPoKeysDevice* device)
 
     return PK_ERR_TRANSFER;
 }
+
+
+// ******************************************************************************************
+// These functions are used to access the device data without using the structures...
+// ******************************************************************************************
+void PK_SL_SetPinFunction(sPoKeysDevice* device, uint8_t pin, uint8_t function)
+{
+    device->Pins[pin].PinFunction = function;
+}
+
+uint8_t PK_SL_GetPinFunction(sPoKeysDevice* device, uint8_t pin)
+{
+    return device->Pins[pin].PinFunction;
+}
+
+void PK_SL_DigitalOutputSet(sPoKeysDevice* device, uint8_t pin, uint8_t value)
+{
+    device->Pins[pin].DigitalValueSet = value;
+}
+
+uint8_t PK_SL_DigitalInputGet(sPoKeysDevice* device, uint8_t pin)
+{
+    return device->Pins[pin].DigitalValueGet;
+}
+
+uint32_t PK_SL_AnalogInputGet(sPoKeysDevice* device, uint8_t pin)
+{
+    return device->Pins[pin].AnalogValue;
+}
+

@@ -7,6 +7,8 @@ QT -= core gui
 # 32-bit: "CONFIG+=makeDLL DLL32"
 # 64-bit: "CONFIG+=makeDLL DLL64"        not needed: "QMAKE_LFLAGS_WINDOWS+=/NODEFAULTLIB:LIBCMT"
 
+#CONFIG += BUILD_WITH_LIBUSB
+
 makeDLL {
     DLL32 {
         message("Building 32-bit DLL...")
@@ -15,6 +17,19 @@ makeDLL {
     }
     CONFIG += dll warn_on
     DEFINES += POKEYSDLL POKEYSDLLEXPORT
+
+
+
+    BUILD_WITH_LIBUSB {
+        DEFINES += POKEYSLIB_USE_LIBUSB
+        INCLUDEPATH += ../libusb/include/libusb-1.0
+
+        DLL32 {
+            LIBS += -L../libusb/MS32/static -llibusb-1.0
+        } else {
+            LIBS += -L../libusb/MS64/static -llibusb-1.0
+        }
+    }
 } else {
     message("Building library")
     CONFIG += staticlib warn_on

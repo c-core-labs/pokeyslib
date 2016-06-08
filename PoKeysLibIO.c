@@ -671,6 +671,31 @@ int32_t PK_PWMUpdateDirectly(sPoKeysDevice * device, uint32_t * dutyCycles)
     return PK_PWMUpdate(device);
 }
 
+int32_t PK_SL_PWM_SetPeriod(sPoKeysDevice* device, uint32_t PWMperiod)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    if (PK_PWMConfigurationGet(device) != PK_OK) return PK_ERR_GENERIC;
+    device->PWM.PWMperiod = PWMperiod;
+    return PK_PWMConfigurationSet(device);
+}
+
+int32_t PK_SL_PWM_SetChannelEnabled(sPoKeysDevice* device, uint8_t channel, uint8_t enabled, uint32_t defaultDuty)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    device->PWM.PWMenabledChannels[channel] = enabled;
+    device->PWM.PWMduty[channel] = defaultDuty;
+    return PK_PWMConfigurationSet(device);
+}
+
+int32_t PK_SL_PWM_SetDuty(sPoKeysDevice* device, uint8_t channel, uint32_t duty)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    device->PWM.PWMduty[channel] = duty;
+    return PK_OK;
+}
 
 int32_t PK_PoExtBusSet(sPoKeysDevice* device)
 {
