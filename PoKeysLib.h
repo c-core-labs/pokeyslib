@@ -366,6 +366,11 @@ typedef struct
     uint8_t         HomingReturnSpeed[8];      // Homing return speed per axis (in % of the homing speed)
 
     int32_t         HomeOffsets[8];            // Home position offset
+	uint8_t			HomingAlgorithm[8];		   // Homing algorithm configuration
+
+	uint8_t			FilterLimitMSwitch[8];	   // Digital filter for limit- switch
+	uint8_t			FilterLimitPSwitch[8];	   // Digital filter for limit+ switch
+	uint8_t			FilterHomeSwitch[8];	   // Digital filter for home switch
 
     int32_t         ProbePosition[8];          // Position where probe detected change
     int32_t         ProbeMaxPosition[8];       // Maximum position to travel to until stopping and returning error
@@ -403,7 +408,7 @@ typedef struct
     uint8_t         PulseEngineState;
 
     uint8_t         AxisEnabledMask;           // Bit-mapped ouput enabled mask
-    uint8_t         reserved1;
+    uint8_t         EmergencyInputPin;
     uint8_t         reserved2;
 
     // ------ 64-bit region boundary ------
@@ -837,6 +842,7 @@ typedef struct
 
 // Enumerate USB devices. Returns number of USB devices detected.
 POKEYSDECL int32_t PK_EnumerateUSBDevices(void);
+POKEYSDECL int32_t PK_EnumerateFastUSBDevices(void);
 // Enumerate network devices. Return the number of ethernet devices detected and the list of detected devices (parameter devices) is filled with devices' data
 POKEYSDECL int32_t PK_EnumerateNetworkDevices(sPoKeysNetworkDeviceSummary * devices, uint32_t timeout);
 POKEYSDECL int32_t PK_SearchNetworkDevices(sPoKeysNetworkDeviceSummary * devices, uint32_t timeout, uint32_t serialNumberToFind);
@@ -997,6 +1003,10 @@ POKEYSDECL int32_t PK_PEv2_StatusGet(sPoKeysDevice * device);
 POKEYSDECL int32_t PK_PEv2_Status2Get(sPoKeysDevice * device);
 // Configure (setup) the pulse engine
 POKEYSDECL int32_t PK_PEv2_PulseEngineSetup(sPoKeysDevice * device);
+// Read additional parameters
+POKEYSDECL int32_t PK_PEv2_AdditionalParametersGet(sPoKeysDevice * device);
+// Set additional parameters
+POKEYSDECL int32_t PK_PEv2_AdditionalParametersSet(sPoKeysDevice * device);
 // Retrieve single axis parameters. Axis ID is in param1
 POKEYSDECL int32_t PK_PEv2_AxisConfigurationGet(sPoKeysDevice * device);
 // Set single axis parameters. Axis ID is in param1
@@ -1015,7 +1025,9 @@ POKEYSDECL int32_t PK_PEv2_ExternalOutputsSet(sPoKeysDevice * device);
 // The number of accepted entries is saved to motionBufferEntriesAccepted.
 // In addition, pulse engine state is read (PEv2_GetStatus)
 POKEYSDECL int32_t PK_PEv2_BufferFill(sPoKeysDevice * device);
+POKEYSDECL int32_t PK_PEv2_BufferFill_16(sPoKeysDevice * device);
 POKEYSDECL int32_t PK_PEv2_BufferFillLarge(sPoKeysDevice * device);
+POKEYSDECL int32_t PK_PEv2_BufferFillLarge_16(sPoKeysDevice * device);
 // Clear motion buffer in device
 POKEYSDECL int32_t PK_PEv2_BufferClear(sPoKeysDevice * device);
 // Reboot pulse engine v2
@@ -1044,7 +1056,7 @@ POKEYSDECL int32_t PK_PEv2_ThreadingTrigger(sPoKeysDevice * device);
 POKEYSDECL int32_t PK_PEv2_ThreadingRelease(sPoKeysDevice * device);
 POKEYSDECL int32_t PK_PEv2_ThreadingStatusGet(sPoKeysDevice * device);
 POKEYSDECL int32_t PK_PEv2_ThreadingCancel(sPoKeysDevice * device);
-POKEYSDECL int32_t PK_PEv2_ThreadingSetup(sPoKeysDevice * device, uint8_t sensorMode, uint16_t ticksPerRevolution, uint16_t tagetSpindleRPM);
+POKEYSDECL int32_t PK_PEv2_ThreadingSetup(sPoKeysDevice * device, uint8_t sensorMode, uint16_t ticksPerRevolution, uint16_t tagetSpindleRPM, uint16_t filterGainSpeed, uint16_t filterGainPosition);
 
 POKEYSDECL int32_t PK_PEv2_BacklashCompensationSettings_Get(sPoKeysDevice * device);
 POKEYSDECL int32_t PK_PEv2_BacklashCompensationSettings_Set(sPoKeysDevice * device);

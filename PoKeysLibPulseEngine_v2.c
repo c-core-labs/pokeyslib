@@ -124,6 +124,35 @@ int32_t PK_PEv2_PulseEngineSetup(sPoKeysDevice * device)
 }
 
 
+
+// Read additional parameters
+int32_t PK_PEv2_AdditionalParametersGet(sPoKeysDevice * device)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Send request
+    CreateRequest(device->request, 0x85, 0x06, 0, 0, 1);
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	device->PEv2.EmergencyInputPin = device->response[8];    
+
+    return PK_OK;
+}
+
+// Set additional parameters
+int32_t PK_PEv2_AdditionalParametersSet(sPoKeysDevice * device)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Create request
+    CreateRequest(device->request, 0x85, 0x06, 1, 0, 0);
+	device->request[8] = device->PEv2.EmergencyInputPin;
+
+    // Send request
+    return SendRequest(device);
+}
+
+
 // Retrieve single axis parameters. Axis ID is in param1
 int32_t PK_PEv2_AxisConfigurationGet(sPoKeysDevice * device)
 {
@@ -165,6 +194,12 @@ int32_t PK_PEv2_AxisConfigurationGet(sPoKeysDevice * device)
     pe->AxisEnableOutputPins[pe->param1] = device->response[38];
     pe->InvertAxisEnable[pe->param1] = device->response[39];
 
+	pe->FilterLimitMSwitch[pe->param1] = device->response[40];
+	pe->FilterLimitPSwitch[pe->param1] = device->response[41];
+	pe->FilterHomeSwitch[pe->param1] = device->response[42];
+
+	pe->HomingAlgorithm[pe->param1] = device->response[43];
+
     return PK_OK;
 }
 
@@ -205,6 +240,11 @@ int32_t PK_PEv2_AxisConfigurationSet(sPoKeysDevice * device)
 
     device->request[38] = pe->AxisEnableOutputPins[pe->param1];
     device->request[39] = pe->InvertAxisEnable[pe->param1];
+
+	device->request[40] = pe->FilterLimitMSwitch[pe->param1];
+	device->request[41] = pe->FilterLimitPSwitch[pe->param1];
+	device->request[42] = pe->FilterHomeSwitch[pe->param1];
+	device->request[43] = pe->HomingAlgorithm[pe->param1];
 
     // Send request
     return SendRequest(device);
@@ -306,12 +346,57 @@ int32_t PK_PEv2_BufferFill(sPoKeysDevice * device)
     return PK_OK;
 }
 
+// Transfer motion buffer to device. The number of new entries (newMotionBufferEntries) must be specified
+// The number of accepted entries is saved to motionBufferEntriesAccepted.
+// In addition, pulse engine state is read (PEv2_GetStatus)
+int32_t PK_PEv2_BufferFill_16(sPoKeysDevice * device)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Create request
+    CreateRequest(device->request, 0x85, 0xFE, device->PEv2.newMotionBufferEntries, device->PEv2.PulseEngineEnabled & 0x0F, 0);
+
+    // Copy buffer
+    memcpy(&device->request[8], device->PEv2.MotionBuffer, 56);
+
+    // Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+    device->PEv2.motionBufferEntriesAccepted = device->response[2];
+
+    // Decode status
+    PK_PEv2_DecodeStatus(device);
+
+    return PK_OK;
+}
+
 int32_t PK_PEv2_BufferFillLarge(sPoKeysDevice * device)
 {
     if (device == NULL) return PK_ERR_NOT_CONNECTED;	
 
     // Create request
     CreateRequest(device->request, 0xB0, 0, 0xFF, device->PEv2.newMotionBufferEntries, device->PEv2.PulseEngineEnabled & 0x0F);
+
+    // Copy buffer
+    memcpy(device->multiPartData, device->PEv2.MotionBuffer, 448);
+
+    // Send request
+	if (SendRequest_multiPart(device) != PK_OK) return PK_ERR_TRANSFER;
+
+    device->PEv2.motionBufferEntriesAccepted = device->response[2];
+
+    // Decode status
+    PK_PEv2_DecodeStatus(device);
+
+    return PK_OK;
+}
+
+int32_t PK_PEv2_BufferFillLarge_16(sPoKeysDevice * device)
+{
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;	
+
+    // Create request
+    CreateRequest(device->request, 0xB0, 0, 0xFE, device->PEv2.newMotionBufferEntries, device->PEv2.PulseEngineEnabled & 0x0F);
 
     // Copy buffer
     memcpy(device->multiPartData, device->PEv2.MotionBuffer, 448);
@@ -532,7 +617,7 @@ int32_t PK_PEv2_ThreadingStatusGet(sPoKeysDevice * device)
 
 }
 
-int32_t PK_PEv2_ThreadingSetup(sPoKeysDevice * device, uint8_t sensorMode, uint16_t ticksPerRevolution, uint16_t tagetSpindleRPM)
+int32_t PK_PEv2_ThreadingSetup(sPoKeysDevice * device, uint8_t sensorMode, uint16_t ticksPerRevolution, uint16_t tagetSpindleRPM, uint16_t filterGainSpeed, uint16_t filterGainPosition)
 {
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
@@ -542,6 +627,8 @@ int32_t PK_PEv2_ThreadingSetup(sPoKeysDevice * device, uint8_t sensorMode, uint1
 	device->request[8] = sensorMode;
 	*(uint16_t*)(device->request + 12) = ticksPerRevolution;
 	*(uint16_t*)(device->request + 14) = tagetSpindleRPM;
+	*(uint16_t*)(device->request + 16) = filterGainSpeed;
+	*(uint16_t*)(device->request + 18) = filterGainPosition;
 
     // Send request
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
@@ -591,6 +678,7 @@ int32_t PK_PEv2_BacklashCompensationSettings_Set(sPoKeysDevice * device)
 	return PK_OK;
 }
 
+
 int32_t PK_PEv2_SyncedPWMSetup(sPoKeysDevice * device, uint8_t enabled, uint8_t srcAxis, uint8_t dstPWMChannel)
 {
     int32_t i;
@@ -604,3 +692,181 @@ int32_t PK_PEv2_SyncedPWMSetup(sPoKeysDevice * device, uint8_t enabled, uint8_t 
 
     return PK_OK;
 }
+
+int32_t PK_PoStep_ConfigurationGet(sPoKeysDevice * device)
+{
+	int32_t i;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Create request
+    CreateRequest(device->request, 0x85, 0x50, 0, 0, 0);
+
+	// Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	// Parse settings for each axis
+	for (i = 0; i < 8; i++)
+	{
+		device->PoSteps.drivers[i].DriverType = device->response[8 + i*3];
+		device->PoSteps.drivers[i].AddressI2C = device->response[9 + i*3];
+		device->PoSteps.drivers[i].UpdateConfig = device->response[10 + i*3];
+	}
+	device->PoSteps.EnablePoStepCommunication = device->response[4];
+			
+	return PK_OK;
+}
+
+int32_t PK_PoStep_ConfigurationSet(sPoKeysDevice * device)
+{
+	int32_t i;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+	// Create request
+	CreateRequest(device->request, 0x85, 0x50, 0x10, device->PoSteps.EnablePoStepCommunication, 0);
+
+	// Insert settings for each axis
+	for (i = 0; i < 8; i++)
+	{
+		device->request[8 + i * 3] = device->PoSteps.drivers[i].DriverType;
+		device->request[9 + i * 3] = device->PoSteps.drivers[i].AddressI2C;
+		device->request[10 + i * 3] = device->PoSteps.drivers[i].UpdateConfig;
+	}
+
+	// Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	// Parse settings for each axis
+	for (i = 0; i < 8; i++)
+	{
+		device->PoSteps.drivers[i].DriverType = device->response[8 + i*3];
+		device->PoSteps.drivers[i].AddressI2C = device->response[9 + i*3];
+		device->PoSteps.drivers[i].UpdateConfig = device->response[10 + i*3];
+	}
+	device->PoSteps.EnablePoStepCommunication = device->response[4];
+	
+	return PK_OK;
+}
+
+
+int32_t PK_PoStep_StatusGet(sPoKeysDevice * device)
+{
+	int32_t i;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    // Create request
+    CreateRequest(device->request, 0x85, 0x51, 0, 0, 0);
+
+	// Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	// Parse settings for each axis
+	for (i = 0; i < 8; i++)
+	{
+		device->PoSteps.drivers[i].SupplyVoltage = device->response[8 + i*6];
+		device->PoSteps.drivers[i].Temperature = device->response[9 + i*6];
+		device->PoSteps.drivers[i].InputStatus = device->response[10 + i*6];
+		device->PoSteps.drivers[i].DriverStatus = device->response[11 + i*6];
+		device->PoSteps.drivers[i].FaultStatus = device->response[12 + i*6];
+		device->PoSteps.drivers[i].UpdateState = device->response[13 + i*6];
+	}
+			
+	return PK_OK;
+}
+
+
+int32_t PK_PoStep_DriverConfigurationGet(sPoKeysDevice * device)
+{
+	int32_t i;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+	// Current settings
+    // Create request
+    CreateRequest(device->request, 0x85, 0x52, 0, 0, 0);
+
+	// Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	// Parse settings for each axis
+	for (i = 0; i < 8; i++)
+	{
+		device->PoSteps.drivers[i].Current_FS = *(uint16_t*)(device->response + 8 + i*6);
+		device->PoSteps.drivers[i].Current_Idle = *(uint16_t*)(device->response + 10 + i*6);
+		device->PoSteps.drivers[i].Current_Overheat = *(uint16_t*)(device->response + 12 + i*6);
+	}
+
+	// Mode settings
+    // Create request
+    CreateRequest(device->request, 0x85, 0x53, 0, 0, 0);
+
+	// Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	// Parse settings for each axis
+	for (i = 0; i < 8; i++)
+	{
+		device->PoSteps.drivers[i].DriverMode = device->response[8 + i*6];
+		device->PoSteps.drivers[i].StepMode = device->response[9 + i*6];
+		device->PoSteps.drivers[i].TemperatureLimit = device->response[10 + i*6];
+	}
+		
+	return PK_OK;
+}
+
+
+int32_t PK_PoStep_DriverConfigurationSet(sPoKeysDevice * device)
+{
+	int32_t i;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+	// Current
+	// Create request
+	CreateRequest(device->request, 0x85, 0x52, 0x10, 0, 0);
+
+	// Insert settings for each axis
+	for (i = 0; i < 8; i++)
+	{
+		*(uint16_t*)(device->request + 8 + i*6) = device->PoSteps.drivers[i].Current_FS;
+		*(uint16_t*)(device->request + 10 + i*6) = device->PoSteps.drivers[i].Current_Idle;
+		*(uint16_t*)(device->request + 12 + i*6) = device->PoSteps.drivers[i].Current_Overheat;
+	}
+
+	// Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	// Parse settings for each axis
+	for (i = 0; i < 8; i++)
+	{
+		device->PoSteps.drivers[i].Current_FS = *(uint16_t*)(device->response + 8 + i*6);
+		device->PoSteps.drivers[i].Current_Idle = *(uint16_t*)(device->response + 10 + i*6);
+		device->PoSteps.drivers[i].Current_Overheat = *(uint16_t*)(device->response + 12 + i*6);
+	}
+
+	// Modes
+	// Create request
+	CreateRequest(device->request, 0x85, 0x53, 0x10, 0, 0);
+
+	// Insert settings for each axis
+	for (i = 0; i < 8; i++)
+	{
+		device->request[8 + i * 6] = device->PoSteps.drivers[i].DriverMode;
+		device->request[9 + i * 6] = device->PoSteps.drivers[i].StepMode;
+		device->request[10 + i * 6] = device->PoSteps.drivers[i].TemperatureLimit;
+		device->request[11 + i * 6] = 0;
+		device->request[12 + i * 6] = 0;
+		device->request[13 + i * 6] = 0;
+	}
+
+	// Send request
+    if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	// Parse settings for each axis
+	for (i = 0; i < 8; i++)
+	{
+		device->PoSteps.drivers[i].DriverMode = device->response[8 + i*6];
+		device->PoSteps.drivers[i].StepMode = device->response[9 + i*6];
+		device->PoSteps.drivers[i].TemperatureLimit = device->response[10 + i*6];
+	}
+	
+	return PK_OK;
+}
+

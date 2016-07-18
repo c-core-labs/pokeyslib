@@ -29,11 +29,138 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 	{
 		libusb_context *context;
 		libusb_device_handle *devh;
+		int32_t deviceInterface;
 	} sLibUsbDeviceData;
 
+	int32_t checkDescriptor(struct libusb_config_descriptor * config)
+	{
+		int j = 0;
+
+		if (config->bNumInterfaces > 4) return 0;
+
+		// Check all interfaces...
+		for (j = 0; j < config->bNumInterfaces; j++)
+		{
+			if (config->interface[j].altsetting[0].bInterfaceClass == 0xFF &&
+				config->interface[j].altsetting[0].bInterfaceSubClass == 0xFF &&
+				config->interface[j].altsetting[0].bInterfaceNumber == 3 &&
+				config->interface[j].altsetting[0].bNumEndpoints == 2 &&
+				config->interface[j].altsetting[0].endpoint[0].wMaxPacketSize == 64 &&
+				config->interface[j].altsetting[0].endpoint[1].wMaxPacketSize == 64)
+			{
+				// OK, we think this is a bulk interface of a PoKeys device...
+				return j;
+			}
+		}
+		return -1;
+	}
+
+	int32_t PK_EnumerateFastUSBDevices(void)
+	{
+		libusb_device *dev;
+		int i = 0;
+		libusb_device **devs;
+		ssize_t cnt;
+		struct libusb_config_descriptor * config = NULL;
+		int numDevices = 0;
+		int32_t r;
+
+		// Initialize libusb
+		r = libusb_init(NULL);
+		if (r < 0) return 0;
+
+		// List all devices
+		cnt = libusb_get_device_list(NULL, &devs);		
+		if (cnt < 0)
+		{
+			// Clear libusb context
+			return 0;
+		}
+
+		while ((dev = devs[i++]) != NULL) 
+		{
+			struct libusb_device_descriptor desc;
+
+			// Get descriptor and filter by VID, PID
+			if (libusb_get_device_descriptor(dev, &desc) < 0) continue;
+			if (desc.idVendor != 0x1DC3 || desc.idProduct != 0x1001) continue;
+
+			r = libusb_get_config_descriptor(dev, 0, &config);
+			if (r != 0) continue;
+
+			if (checkDescriptor(config) >= 0)
+			{
+				numDevices++;
+			}
+		}
+
+		// Release the device list and return
+		libusb_free_device_list(devs, 1);
+
+		return numDevices;
+	}
+
+	struct libusb_device_handle * findPoKeysDeviceFastInterfaceFromIndex(int32_t iDeviceIndex, int32_t * deviceInterface)
+	{
+		libusb_device *dev;
+		int i = 0, j = 0;
+		libusb_device **devs;
+		ssize_t cnt;
+		struct libusb_config_descriptor * config = NULL;
+		struct libusb_device_handle *devh = NULL;
+		int numDevices = 0;
+		int32_t r;
+
+		// Initialize libusb
+		r = libusb_init(NULL);
+		if (r < 0) return 0;
+
+		// List all devices
+		cnt = libusb_get_device_list(NULL, &devs);
+		if (cnt < 0)
+		{
+			// Clear libusb context
+			return NULL;
+		}
+
+		while ((dev = devs[i++]) != NULL)
+		{
+			struct libusb_device_descriptor desc;
+
+			// Get descriptor and filter by VID, PID
+			if (libusb_get_device_descriptor(dev, &desc) < 0) continue;
+			if (desc.idVendor != 0x1DC3 || desc.idProduct != 0x1001) continue;
+
+			r = libusb_get_config_descriptor(dev, 0, &config);
+			if (r != 0) continue;
+
+			*deviceInterface = checkDescriptor(config);
+			if (*deviceInterface >= 0)
+			{
+				if (iDeviceIndex == numDevices++)
+				{
+					// Connect to device
+					r = libusb_open(dev, &devh);
+					libusb_free_device_list(devs, 1);
+
+					if (r != 0)
+					{
+						continue;
+					}
+
+					return devh;
+				}				
+			}
+		}
+
+		// Release the device list and return
+		libusb_free_device_list(devs, 1);
+
+		return NULL;
+	}
 
 	// Search for USB devices...
-	struct libusb_device_handle * findPoKeysDeviceFastInterfaceFromSerial(libusb_context *context, int serialNumber)
+	struct libusb_device_handle * findPoKeysDeviceFastInterfaceFromSerial(libusb_context *context, int32_t serialNumber, int32_t * interfaceNumber)
 	{
 		libusb_device *dev;
 		int i = 0, j = 0, k = 0;
@@ -64,29 +191,35 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 			ret = libusb_get_config_descriptor(dev, 0, &config);
 			if (ret != 0) continue;
 
+			*interfaceNumber = checkDescriptor(config);
+
+			if (*interfaceNumber >= 0)
+			{
+				// Connect to the device and retrieve string descriptor
+				ret = libusb_open(dev, &devh);
+
+				if (ret != 0) continue;
+
+				if (libusb_get_string_descriptor_ascii(devh, desc.iSerialNumber, (unsigned char*)serial_string, 128) < 0) continue;
+
+				// Check serial number
+				for (k = 1; k < 8 && serial_string[k] != 0; k++)
+				{
+					if (serial_string[k] != serialSearch[k]) break;
+				}
+				if (k == 7 && (serial_string[0] == '1' || serial_string[0] == '2'))
+				{
+					// Device found!
+					break;
+				}
+			}
+
 			// Check if device has 4 interfaces...
-			if (config->bNumInterfaces <= 3) continue;
+			//if (config->bNumInterfaces <= 3) continue;
 
-			if (config->interface[3].altsetting[0].bInterfaceClass != 0xFF || config->interface[3].altsetting[0].bInterfaceSubClass != 0xFF) continue;
+			//if (config->interface[3].altsetting[0].bInterfaceClass != 0xFF || config->interface[3].altsetting[0].bInterfaceSubClass != 0xFF) continue;
 
-			// Connect to the device and retrieve string descriptor
-			ret = libusb_open(dev, &devh);
-
-			if (ret != 0) continue;
-
-			if (libusb_get_string_descriptor_ascii(devh, desc.iSerialNumber, (unsigned char*)serial_string, 128) < 0) continue;
-
-			// Check serial number
-			for (k = 1; k < 8 && serial_string[k] != 0; k++)
-			{
-				if (serial_string[k] != serialSearch[k]) break;
-			}
-			if (k == 7 && (serial_string[0] == '1' || serial_string[0] == '2'))
-			{
-				// Device found!
-				break;
-			}
-
+			
 			// Close the device
 			libusb_close(devh);
 			devh = NULL;
@@ -113,7 +246,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 	// Use devHandle2 for USB connection to interface 3 (bulk)
 	void * ConnectToFastUSBInterface(int serial)
 	{
-		uint32_t r;
+		int32_t r;
 		sLibUsbDeviceData * devData = NULL;
 
 		devData = (sLibUsbDeviceData*)malloc(sizeof(sLibUsbDeviceData));	
@@ -128,13 +261,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 			return NULL;
 		}
 
-		//libusb_set_debug(devData, LIBUSB_LOG_LEVEL_DEBUG);
-		devData->devh = findPoKeysDeviceFastInterfaceFromSerial(devData->context, serial);
-		//devData->devh = libusb_open_device_with_vid_pid(devData->context, 0x1DC3, 0x1001);
+		devData->devh = findPoKeysDeviceFastInterfaceFromSerial(devData->context, serial, &devData->deviceInterface);
 		r = errno;
 		if (devData->devh != NULL)
 		{
-			r = libusb_claim_interface(devData->devh, 3);
+			r = libusb_claim_interface(devData->devh, devData->deviceInterface);
 			if (r < 0)
 			{
 				FreeFastUSBInterface(devData);
@@ -143,6 +274,43 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 			return (void*)devData;
 		} else
+		{
+			FreeFastUSBInterface(devData);
+			return NULL;
+		}
+	}
+
+	void * PK_FastUSBConnectToDevice(uint32_t deviceIndex)
+	{
+		int32_t r;
+		sLibUsbDeviceData * devData = NULL;
+
+		devData = (sLibUsbDeviceData*)malloc(sizeof(sLibUsbDeviceData));
+		devData->context = NULL;
+		devData->devh = NULL;
+
+		// Initialize libusb context 
+		r = libusb_init(NULL);
+		if (r < 0)
+		{
+			FreeFastUSBInterface(devData);
+			return NULL;
+		}
+
+		devData->devh = findPoKeysDeviceFastInterfaceFromIndex(deviceIndex, &devData->deviceInterface);
+		r = errno;
+		if (devData->devh != NULL)
+		{
+			r = libusb_claim_interface(devData->devh, devData->deviceInterface);
+			if (r < 0)
+			{
+				FreeFastUSBInterface(devData);
+				return NULL;
+			}
+
+			return (void*)devData;
+		}
+		else
 		{
 			FreeFastUSBInterface(devData);
 			return NULL;

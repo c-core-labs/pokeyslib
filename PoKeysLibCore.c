@@ -26,6 +26,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "stdio.h"
 //#define PK_COM_DEBUG
 
+int32_t PKI_CheckInterface(struct hid_device_info * devInfo)
+{
+    if (devInfo->interface_number == 1)
+        return 1;
+
+    return 0;
+}
+
 // Connection specific commands
 int32_t PK_EnumerateUSBDevices()
 {
@@ -42,7 +50,12 @@ int32_t PK_EnumerateUSBDevices()
         printf("  Product:      %ls\n", cur_dev->product_string);
         printf("  Interface:    %d\n",  cur_dev->interface_number);
         printf("\n");*/
-        if (cur_dev->interface_number == 1) numDevices++;
+
+        if (PKI_CheckInterface(cur_dev))
+        {
+            numDevices++;
+        }
+
         cur_dev = cur_dev->next;
     }
     hid_free_enumeration(devs);
@@ -61,6 +74,8 @@ int32_t PK_EnumerateUSBDevices()
         cur_dev = cur_dev->next;
     }
     hid_free_enumeration(devs);
+
+	numDevices += PK_EnumerateFastUSBDevices();
 
     return numDevices;
 }
@@ -262,6 +277,8 @@ void PK_CloneDeviceStructure(sPoKeysDevice* original, sPoKeysDevice *destination
 
 }
 
+void * PK_FastUSBConnectToDevice(uint32_t deviceIndex);
+
 sPoKeysDevice* PK_ConnectToDevice(uint32_t deviceIndex)
 {
     int32_t numDevices = 0;
@@ -340,6 +357,21 @@ sPoKeysDevice* PK_ConnectToDevice(uint32_t deviceIndex)
     }
     hid_free_enumeration(devs);
 
+	// Try connecting to the bulk interface of the PoKeys device...
+	void * devData = PK_FastUSBConnectToDevice(deviceIndex - numDevices);
+
+	//void * devData = ConnectToFastUSBInterface(serialNumber);
+	if (devData != NULL)
+	{
+		tmpDevice = (sPoKeysDevice*)malloc(sizeof(sPoKeysDevice));
+
+		tmpDevice->devHandle = NULL;
+		tmpDevice->devHandle2 = devData;
+
+		tmpDevice->connectionType = PK_DeviceType_FastUSBDevice;
+		InitializeNewDevice(tmpDevice);
+		return tmpDevice;
+	}
     return NULL;
 }
 

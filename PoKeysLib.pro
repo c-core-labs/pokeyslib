@@ -17,22 +17,20 @@ makeDLL {
     }
     CONFIG += dll warn_on
     DEFINES += POKEYSDLL POKEYSDLLEXPORT
-
-
-
-    BUILD_WITH_LIBUSB {
-        DEFINES += POKEYSLIB_USE_LIBUSB
-        INCLUDEPATH += ../libusb/include/libusb-1.0
-
-        DLL32 {
-            LIBS += -L../libusb/MS32/static -llibusb-1.0
-        } else {
-            LIBS += -L../libusb/MS64/static -llibusb-1.0
-        }
-    }
 } else {
     message("Building library")
     CONFIG += staticlib warn_on
+}
+
+BUILD_WITH_LIBUSB {
+    DEFINES += POKEYSLIB_USE_LIBUSB
+    INCLUDEPATH += ../libusb/include/libusb-1.0
+
+    DLL32 {
+        LIBS += -L../libusb/MS32/static -llibusb-1.0
+    } else {
+        LIBS += -L../libusb/MS64/static -llibusb-1.0
+    }
 }
 
 TEMPLATE = lib
@@ -77,8 +75,13 @@ win32 {
             TARGET = ../../pokeyslib/binaries/windows/dll/64/PoKeyslib
         }
     } else {
-        message("lib build")
-        TARGET = ../../pokeyslib/binaries/windows/lib/PoKeysLib
+        LIB64 {
+            message("x86_64 lib build")
+            TARGET = ../../pokeyslib/binaries/windows/lib/64/PoKeysLib
+        } else {
+            message("x86 lib build")
+            TARGET = ../../pokeyslib/binaries/windows/lib/32/PoKeysLib
+        }
     }
 }
 unix:!macx {

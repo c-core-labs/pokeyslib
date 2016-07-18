@@ -877,7 +877,7 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
 
 int32_t PK_FillPWMPinNumbers(sPoKeysDevice * device)
 {
-	uint8_t PWM_PK_pins[] = { 17, 18, 19, 20, 21, 22 };
+	uint8_t PWM_PK_pins[] = { 22, 21, 20, 19, 18, 17 };
 	uint8_t PWM_db25_pins[] = { 17, 1, 14, 2, 3, 16 };
 
 	if (device->info.iPWMCount == 0) return PK_ERR_NOT_SUPPORTED;
@@ -1032,6 +1032,7 @@ int32_t PK_CheckPinCapabilityByTypeID(uint64_t deviceID, uint32_t pin, ePK_AllPi
     switch (deviceID)
     {
         // New approach
+		case PK_DeviceID_PoKeys57CNCdb25:
         case PK_DeviceID_PoKeys57CNC:
             // Find the device in the device list
             //if (cap == PK_AllPinCap_digitalCounter) return PK_IsCounterAvailableByDevice(deviceTypeMask, pin);
