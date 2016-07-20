@@ -83,7 +83,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 			// Get descriptor and filter by VID, PID
 			if (libusb_get_device_descriptor(dev, &desc) < 0) continue;
-			if (desc.idVendor != 0x1DC3 || desc.idProduct != 0x1001) continue;
+			if (desc.idVendor != 0x1DC3) continue;
+			if (!(desc.idProduct == 0x1001 ||
+				  desc.idProduct == 0x1011)) continue;
 
 			r = libusb_get_config_descriptor(dev, 0, &config);
 			if (r != 0) continue;
@@ -129,7 +131,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 			// Get descriptor and filter by VID, PID
 			if (libusb_get_device_descriptor(dev, &desc) < 0) continue;
-			if (desc.idVendor != 0x1DC3 || desc.idProduct != 0x1001) continue;
+			if (desc.idVendor != 0x1DC3) continue;
+			if (!(desc.idProduct == 0x1001 ||
+				desc.idProduct == 0x1011)) continue;
 
 			r = libusb_get_config_descriptor(dev, 0, &config);
 			if (r != 0) continue;
@@ -186,7 +190,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 			// Get descriptor and filter by VID, PID
 			if (libusb_get_device_descriptor(dev, &desc) < 0) continue;
-			if (desc.idVendor != 0x1DC3 || desc.idProduct != 0x1001) continue;
+			if (desc.idVendor != 0x1DC3) continue;
+			if (!(desc.idProduct == 0x1001 ||
+				desc.idProduct == 0x1011)) continue;
 
 			ret = libusb_get_config_descriptor(dev, 0, &config);
 			if (ret != 0) continue;
@@ -200,7 +206,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 				if (ret != 0) continue;
 
-				if (libusb_get_string_descriptor_ascii(devh, desc.iSerialNumber, (unsigned char*)serial_string, 128) < 0) continue;
+				if (libusb_get_string_descriptor_ascii(devh, desc.iSerialNumber, (unsigned char*)serial_string, 128) < 0)
+				{
+					libusb_close(devh);
+					devh = NULL;
+					continue;
+				}
 
 				// Check serial number
 				for (k = 1; k < 8 && serial_string[k] != 0; k++)
