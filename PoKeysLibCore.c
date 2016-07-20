@@ -75,8 +75,9 @@ int32_t PK_EnumerateUSBDevices()
     }
     hid_free_enumeration(devs);
 
+#ifdef POKEYSLIB_USE_LIBUSB
 	numDevices += PK_EnumerateFastUSBDevices();
-
+#endif
     return numDevices;
 }
 
@@ -284,6 +285,7 @@ sPoKeysDevice* PK_ConnectToDevice(uint32_t deviceIndex)
     int32_t numDevices = 0;
     struct hid_device_info *devs, *cur_dev;
     sPoKeysDevice* tmpDevice;
+    void * devData;
 
     devs = hid_enumerate(0x1DC3, 0x1001);
     cur_dev = devs;
@@ -357,8 +359,9 @@ sPoKeysDevice* PK_ConnectToDevice(uint32_t deviceIndex)
     }
     hid_free_enumeration(devs);
 
+#ifdef POKEYSLIB_USE_LIBUSB
 	// Try connecting to the bulk interface of the PoKeys device...
-	void * devData = PK_FastUSBConnectToDevice(deviceIndex - numDevices);
+    devData = PK_FastUSBConnectToDevice(deviceIndex - numDevices);
 
 	//void * devData = ConnectToFastUSBInterface(serialNumber);
 	if (devData != NULL)
@@ -372,6 +375,7 @@ sPoKeysDevice* PK_ConnectToDevice(uint32_t deviceIndex)
 		InitializeNewDevice(tmpDevice);
 		return tmpDevice;
 	}
+#endif
     return NULL;
 }
 
