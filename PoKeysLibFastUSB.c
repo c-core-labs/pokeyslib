@@ -145,13 +145,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 				{
 					// Connect to device
 					r = libusb_open(dev, &devh);
-					libusb_free_device_list(devs, 1);
-
 					if (r != 0)
 					{
 						continue;
 					}
 
+					libusb_free_device_list(devs, 1);
 					return devh;
 				}				
 			}
