@@ -459,7 +459,7 @@ typedef struct
 	uint8_t			DedicatedLimitNInputs;
 	uint8_t			DedicatedLimitPInputs;
 	uint8_t			DedicatedHomeInputs;
-	uint8_t			reserved_end;
+	uint8_t			TriggerIngnoredAxisMask;
 
 } sPoKeysPEv2;
 
@@ -543,7 +543,8 @@ typedef struct
     uint8_t  downKeyModifier;                  // USB keyboard down key modifier (for triggered mapping)
     uint8_t  upKeyCodeMacroID;                 // USB keyboard up key code (for triggered mapping)
     uint8_t  upKeyModifier;                    // USB keyboard up key modifier (for triggered mapping)
-    uint8_t  reserved[4];
+    uint8_t  preventUpdate;
+    uint8_t  reserved[3];
 } sPoKeysPinData;
 
 // Encoder-specific data
@@ -871,6 +872,7 @@ POKEYSDECL int32_t PK_CustomRequest(sPoKeysDevice* device, unsigned char type, u
 POKEYSDECL int32_t PK_GetDebugValues(sPoKeysDevice * device, int32_t * buffer);
 // Enable (1) or disable (0) fast USB interface in PoKeys56U/PoKeys57U devices
 POKEYSDECL int32_t PK_SetFastUSBEnableStatus(sPoKeysDevice * device, uint32_t newState);
+POKEYSDECL int32_t PK_GetFastUSBEnableStatus(sPoKeysDevice * device, uint32_t * state);
 
 // Set device name (from device->DeviceData.DeviceName)
 POKEYSDECL int32_t PK_DeviceNameSet(sPoKeysDevice* device);

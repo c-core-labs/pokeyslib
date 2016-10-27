@@ -383,7 +383,10 @@ int32_t PK_DigitalIOSet(sPoKeysDevice* device)
 	CreateRequest(device->request, 0xCC, 1, 0, 0, 0);
 	for (i = 0; i < device->info.iPinCount; i++)
     {
-        if (device->Pins[i].DigitalValueSet > 0)
+        if (device->Pins[i].preventUpdate > 0)
+        {
+            device->request[20 + i / 8] |= (unsigned char)(1 << (i % 8));
+        } else if (device->Pins[i].DigitalValueSet > 0)
         {
             device->request[8 + i / 8] |= (unsigned char)(1 << (i % 8));
         }
@@ -419,7 +422,10 @@ int32_t PK_DigitalIOSetGet(sPoKeysDevice* device)
 	CreateRequest(device->request, 0xCC, 1, 0, 0, 0);
 	for (i = 0; i < device->info.iPinCount; i++)
     {
-        if (device->Pins[i].DigitalValueSet > 0)
+        if (device->Pins[i].preventUpdate > 0)
+        {
+            device->request[20 + i / 8] |= (unsigned char)(1 << (i % 8));
+        } else if (device->Pins[i].DigitalValueSet > 0)
         {
             device->request[8 + i / 8] |= (unsigned char)(1 << (i % 8));
         }

@@ -166,12 +166,19 @@ void InitializeNewDevice(sPoKeysDevice* device)
 void CleanDevice(sPoKeysDevice* device)
 {    
 	free(device->Pins);
+	device->Pins = NULL;
 	free(device->Encoders);
+	device->Encoders = NULL;
 	free(device->PWM.PWMduty);
+	device->PWM.PWMduty = NULL;
 	free(device->PWM.PWMenabledChannels);
+	device->PWM.PWMenabledChannels = NULL;
 	free(device->PWM.PWMpinIDs);
+	device->PWM.PWMpinIDs = NULL;
 	free(device->PoExtBusData);
+	device->PoExtBusData = NULL;
 	free(device->MatrixLED);
+	device->MatrixLED = NULL;
 
     if (device->multiPartBuffer != NULL)
     {

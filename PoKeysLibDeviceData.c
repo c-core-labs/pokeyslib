@@ -1226,3 +1226,14 @@ int32_t PK_SetFastUSBEnableStatus(sPoKeysDevice * device, uint32_t newState)
 
 	return PK_OK;
 }
+
+int32_t PK_GetFastUSBEnableStatus(sPoKeysDevice * device, uint32_t * state)
+{
+	if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+	CreateRequest(device->request, 0x07, 10, 0, 0, 0);
+	if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;
+
+	*state = device->response[2];
+	return PK_OK;
+}

@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef POKEYSLIB_USE_LIBUSB
 	#include "libusb.h"
+	#include "errno.h"
 
 	typedef struct
 	{
@@ -167,7 +168,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 	{
 		libusb_device *dev;
 		int i = 0, j = 0, k = 0;
-		char serial_string[128];
+		unsigned char serial_string[256] = { 0 };
 		struct libusb_device_handle *devh = NULL;
 		libusb_device **devs;
 		ssize_t cnt;
@@ -201,11 +202,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 			if (*interfaceNumber >= 0)
 			{
 				// Connect to the device and retrieve string descriptor
+				devh = NULL;
 				ret = libusb_open(dev, &devh);
 
 				if (ret != 0) continue;
 
-				if (libusb_get_string_descriptor_ascii(devh, desc.iSerialNumber, (unsigned char*)serial_string, 128) < 0)
+				if (libusb_get_string_descriptor_ascii(devh, desc.iSerialNumber, serial_string, 255) < 0)
 				{
 					libusb_close(devh);
 					devh = NULL;
@@ -398,6 +400,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 						// This is it. Return from this function
 						return PK_OK;
 					}
+					else
+					{
+						// Wrong checksum...
+						continue;
+					}
+				}
+				else
+				{
+					// Wrong header...
+					if (waits > 5)
+					{
+						Sleep(10);
+					}
+					continue;
 				}
 			}
 		}
