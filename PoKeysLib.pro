@@ -7,7 +7,7 @@ QT -= core gui
 # 32-bit: "CONFIG+=makeDLL DLL32"
 # 64-bit: "CONFIG+=makeDLL DLL64"        not needed: "QMAKE_LFLAGS_WINDOWS+=/NODEFAULTLIB:LIBCMT"
 
-#CONFIG += BUILD_WITH_LIBUSB
+CONFIG += BUILD_WITH_LIBUSB
 
 makeDLL {
     DLL32 {

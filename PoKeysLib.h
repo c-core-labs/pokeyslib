@@ -1159,6 +1159,8 @@ POKEYSDECL uint8_t PK_SL_DigitalInputGet(sPoKeysDevice* device, uint8_t pin);
 POKEYSDECL uint32_t PK_SL_AnalogInputGet(sPoKeysDevice* device, uint8_t pin);
 
 POKEYSDECL uint32_t PK_SL_EncoderValueGet(sPoKeysDevice* device, uint8_t index);
+POKEYSDECL int32_t PK_SL_EasySensorValueGet(sPoKeysDevice* device, uint8_t index);
+
 POKEYSDECL uint32_t PK_SL_PWMConfig(sPoKeysDevice* device, uint8_t index);
 POKEYSDECL int32_t PK_SL_PWM_SetPeriod(sPoKeysDevice* device, uint32_t PWMperiod);
 POKEYSDECL int32_t PK_SL_PWM_SetChannelEnabled(sPoKeysDevice* device, uint8_t channel, uint8_t enabled, uint32_t defaultDuty);
