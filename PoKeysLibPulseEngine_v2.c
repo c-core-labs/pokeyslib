@@ -199,6 +199,7 @@ int32_t PK_PEv2_AxisConfigurationGet(sPoKeysDevice * device)
 	pe->FilterHomeSwitch[pe->param1] = device->response[42];
 
 	pe->HomingAlgorithm[pe->param1] = device->response[43];
+	pe->HomeBackOffDistance[pe->param1] = *(uint32_t*)(device->response + 45);
 
     return PK_OK;
 }
@@ -245,6 +246,8 @@ int32_t PK_PEv2_AxisConfigurationSet(sPoKeysDevice * device)
 	device->request[41] = pe->FilterLimitPSwitch[pe->param1];
 	device->request[42] = pe->FilterHomeSwitch[pe->param1];
 	device->request[43] = pe->HomingAlgorithm[pe->param1];
+
+	*(uint32_t*)(device->request + 45) = pe->HomeBackOffDistance[pe->param1];
 
     // Send request
     return SendRequest(device);
@@ -613,6 +616,8 @@ int32_t PK_PEv2_ThreadingStatusGet(sPoKeysDevice * device)
 	device->PEv2.SpindleSpeedEstimate = *(int32_t*)(device->response + 12);
 	device->PEv2.SpindlePositionError = *(int32_t*)(device->response + 16);
 	device->PEv2.SpindleRPM =			*(int32_t*)(device->response + 20);
+
+	device->PEv2.TriggerIngnoredAxisMask = device->response[24];
 	return PK_OK;
 
 }
@@ -629,6 +634,7 @@ int32_t PK_PEv2_ThreadingSetup(sPoKeysDevice * device, uint8_t sensorMode, uint1
 	*(uint16_t*)(device->request + 14) = tagetSpindleRPM;
 	*(uint16_t*)(device->request + 16) = filterGainSpeed;
 	*(uint16_t*)(device->request + 18) = filterGainPosition;
+	device->request[20] = device->PEv2.TriggerIngnoredAxisMask;
 
     // Send request
     if (SendRequest(device) != PK_OK) return PK_ERR_TRANSFER;

@@ -52,7 +52,9 @@ SOURCES += PoKeysLibCore.c \
     PoKeysLibSPI.c \
     PoKeysLibPulseEngine_v2.c \
     PoKeysLib1Wire.c \
-    PoKeysLibEasySensors.c
+    PoKeysLibEasySensors.c \
+    PoKeysLibUART.c \
+    PoKeysLibCAN.c
 
 win32: SOURCES += hid.c
 

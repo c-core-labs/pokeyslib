@@ -49,6 +49,13 @@
     #define POKEYSDECL
 #endif
 
+//#define USE_ALIGN_TEST
+
+#ifdef USE_ALIGN_TEST
+    #define ALIGN_TEST(x) uint64_t alignTest##x;
+#else
+    #define ALIGN_TEST(x)
+#endif
 
 #pragma warning(disable:4996)
 
@@ -132,6 +139,7 @@ typedef enum
     PK_DeviceMask_57E           = (1<<25),
     PK_DeviceMask_57CNC         = (1<<26),
 	PK_DeviceMask_57CNCdb25     = (1<<27),
+    PK_DeviceMask_57Utest       = (1<<28),
 
 
     PK_DeviceMask_58            = (1<<21),
@@ -160,6 +168,8 @@ typedef enum
     PK_DeviceID_57E           = 31,
     PK_DeviceID_PoKeys57CNC   = 32,
 	PK_DeviceID_PoKeys57CNCdb25 = 38,
+    PK_DeviceID_PoKeys57Utest = 39,
+
 
     PK_DeviceID_57U_v0        = 28,
     PK_DeviceID_57E_v0        = 29,
@@ -225,6 +235,8 @@ enum ePK_PEAxisState
     PK_PEAxisState_axREADY        =  1,        // Axis ready
     PK_PEAxisState_axRUNNING      =  2,        // Axis is running
 
+	PK_PEAxisState_axHOMING_RESETTING = 8,	   // Stopping the axis to reset the position counters
+	PK_PEAxisState_axHOMING_BACKING_OFF = 9,   // Backing off switch
     PK_PEAxisState_axHOME         =  10,       // Axis is homed
     PK_PEAxisState_axHOMINGSTART  =  11,       // Homing procedure is starting on axis
     PK_PEAxisState_axHOMINGSEARCH =  12,       // Homing procedure first step - going to home
@@ -385,7 +397,8 @@ typedef struct
     uint8_t         PinLimitMSwitch[8];        // Limit- switch pin (0 for external dedicated input)
     uint8_t         PinLimitPSwitch[8];        // Limit+ switch pin (0 for external dedicated input)
     uint8_t         AxisEnableOutputPins[8];   // Axis enabled output pin (0 for external dedicated output)
-    uint8_t         reserved[56];              // Motion buffer entries - moved further down...
+	uint32_t		HomeBackOffDistance[8];	   // Back-off distance after homing
+    uint8_t         reserved[24];              // Motion buffer entries - moved further down...
     uint8_t         ReservedSafety[8];
 
     // ------ 64-bit region boundary ------
@@ -752,6 +765,17 @@ typedef struct
     uint32_t reserved;
 } sPoKeysRTC;
 
+// CAN message structure
+typedef struct
+{
+  uint32_t id;
+  uint8_t  data[8];
+  uint8_t  len;
+  uint8_t  format;
+  uint8_t  type;
+} sPoKeysCANmsg;
+
+
 // Network device structure - used for network device enumeration
 typedef struct
 {
@@ -800,21 +824,28 @@ typedef struct
 
     sPoKeysPinData*           Pins;                          // PoKeys pins
     sPoKeysEncoder*           Encoders;                      // PoKeys encoders
-
+    ALIGN_TEST(1)
     sMatrixKeyboard           matrixKB;                      // Matrix keyboard structure
     sPoKeysPWM                PWM;                           // PWM outputs structure
     sPoKeysMatrixLED*         MatrixLED;                     // Matrix LED structure
     sPoKeysLCD                LCD;                           // LCD structure
+    ALIGN_TEST(7)
     sPoKeysPEv2               PEv2;                          // Pulse engine v2 structure
-	sPoKeysPoStepInterface	  PoSteps;						 // PoKeys-PoStep interface
+    ALIGN_TEST(8)
+    sPoKeysPoStepInterface	  PoSteps;						 // PoKeys-PoStep interface
 
+    ALIGN_TEST(9)
     sPoNETmodule              PoNETmodule;
+    ALIGN_TEST(10)
     sPoILStatus               PoIL;
+    ALIGN_TEST(11)
     sPoKeysRTC                RTC;
+    ALIGN_TEST(2)
 
     sPoKeysEasySensor*        EasySensors;                   // EasySensors array
 
     sPoKeysOtherPeripherals   otherPeripherals;
+    ALIGN_TEST(3)
 
     uint8_t                   FastEncodersConfiguration;     // Fast encoders configuration, invert settings and 4x sampling (see protocol specification for details)
     uint8_t                   FastEncodersOptions;           // Fast encoders additional options
@@ -822,19 +853,22 @@ typedef struct
     uint8_t                   UltraFastEncoderOptions;       // Ultra fast encoder additional options
     uint32_t                  UltraFastEncoderFilter;        // Ultra fast encoder digital filter setting
 
+    ALIGN_TEST(4)
     uint8_t*                  PoExtBusData;                  // PoExtBus outputs buffer
 
     uint8_t                   connectionType;                // Connection type
     uint8_t                   connectionParam;               // Additional connection parameter
     uint8_t                   requestID;                     // Communication request ID
     uint8_t                   reserved;
+    ALIGN_TEST(5)
     uint32_t sendRetries;
     uint32_t readRetries;
     uint32_t socketTimeout;
     uint8_t                   request[68];                   // Communication buffer
     uint8_t                   response[68];                  // Communication buffer
 
-	uint8_t					  multiPartData[448];			 // Multi-part request buffer
+    ALIGN_TEST(6)
+    uint8_t					  multiPartData[448];			 // Multi-part request buffer
     uint64_t                  reserved64;
     uint8_t*                  multiPartBuffer;
 } sPoKeysDevice;
@@ -1150,6 +1184,18 @@ POKEYSDECL int32_t PK_PoILTaskStatus(sPoKeysDevice * device);
 // RTC commands (real-time clock)
 POKEYSDECL int32_t PK_RTCGet(sPoKeysDevice* device);
 POKEYSDECL int32_t PK_RTCSet(sPoKeysDevice* device);
+
+// UART commands
+POKEYSDECL int32_t PK_UARTConfigure(sPoKeysDevice* device, uint32_t baudrate, uint8_t format, uint8_t interfaceID);
+POKEYSDECL int32_t PK_UARTWrite(sPoKeysDevice* device, uint8_t interfaceID, uint8_t *dataPtr, uint32_t dataWriteLen);
+POKEYSDECL int32_t PK_UARTRead(sPoKeysDevice* device, uint8_t interfaceID, uint8_t *dataPtr, uint8_t *dataReadLen);
+
+// CAN commands
+POKEYSDECL int32_t PK_CANConfigure(sPoKeysDevice* device, uint32_t bitrate);
+POKEYSDECL int32_t PK_CANRegisterFilter(sPoKeysDevice* device, uint8_t format, uint32_t CANid);
+POKEYSDECL int32_t PK_CANWrite(sPoKeysDevice* device, sPoKeysCANmsg * msg);
+POKEYSDECL int32_t PK_CANRead(sPoKeysDevice* device, sPoKeysCANmsg * msg, uint8_t * status);
+
 
 // Simplified interface...
 POKEYSDECL void PK_SL_SetPinFunction(sPoKeysDevice* device, uint8_t pin, uint8_t function);

@@ -20,6 +20,7 @@ from ctypes import *
 import sys
 import time
 
+# Pin capabilities / configuration
 class ePK_PinCap():
     PK_PinCap_pinRestricted  = 0           # Pin is not used
     PK_PinCap_reserved       = 1           # --
@@ -31,6 +32,7 @@ class ePK_PinCap():
     PK_PinCap_digitalCounter = 64          # Digital counter (only on selected pins)
     PK_PinCap_invertPin      = 128          # Invert digital pin polarity (set together with digital input 
 
+# Pin capabilities / configuration
 class ePK_AllPinCap():
     PK_AllPinCap_digitalInput = 1             # Digital input supported
     PK_AllPinCap_digitalOutput = 2            # Digital output supported
@@ -82,9 +84,15 @@ class ePK_DeviceTypeMask():
     PK_DeviceMask_27E           = (1<<19)
 
     PK_DeviceMask_57            = (1<<20)
+    PK_DeviceMask_57U                 = (1<<24)   
+    PK_DeviceMask_57E                 = (1<<25)   
+    PK_DeviceMask_57CNC               = (1<<26)   
+    PK_DeviceMask_57CNCdb25           = (1<<27)   
+    PK_DeviceMask_57Utest             = (1<<28)   
+    PK_DeviceMask_58                  = (1<<21)   
+    PK_DeviceMask_PoPLC58             = (1<<22)   
+    PK_DeviceMask_PoKeys16RF          = (1<<23)   
 
-    PK_DeviceMask_58            = (1<<21)
-    PK_DeviceMask_PoPLC58       = (1<<22)  
 
 class ePK_DeviceTypeID():
     PK_DeviceID_Bootloader55  = 3
@@ -100,11 +108,11 @@ class ePK_DeviceTypeID():
     PK_DeviceID_56E           = 11
     PK_DeviceID_27U           = 20
     PK_DeviceID_27E           = 21
-
-    PK_DeviceID_57U           = 17
-    PK_DeviceID_57E           = 18
+    PK_DeviceID_57U           = 30        
+    PK_DeviceID_57E           = 31        
     PK_DeviceID_PoKeys57CNC   = 32
-
+    PK_DeviceID_PoKeys57CNCdb25 = 38        
+    PK_DeviceID_PoKeys57Utest   = 39        
     PK_DeviceID_57U_v0        = 28
     PK_DeviceID_57E_v0        = 29
 
@@ -112,14 +120,20 @@ class ePK_DeviceTypeID():
     PK_DeviceID_58EU          = 40
     PK_DeviceID_PoPLC58       = 50
 
+
+# Connection type
 class ePK_DeviceConnectionType():
     PK_DeviceType_USBDevice     = 0
     PK_DeviceType_NetworkDevice = 1
+    PK_DeviceType_FastUSBDevice       = 2         
+
 
 class ePK_DeviceConnectionParam():
     PK_ConnectionParam_TCP = 0
     PK_ConnectionParam_UDP = 1
 
+
+# Pulse engine state
 class ePK_PEState():
     PK_PEState_peSTOPPED        = 0            # Pulse engine is stopped
     PK_PEState_peINTERNAL       = 1            # PEv1: Internal motion controller is in use  PEv2: not used
@@ -168,6 +182,8 @@ class ePK_PEv2_AxisConfig():
     PK_AC_POSITION_MODE      = (1 << 3)        # Internal motion planner for this axis is in position mode
     PK_AC_INVERTED_HOME      = (1 << 4)        # Axis homing direction is inverted
     PK_AC_SOFT_LIMIT_ENABLED = (1 << 5)        # Use soft-limits for this axis
+    PK_AC_ENABLED_MASKED     = (1 << 7)        # Use output enable pin masking
+
 
 class ePK_PEv2_AxisSwitchOptions():
     PK_ASO_SWITCH_LIMIT_N        = (1 << 0)    # Limit- switch
@@ -186,6 +202,7 @@ class ePK_RETURN_CODES():
     PK_ERR_NOT_CONNECTED    = -5 
     PK_ERR_TRANSFER         = -10 
     PK_ERR_PARAMETER        = -20 
+    PK_ERR_NOT_SUPPORTED              = -30       
     PK_ERR_CANNOT_CLAIM_USB = -100 
     PK_ERR_CANNOT_CONNECT   = -101
 
@@ -207,6 +224,7 @@ class sPoKeys_PinCapabilities(Structure):
         ("additionalCheck", c_uint32),
         ("devTypes", c_uint32)]
 
+# PoKeys device information
 class sPoKeysDevice_Info(Structure):
     _fields_ = [
         ("iPinCount", c_uint32),         # Number of pins, physically on the device
@@ -278,6 +296,11 @@ class sPoKeysPEv2(Structure):
         ("HomingReturnSpeed", c_uint8*8),      # Homing return speed per axis (in % of the homing speed)
 
         ("HomeOffsets", c_int32*8),            # Home position offset
+        ("HomingAlgorithm", c_uint8*8),        # Homing algorithm configuration
+
+        ("FilterLimitMSwitch", c_uint8*8),     # Digital filter for limit- switch
+        ("FilterLimitPSwitch", c_uint8*8),     # Digital filter for limit+ switch
+        ("FilterHomeSwitch", c_uint8*8),       # Digital filter for home switch
 
         ("ProbePosition", c_int32*8),          # Position where probe detected change
         ("ProbeMaxPosition", c_int32*8),       # Maximum position to travel to until stopping and returning error
@@ -292,7 +315,7 @@ class sPoKeysPEv2(Structure):
         ("PinLimitMSwitch", c_uint8*8),        # Limit- switch pin (0 for external dedicated input)
         ("PinLimitPSwitch", c_uint8*8),        # Limit+ switch pin (0 for external dedicated input)
         ("AxisEnableOutputPins", c_uint8*8),   # Axis enabled output pin (0 for external dedicated output)
-        ("reserved", c_uint8*56),              # Motion buffer entries
+        ("reserved", c_uint8*56),              # Motion buffer entries - moved further down...
         ("ReservedSafety", c_uint8*8),
 
             # ------ 64-bit region boundary ------
@@ -315,7 +338,7 @@ class sPoKeysPEv2(Structure):
         ("PulseEngineState", c_uint8),
 
         ("AxisEnabledMask", c_uint8),           # Bit-mapped ouput enabled mask
-        ("reserved1", c_uint8),
+        ("EmergencyInputPin", c_uint8),
         ("reserved2", c_uint8),
 
             # ------ 64-bit region boundary ------
@@ -341,6 +364,7 @@ class sPoKeysPEv2(Structure):
         ("ProbeInputPolarity", c_uint8),        # Probe input polarity
         ("ProbeStatus", c_uint8),               # Probe status (probe completion bit-mapped status)
 
+                                                # ------ 64-bit region 
         ("MotionBuffer", c_uint8*448),          # Motion buffer entries
 
             # ------ 64-bit region boundary ------
@@ -365,7 +389,7 @@ class sPoKeysPEv2(Structure):
         ("DedicatedLimitNInputs", c_uint8),
         ("DedicatedLimitPInputs", c_uint8),
         ("DedicatedHomeInputs", c_uint8),
-        ("reserved_end", c_uint8)]     
+        ("TriggerIngnoredAxisMask", c_uint8)]     
 
 
 # PoStep driver configuration
@@ -426,22 +450,27 @@ class sPoKeysDevice_Data(Structure):
         ("deviceIsBootloader", c_uint8),
         ("reserved", c_uint8*4)]
 
+
+# Pin-specific data
 class sPoKeysPinData(Structure):
-    _fields_ = [("DigitalCounterValue", c_uint32),
-        ("AnalogValue", c_uint32),
-        ("PinFunction", c_uint8),
-        ("CounterOptions", c_uint8),
-        ("DigitalValueGet", c_uint8),
-        ("DigitalValueSet", c_uint8),
-        ("DigitalCounterAvailable", c_uint8),
-        ("MappingType", c_uint8),
-        ("KeyCode_MacroID", c_uint8),
-        ("KeyModifier", c_uint8),
-        ("downKeyCode_MacroID", c_uint8),
-        ("downKeyModifier", c_uint8),
-        ("upKeyCode_MacroID", c_uint8),
-        ("upKeyModifier", c_uint8),
-        ("reserved", c_uint8*4)]
+    _fields_ = [
+        ("DigitalCounterValue", c_uint32),             # Digital counter current value (on supported pins when PinFunction is set to digital counter - use PK_IsCounterAvailable to check the pin)
+        ("AnalogValue", c_uint32),                     # Analog input value (on supported pins when PinFunction is set as analog input)
+        ("PinFunction", c_uint8),                      # Pin function code - see ePK_PinCap for values
+        ("CounterOptions", c_uint8),                   # Digital counter settings (on supported pins)
+        ("DigitalValueGet", c_uint8),                  # Digital input value read
+        ("DigitalValueSet", c_uint8),                  # Digital output value set
+        ("DigitalCounterAvailable", c_uint8),          # 1 if digital counter is available on this pin
+        ("MappingType", c_uint8),                      # Digital input to USB keyboard mapping type - selects between direct key mapping and mapping to macro
+        ("KeyCodeMacroID", c_uint8),                   # USB keyboard key code or macro ID (depends on MappingType)
+        ("KeyModifier", c_uint8),                      # USB keyboard key modifier
+        ("downKeyCodeMacroID", c_uint8),               # USB keyboard down key code (for triggered mapping)
+        ("downKeyModifier", c_uint8),                  # USB keyboard down key modifier (for triggered mapping)
+        ("upKeyCodeMacroID", c_uint8),                 # USB keyboard up key code (for triggered mapping)
+        ("upKeyModifier", c_uint8),                    # USB keyboard up key modifier (for triggered mapping)
+        ("preventUpdate", c_uint8),                   
+        ("reserved", c_uint8*3)]
+
 
 # Encoder-specific data
 class sPoKeysEncoder(Structure):
@@ -631,7 +660,15 @@ class sPoKeysRTC(Structure):
         ("MONTH", c_uint16),
         ("YEAR", c_uint16),
         ("reserved", c_uint32)]
-
+# CAN message structure
+class sPoKeysCANmsg(Structure):
+    _fields_ = [
+        ("id", c_uint32),                             
+        ("data", c_uint8*8),                          
+        ("len", c_uint8),                             
+        ("format", c_uint8),                          
+        ("type", c_uint8),                            
+    ]
 
 
 

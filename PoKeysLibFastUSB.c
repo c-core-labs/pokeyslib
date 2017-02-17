@@ -242,6 +242,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 		return devh;
 	}
 
+	void ClearStalls(libusb_device_handle * devh)
+	{
+		libusb_clear_halt(devh, 0x82);
+		libusb_clear_halt(devh, 0x02);
+	}
+
 	void FreeFastUSBInterface(sLibUsbDeviceData * devData)
 	{
 		if (devData->devh != NULL)
@@ -340,7 +346,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 	int32_t SendRequestFastUSB(sPoKeysDevice* device)
 	{
 		// Initialize variables
-		uint32_t waits = 0;
+        uint32_t waits = 0;
+        uint32_t timeoutValue = 10;
 		uint32_t retries = 0;
 		int32_t result = 0;
 		int32_t bytesTransferred = 0;
@@ -374,11 +381,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 				continue;
 			}
 
+            if (device->request[1] == 0x50 || device->request[1] == 0x51 || device->request[1] == 0x52)
+            {
+                // Delay 500 ms...
+                timeoutValue = 500;
+            }
+
 			waits = 0;
 			// Request receiving loop
 			while (waits++ < 10)
 			{
-				result = libusb_bulk_transfer(devh, 0x82, device->response, 64, &bytesTransferred, 10);
+                result = libusb_bulk_transfer(devh, 0x82, device->response, 64, &bytesTransferred, timeoutValue);
 
 				// Error is not an option
 				if (result < 0)
@@ -416,6 +429,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 					continue;
 				}
 			}
+
+			ClearStalls(devh);
 		}
 
 		return PK_ERR_TRANSFER;
@@ -491,6 +506,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 				// Error is not an option
 				if (result < 0)
 				{
+					ClearStalls(devh);
+
 						//printf(" Receive ERR %u", result);
 						break;
 				}

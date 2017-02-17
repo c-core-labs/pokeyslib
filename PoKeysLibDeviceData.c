@@ -516,6 +516,13 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
                 devUSB = 1;
                 data->DeviceTypeID = PK_DeviceMask_57 | PK_DeviceMask_57CNCdb25;
                 break;
+
+            // PoKeys57Utest
+            case PK_DeviceID_PoKeys57Utest:
+                devSeries57 = 1;
+                devUSB = 1;
+                data->DeviceTypeID = PK_DeviceMask_57 | PK_DeviceMask_57Utest;
+                break;
         }
     }
 
@@ -566,6 +573,9 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
             break;
         case PK_DeviceID_PoKeys57CNCdb25:
             sprintf(data->DeviceTypeName, "PoKeys57CNCdb25");
+            break;
+        case PK_DeviceID_PoKeys57Utest:
+            sprintf(data->DeviceTypeName, "PoKeys57Utest");
             break;
         case 40:
             sprintf(data->DeviceTypeName, "PoKeys58EU");
@@ -649,6 +659,13 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
             device->info.PWMinternalFrequency = 25000000;
             break;
 
+        // PoKeys57Utest
+        case PK_DeviceID_PoKeys57Utest:
+            info->iPinCount = 55;
+            info->iEncodersCount = 0;
+            info->iBasicEncoderCount = 0;
+            info->iPWMCount = 0;
+            break;
 
         // PoKeys57CNC
         case PK_DeviceID_PoKeys57CNC:
@@ -840,6 +857,19 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
 		info->iMatrixLED = 0;
 		info->iprot1wire = 0;
 	}
+
+    if (data->DeviceType == PK_DeviceID_PoKeys57Utest)
+    {
+        info->iDigitalCounters = 0;
+        info->iFastEncoders = 0;
+        info->iUltraFastEncoders = 0;
+        info->iAnalogInputs = 1;
+        info->iAnalogFiltering = 1;
+        info->iSensorList = 1;
+        info->iLCD = 0;
+        info->iMatrixLED = 0;
+        info->iprot1wire = 0;
+    }
 
     if (devSeries27 || devSeries55 || devSeries56 || devSeries57 || devSeries58)
     {

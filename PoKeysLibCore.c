@@ -88,7 +88,7 @@ int32_t PK_GetCurrentDeviceConnectionType(sPoKeysDevice* device)
 
 void InitializeNewDevice(sPoKeysDevice* device)
 {
-    uint32_t i;
+    uint32_t i;    
 	memset(&device->info, 0, sizeof(sPoKeysDevice_Info));
     memset(&device->DeviceData, 0, sizeof(sPoKeysDevice_Data));
 
@@ -161,6 +161,20 @@ void InitializeNewDevice(sPoKeysDevice* device)
 
     device-> multiPartBuffer = malloc(512);
     if (device->multiPartBuffer <= 0) device->multiPartBuffer = 0;
+
+#ifdef USE_ALIGN_TEST
+    device->alignTest1 = 1;
+    device->alignTest2 = 2;
+    device->alignTest3 = 3;
+    device->alignTest4 = 4;
+    device->alignTest5 = 5;
+    device->alignTest6 = 6;
+    device->alignTest7 = 7;
+    device->alignTest8 = 8;
+    device->alignTest9 = 9;
+    device->alignTest10 = 10;
+    device->alignTest11 = 11;
+#endif
 }
 
 void CleanDevice(sPoKeysDevice* device)
