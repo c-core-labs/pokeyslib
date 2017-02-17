@@ -100,6 +100,7 @@ Author: Matevž Bošnak (matevz@poscope.com)
 
 
 ---- Change log ----
+17.02.2017: Support for new firmware features, UART, CAN, updated wrappers, prebuilt binaries
 18.07.2016: Support for various configuration of PoKeys57 series USB interfaces
 08.06.2016: Addition of simplest IO functions (for applications that struggle with using structures)
 05.12.2015: Implementation of the support for EasySensors, removed support for Pulse engine v1
