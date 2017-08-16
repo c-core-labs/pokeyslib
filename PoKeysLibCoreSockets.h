@@ -24,5 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
     #include "PoKeysLib.h"
 
     int32_t SendEthRequest(sPoKeysDevice* device);
+    int32_t SendEthRequest_NoResponse(sPoKeysDevice* device);
     int32_t SendEthRequestBig(sPoKeysDevice* device);
 #endif

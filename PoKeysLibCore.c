@@ -776,6 +776,69 @@ int32_t SendRequest(sPoKeysDevice* device)
     return PK_ERR_TRANSFER;
 }
 
+//#define PK_COM_DEBUG
+int32_t SendRequest_NoResponse(sPoKeysDevice* device)
+{
+    // Initialize variables
+    uint32_t waits = 0;
+    uint32_t retries = 0;
+    int32_t result = 0;
+    uint8_t bufferOut[65] = {0};
+
+    #ifdef PK_COM_DEBUG
+        int i;
+    #endif
+
+    hid_device * devHandle;
+
+
+
+    if (device == NULL) return PK_ERR_GENERIC;
+	if (device->connectionType == PK_DeviceType_NetworkDevice)
+	{
+		return SendEthRequest_NoResponse(device);
+	}
+#ifdef POKEYSLIB_USE_LIBUSB
+		if (device->connectionType == PK_DeviceType_FastUSBDevice)
+			return SendRequestFastUSB_NoResponse(device);
+#endif
+    devHandle = (hid_device*)device->devHandle;
+
+
+    if (devHandle == NULL) return PK_ERR_GENERIC;
+
+    // Request sending loop
+    while (retries++ < 2)
+    {
+        device->request[0] = 0xBB;
+        device->request[6] = ++device->requestID;
+        device->request[7] = getChecksum(device->request);
+
+        memcpy(bufferOut + 1, device->request, 64);
+
+        #ifdef PK_COM_DEBUG
+                printf("\n * SEND ");
+                for (i = 0; i < 10; i++)
+                {
+                        printf("%X ", bufferOut[i]);
+                }
+        #endif
+
+        result = hid_write(devHandle, bufferOut, 65);
+
+        // In case of an error, try sending again
+        if (result < 0)
+        {
+            //printf(" ERR %u", result);
+            retries++;
+            continue;
+        }
+    }
+
+    return PK_ERR_TRANSFER;
+}
+
+
 
 // ******************************************************************************************
 // These functions are used to access the device data without using the structures...

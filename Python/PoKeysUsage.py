@@ -21,7 +21,7 @@ import time
 
 
 # Enter the device's serial number here
-deviceSerial = 36022
+deviceSerial = 45000
 
 
 # Load PoKeysLib dll library and list all PoKeys devices detected
@@ -186,8 +186,8 @@ def PEv2_example1(dev):
     dev.device.contents.PEv2.ChargePumpEnabled = 0    # Don't enable safety charge pump
     dev.device.contents.PEv2.PulseGeneratorType = 0 | (1<<7) # Use PoKeysCNCaddon
 
-    #dev.device.contents.PEv2.EmergencySwitchPolarity = 0 	# Normal emergency switch polarity (NC switch)
-    dev.device.contents.PEv2.EmergencySwitchPolarity = 1 	# Inverted emergency switch polarity (NO switch)
+    dev.device.contents.PEv2.EmergencySwitchPolarity = 0 	# Normal emergency switch polarity (NC switch)
+    #dev.device.contents.PEv2.EmergencySwitchPolarity = 1 	# Inverted emergency switch polarity (NO switch)
     dev.device.contents.PEv2.AxisEnabledStatesMask = 0 	# Disable axis power when not in Running state
 
     dev.PK_PEv2_PulseEngineSetup()
@@ -316,7 +316,7 @@ def PEv2_example1(dev):
 
 
 
-testPE = False
+testPE = True
 if testPE:
     print("Testing Pulse engine...")
     mydevice.PK_PEv2_StatusGet()
@@ -354,7 +354,7 @@ print("Time: %02d:%02d:%02d" % (mydevice.device.contents.RTC.HOUR, mydevice.devi
 
 
 
-testEasySensors = True
+testEasySensors = False
 autoAdd1Wire = True
 
 if testEasySensors:

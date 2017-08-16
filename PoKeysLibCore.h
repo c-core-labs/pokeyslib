@@ -43,6 +43,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 		void * ConnectToFastUSBInterface(int32_t serial);
 		void DisconnectFromFastUSBInterface(void * device);
 		int32_t SendRequestFastUSB(sPoKeysDevice* device);
+		int32_t SendRequestFastUSB_NoResponse(sPoKeysDevice* device);
 		int32_t SendRequestFastUSB_multiPart(sPoKeysDevice* device);
 	#else	
 		#define ConnectToFastUSBInterface(device) NULL;

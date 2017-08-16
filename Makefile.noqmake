@@ -10,7 +10,8 @@ SOURCES=PoKeysLibCore.c PoKeysLibCoreSockets.c hid-libusb.c PoKeysLibFastUSB.c \
         PoKeysLibEasySensors.c PoKeysLibI2C.c PoKeysLib1Wire.c PoKeysLibSPI.c \
         PoKeysLibPulseEngine_v2.c \
         PoKeysLibUART.c \
-        PoKeysLibCAN.c
+        PoKeysLibCAN.c \
+        PoKeysLibWS2812.c
 
 
 OBJECTS=$(SOURCES:.c=.o)
