@@ -23,7 +23,10 @@ add_library(PoKeys SHARED
             PoKeysLibI2C.c
             PoKeysLib1Wire.c
             PoKeysLibSPI.c
-            PoKeysLibPulseEngine_v2.c)
+            PoKeysLibPulseEngine_v2.c
+            PoKeysLibCAN.c
+            PoKeysLibUART.c
+            PoKeysLibWS2812.c)
 
 install(FILES PoKeysLib.h DESTINATION include)
 install(TARGETS PoKeys DESTINATION lib)

@@ -435,6 +435,48 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 		return PK_ERR_TRANSFER;
 	}
+	
+	int32_t SendRequestFastUSB_NoResponse(sPoKeysDevice* device)
+	{
+		// Initialize variables
+        uint32_t waits = 0;
+        uint32_t timeoutValue = 10;
+		uint32_t retries = 0;
+		int32_t result = 0;
+		int32_t bytesTransferred = 0;
+
+		libusb_device_handle *devh;
+
+		if (device == NULL) return PK_ERR_GENERIC;
+		if (device->devHandle2 == NULL) return PK_ERR_CANNOT_CONNECT;
+
+		devh = ((sLibUsbDeviceData*)device->devHandle2)->devh;
+
+		#ifdef PK_COM_DEBUG
+			int i;
+		#endif
+
+
+		// Request sending loop
+		while (retries++ < 2)
+		{
+			device->request[0] = 0xBB;
+			device->request[6] = ++device->requestID;
+			device->request[7] = getChecksum(device->request);
+
+			result = libusb_bulk_transfer(devh, 0x02, device->request, 64, &bytesTransferred, 10);
+
+			// In case of an error, try sending again
+			if (result < 0)
+			{
+				//printf(" ERR %u", result);
+				retries++;
+				continue;
+			}
+		}
+
+		return PK_ERR_TRANSFER;
+	}
 
 	int32_t SendRequestFastUSB_multiPart(sPoKeysDevice* device)
 	{

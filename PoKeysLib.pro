@@ -54,7 +54,8 @@ SOURCES += PoKeysLibCore.c \
     PoKeysLib1Wire.c \
     PoKeysLibEasySensors.c \
     PoKeysLibUART.c \
-    PoKeysLibCAN.c
+    PoKeysLibCAN.c \
+    PoKeysLibWS2812.c
 
 win32: SOURCES += hid.c
 

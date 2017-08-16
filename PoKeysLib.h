@@ -398,7 +398,8 @@ typedef struct
     uint8_t         PinLimitPSwitch[8];        // Limit+ switch pin (0 for external dedicated input)
     uint8_t         AxisEnableOutputPins[8];   // Axis enabled output pin (0 for external dedicated output)
 	uint32_t		HomeBackOffDistance[8];	   // Back-off distance after homing
-    uint8_t         reserved[24];              // Motion buffer entries - moved further down...
+    uint16_t        MPGjogDivider[8];          // Divider for the MPG jogging (enhanced encoder resolution)
+    uint8_t         reserved[8];               // Motion buffer entries - moved further down...
     uint8_t         ReservedSafety[8];
 
     // ------ 64-bit region boundary ------
@@ -1195,6 +1196,11 @@ POKEYSDECL int32_t PK_CANConfigure(sPoKeysDevice* device, uint32_t bitrate);
 POKEYSDECL int32_t PK_CANRegisterFilter(sPoKeysDevice* device, uint8_t format, uint32_t CANid);
 POKEYSDECL int32_t PK_CANWrite(sPoKeysDevice* device, sPoKeysCANmsg * msg);
 POKEYSDECL int32_t PK_CANRead(sPoKeysDevice* device, sPoKeysCANmsg * msg, uint8_t * status);
+
+// WS2812 commands
+POKEYSDECL int32_t PK_WS2812_Update(sPoKeysDevice* device, uint16_t LEDcount, uint8_t updateFlag);
+POKEYSDECL int32_t WS2812_SendLEDdata(sPoKeysDevice* device, uint32_t * LEDdata, uint16_t startLED, uint16_t LEDcount);
+
 
 
 // Simplified interface...

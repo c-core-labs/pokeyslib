@@ -706,6 +706,61 @@ int32_t SendEthRequest(sPoKeysDevice* device)
 
 }
 
+int32_t SendEthRequest_NoResponse(sPoKeysDevice* device)
+{    
+    uint32_t retries1 = 0;
+    uint32_t retries2 = 0;
+    int result;
+
+    fd_set fds;
+    struct timeval stimeout;
+
+    if (device == NULL) return PK_ERR_GENERIC;
+    if (device->connectionType != PK_DeviceType_NetworkDevice) return PK_ERR_GENERIC;
+    if (device->devHandle == NULL) return PK_ERR_GENERIC;
+
+    while (1)
+    {
+        // Form the request packet
+        device->requestID++;
+
+        device->request[0] = 0xBB;
+        device->request[6] = device->requestID;
+        device->request[7] = getChecksum(device->request);
+
+        // Send the data
+        if (device->connectionParam == PK_ConnectionParam_UDP)
+        {
+#ifdef WIN32
+            if (sendto((SOCKET)device->devHandle, (char *)device->request, 64, 0, (SOCKADDR *)device->devHandle2, sizeof(struct sockaddr_in)) == -1)
+#else
+            if (sendto(*(int*)device->devHandle, (char *)device->request, 64, 0, (SOCKADDR *)device->devHandle2, sizeof(struct sockaddr_in)) == -1)
+#endif
+            {
+                debug_printf("Error sending UDP report\nAborting...\n");
+                return -1;
+            }
+        } else
+        {
+#ifdef WIN32
+            if (send((SOCKET)device->devHandle, (char *)device->request, 64, 0) != 64)
+#else
+            if (send(*(int*)device->devHandle, (char *)device->request, 64, 0) != 64)
+#endif
+            {
+                debug_printf("Error sending TCP report\nAborting...\n");
+                return -1;
+            }
+        }
+		
+        if (retries2++ > device->sendRetries) break;
+    }
+
+	debug_printf("Error - timeout...");
+	return PK_ERR_TRANSFER;
+
+}
+
 int32_t SendEthRequestBig(sPoKeysDevice* device)
 {
     uint32_t retries1 = 0;
