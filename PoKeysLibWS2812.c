@@ -30,7 +30,7 @@ int32_t PK_WS2812_Update(sPoKeysDevice* device, uint16_t LEDcount, uint8_t updat
     return PK_OK;
 }
 
-int32_t WS2812_SendLEDdataEx(sPoKeysDevice* device, uint32_t * LEDdata, uint16_t LEDoffset, uint16_t startLED, uint8_t LEDcount)
+int32_t PK_WS2812_SendLEDdataEx(sPoKeysDevice* device, uint32_t * LEDdata, uint16_t LEDoffset, uint16_t startLED, uint8_t LEDcount)
 {
 		uint32_t i;
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
@@ -47,7 +47,7 @@ int32_t WS2812_SendLEDdataEx(sPoKeysDevice* device, uint32_t * LEDdata, uint16_t
     return PK_OK;
 }
 
-int32_t WS2812_SendLEDdata(sPoKeysDevice* device, uint32_t * LEDdata, uint16_t startLED, uint16_t LEDcount)
+int32_t PK_WS2812_SendLEDdata(sPoKeysDevice* device, uint32_t * LEDdata, uint16_t startLED, uint16_t LEDcount)
 {
 		int32_t errCode = PK_OK;
 		uint16_t offset = 0;

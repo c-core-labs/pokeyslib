@@ -1199,7 +1199,7 @@ POKEYSDECL int32_t PK_CANRead(sPoKeysDevice* device, sPoKeysCANmsg * msg, uint8_
 
 // WS2812 commands
 POKEYSDECL int32_t PK_WS2812_Update(sPoKeysDevice* device, uint16_t LEDcount, uint8_t updateFlag);
-POKEYSDECL int32_t WS2812_SendLEDdata(sPoKeysDevice* device, uint32_t * LEDdata, uint16_t startLED, uint16_t LEDcount);
+POKEYSDECL int32_t PK_WS2812_SendLEDdata(sPoKeysDevice* device, uint32_t * LEDdata, uint16_t startLED, uint16_t LEDcount);
 
 
 
