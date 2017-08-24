@@ -51,6 +51,11 @@
 
 //#define USE_ALIGN_TEST
 
+//#define POKEYSLIB_USE_LIBUSB
+#ifdef POKEYSLIB_USE_LIBUSB
+    #include "libusb-1.0/libusb.h"
+#endif
+
 #ifdef USE_ALIGN_TEST
     #define ALIGN_TEST(x) uint64_t alignTest##x;
 #else

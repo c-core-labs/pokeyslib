@@ -32,7 +32,7 @@ int32_t PK_WS2812_Update(sPoKeysDevice* device, uint16_t LEDcount, uint8_t updat
 
 int32_t PK_WS2812_SendLEDdataEx(sPoKeysDevice* device, uint32_t * LEDdata, uint16_t LEDoffset, uint16_t startLED, uint8_t LEDcount)
 {
-		uint32_t i;
+    uint32_t i;
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
     if (LEDcount > 18) return PK_ERR_PARAMETER;
 
@@ -40,36 +40,36 @@ int32_t PK_WS2812_SendLEDdataEx(sPoKeysDevice* device, uint32_t * LEDdata, uint1
     CreateRequest(device->request, 0x4B, 0x10, startLED & 0xFF, startLED >> 8, LEDcount);
     for (i = 0; i < LEDcount; i++)
     {
-			memcpy(device->request + 8 + i*3, &LEDdata[i], 3);
+        memcpy(device->request + 8 + i*3, &LEDdata[i+LEDoffset], 3);
     }
-        
+
     if (SendRequest_NoResponse(device) != PK_OK) return PK_ERR_TRANSFER;
     return PK_OK;
 }
 
 int32_t PK_WS2812_SendLEDdata(sPoKeysDevice* device, uint32_t * LEDdata, uint16_t startLED, uint16_t LEDcount)
 {
-		int32_t errCode = PK_OK;
-		uint16_t offset = 0;
-		
+    int32_t errCode = PK_OK;
+    uint16_t offset = 0;
+
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
-		while (LEDcount > 0)
-		{
-				if (LEDcount >= 18)
-				{
-						errCode = WS2812_SendLEDdataEx(device, LEDdata, offset, startLED + offset, 18);
-						if (errCode != PK_OK) return errCode;
-				
-						offset += 18;
-						LEDcount -= 18;
-				}
-				else
-				{
-						errCode = WS2812_SendLEDdataEx(device, LEDdata, offset, startLED + offset, LEDcount);
-						if (errCode != PK_OK) return errCode;
-						break;
-				}
-		}
-		return PK_OK;
+    while (LEDcount > 0)
+    {
+        if (LEDcount >= 18)
+        {
+            errCode = PK_WS2812_SendLEDdataEx(device, LEDdata, offset, startLED + offset, 18);
+            if (errCode != PK_OK) return errCode;
+
+            offset += 18;
+            LEDcount -= 18;
+        }
+        else
+        {
+            errCode = PK_WS2812_SendLEDdataEx(device, LEDdata, offset, startLED + offset, LEDcount);
+            if (errCode != PK_OK) return errCode;
+            break;
+        }
+    }
+    return PK_OK;
 }

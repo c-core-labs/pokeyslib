@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "PoKeysLib.h"
 #include "PoKeysLibCore.h"
 
-#ifdef POKEYSLIB_USE_LIBUSB
-	#include "libusb.h"
+#ifdef POKEYSLIB_USE_LIBUSB	
+	#include "libusb-1.0/libusb.h"
 	#include "errno.h"
 
 	typedef struct
@@ -421,11 +421,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 				}
 				else
 				{
+#ifdef WIN32				
 					// Wrong header...
 					if (waits > 5)
-					{
+					{					
 						Sleep(10);
 					}
+#endif					
 					continue;
 				}
 			}
@@ -473,9 +475,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 				retries++;
 				continue;
 			}
+			break;
 		}
 
-		return PK_ERR_TRANSFER;
+		return PK_OK;
 	}
 
 	int32_t SendRequestFastUSB_multiPart(sPoKeysDevice* device)

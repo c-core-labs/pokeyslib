@@ -24,7 +24,7 @@ makeDLL {
 
 BUILD_WITH_LIBUSB {
     DEFINES += POKEYSLIB_USE_LIBUSB
-    INCLUDEPATH += ../libusb/include/libusb-1.0
+    INCLUDEPATH += ../libusb/include/
 
     DLL32 {
         LIBS += -L../libusb/MS32/static -llibusb-1.0
