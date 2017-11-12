@@ -56,6 +56,21 @@ int32_t PK_I2CWriteStart(sPoKeysDevice* device, uint8_t address, uint8_t* buffer
     return SendRequest(device);
 }
 
+int32_t PK_I2CWriteAndReadStart(sPoKeysDevice* device, uint8_t address, uint8_t* buffer, uint8_t iDataLengthWrite, uint8_t iDataLengthRead)
+{
+    uint32_t i;
+    if (device == NULL) return PK_ERR_NOT_CONNECTED;
+
+    if (iDataLength > 32) iDataLength = 32;
+
+    CreateRequest(device->request, 0xDB, 0x10, address, iDataLength, iDataLengthRead);
+    for (i = 0; i < iDataLength; i++)
+    {
+        device->request[8+i] = buffer[i];
+    }
+    return SendRequest(device);
+}
+
 int32_t PK_I2CWriteStatusGet(sPoKeysDevice* device, uint8_t* status)
 {
     if (device == NULL) return PK_ERR_NOT_CONNECTED;

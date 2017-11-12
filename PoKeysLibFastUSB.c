@@ -44,7 +44,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 		{
 			if (config->interface[j].altsetting[0].bInterfaceClass == 0xFF &&
 				config->interface[j].altsetting[0].bInterfaceSubClass == 0xFF &&
-				config->interface[j].altsetting[0].bInterfaceNumber == 3 &&
 				config->interface[j].altsetting[0].bNumEndpoints == 2 &&
 				config->interface[j].altsetting[0].endpoint[0].wMaxPacketSize == 64 &&
 				config->interface[j].altsetting[0].endpoint[1].wMaxPacketSize == 64)
