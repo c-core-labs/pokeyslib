@@ -58,7 +58,7 @@ int32_t PK_I2CWriteStart(sPoKeysDevice* device, uint8_t address, uint8_t* buffer
 
 int32_t PK_I2CWriteAndReadStart(sPoKeysDevice* device, uint8_t address, uint8_t* buffer, uint8_t iDataLengthWrite, uint8_t iDataLengthRead)
 {
-    uint32_t i;
+    uint32_t i, iDataLength;
     if (device == NULL) return PK_ERR_NOT_CONNECTED;
 
     if (iDataLength > 32) iDataLength = 32;
