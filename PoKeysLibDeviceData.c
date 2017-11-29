@@ -523,6 +523,26 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
                 devUSB = 1;
                 data->DeviceTypeID = PK_DeviceMask_57 | PK_DeviceMask_57Utest;
                 break;
+
+
+            case PK_DeviceID_OEM1:
+                devSeries57 = 1;
+                devEth = 1;
+                data->DeviceTypeID = PK_DeviceMask_57;
+                break;
+
+            case PK_DeviceID_SerialReader:
+                devSeries57 = 1;
+                devUSB = 1;
+                data->DeviceTypeID = PK_DeviceMask_57;
+                break;
+
+            case PK_DeviceID_X15_02_24:
+                devSeries57 = 1;
+                devEth = 1;
+                data->DeviceTypeID = PK_DeviceMask_57;
+                break;
+
         }
     }
 
@@ -588,6 +608,15 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
             break;
         case 60:
             sprintf(data->DeviceTypeName, "PoKeys16RF");
+            break;
+        case PK_DeviceID_OEM1:
+            sprintf(data->DeviceTypeName, "FabricCoder");
+            break;
+        case PK_DeviceID_SerialReader:
+            sprintf(data->DeviceTypeName, "SerialReader");
+            break;
+        case PK_DeviceID_X15_02_24:
+            sprintf(data->DeviceTypeName, "X15-02-24");
             break;
 
         default:
@@ -715,6 +744,27 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
             info->iBasicEncoderCount = 0;
             break;
 
+        case PK_DeviceID_OEM1:
+            info->iPinCount = 55;
+            info->iEncodersCount = 5;
+            info->iBasicEncoderCount = 5;
+            info->iPWMCount = 0;
+            break;
+        case PK_DeviceID_SerialReader:
+            info->iPinCount = 55;
+            info->iEncodersCount = 5;
+            info->iBasicEncoderCount = 5;
+            info->iPWMCount = 3;
+            device->info.PWMinternalFrequency = 25000000;
+            break;
+
+        case PK_DeviceID_X15_02_24:
+            info->iPinCount = 55;
+            info->iEncodersCount = 26;
+            info->iBasicEncoderCount = 25;
+            info->iPWMCount = 6;
+            device->info.PWMinternalFrequency = 25000000;
+            break;
 
 		default:
 			info->iPinCount = 0;
@@ -866,6 +916,14 @@ int32_t PK_DeviceDataGet(sPoKeysDevice* device)
         info->iAnalogInputs = 1;
         info->iAnalogFiltering = 1;
         info->iSensorList = 1;
+        info->iLCD = 0;
+        info->iMatrixLED = 0;
+        info->iprot1wire = 0;
+    }
+
+    if (data->DeviceType == PK_DeviceID_X15_02_24)
+    {
+        info->iSensorList = 0;
         info->iLCD = 0;
         info->iMatrixLED = 0;
         info->iprot1wire = 0;

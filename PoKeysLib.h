@@ -180,7 +180,11 @@ typedef enum
     PK_DeviceID_57E_v0        = 29,
 
     PK_DeviceID_58EU          = 40,
-    PK_DeviceID_PoPLC58       = 50
+    PK_DeviceID_PoPLC58       = 50,
+
+    PK_DeviceID_OEM1          = 100,
+    PK_DeviceID_SerialReader  = 101,
+    PK_DeviceID_X15_02_24     = 102
 } ePK_DeviceTypeID;
 
 

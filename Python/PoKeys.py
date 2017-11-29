@@ -724,7 +724,7 @@ class sPoKeysDevice(Structure):
         ("UltraFastEncoderOptions", c_uint8),    # Ultra fast encoder additional options
         ("UltraFastEncoderFilter", c_uint32),      # Ultra fast encoder digital filter setting
         
-        ("PoExtBusData", c_void_p),              # PoExtBus outputs buffer
+        ("PoExtBusData", POINTER(c_uint8)),              # PoExtBus outputs buffer
         
         ("connectionType", c_uint8),      # Connection type
         ("connectionParam", c_uint8),      # Additional connection parameter

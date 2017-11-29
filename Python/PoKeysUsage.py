@@ -85,6 +85,13 @@ if testIO:
             print("Pin " + str(pin) + " (" + str(mydevice.device.contents.Pins[pin].PinFunction) + "): Digital value=" +
                                              str(mydevice.device.contents.Pins[pin].DigitalValueGet))
 
+testPoExtBus = True
+if testPoExtBus:
+		mydevice.device.contents.PoExtBusData[0] = 0
+		mydevice.device.contents.PoExtBusData[1] = 127
+		mydevice.device.contents.PoExtBusData[2] = 255
+		mydevice.PK_PoExtBusSet()
+		
 testPWM = False        
 if testPWM:
     # Set PWM outputs
