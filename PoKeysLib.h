@@ -822,6 +822,23 @@ typedef struct
     uint32_t AnalogRCFilter;
 } sPoKeysOtherPeripherals;
 
+
+// Failsafe settings
+typedef struct
+{
+    uint8_t bFailSafeEnabled;                                // Failsafe enabled and timeout setting (0 disabled other define timeout period in 100ms steps)
+    uint8_t bFailSafePeripherals;                            // Bit-mapped enabled peripherals
+                                                             // 0 - Digital IO
+                                                             // 1 - PoExtBus
+                                                             // 2 - PWM
+                                                             // 3 - Pulse engine
+    uint8_t padding1[6];
+    uint8_t bFailSafeIO[7];                                  // Digital outputs values
+    uint8_t padding2[1];
+    uint8_t bFailSafePoExtBus[10];                           // PoExtBus outputs values
+    uint8_t bFailSafePWM[6];                                 // PWM outputs values
+} sPoKeysFailsafeSettings;
+
 // Main PoKeys structure
 typedef struct
 {
@@ -855,6 +872,7 @@ typedef struct
     sPoKeysEasySensor*        EasySensors;                   // EasySensors array
 
     sPoKeysOtherPeripherals   otherPeripherals;
+    sPoKeysFailsafeSettings   failsafeSettings;
     ALIGN_TEST(3)
 
     uint8_t                   FastEncodersConfiguration;     // Fast encoders configuration, invert settings and 4x sampling (see protocol specification for details)
@@ -1171,6 +1189,9 @@ POKEYSDECL int32_t PK_EasySensorsSetupSet(sPoKeysDevice* device);
 // Get all EasySensors values
 POKEYSDECL int32_t PK_EasySensorsValueGetAll(sPoKeysDevice* device);
 
+// Failsafe settings
+POKEYSDECL int32_t PK_FailsafeSettingsGet(sPoKeysDevice* device);
+POKEYSDECL int32_t PK_FailsafeSettingsSet(sPoKeysDevice* device);
 
 // SPI operations
 POKEYSDECL int32_t PK_SPIConfigure(sPoKeysDevice * device, uint8_t prescaler, uint8_t frameFormat);
@@ -1209,7 +1230,7 @@ POKEYSDECL int32_t PK_CANRead(sPoKeysDevice* device, sPoKeysCANmsg * msg, uint8_
 
 // WS2812 commands
 POKEYSDECL int32_t PK_WS2812_Update(sPoKeysDevice* device, uint16_t LEDcount, uint8_t updateFlag);
-POKEYSDECL int32_t PK_WS2812_SendLEDdata(sPoKeysDevice* device, uint32_t * LEDdata, uint16_t startLED, uint16_t LEDcount);
+POKEYSDECL int32_t PK_WS2812_SendLEDdata(sPoKeysDevice* device, uint32_t * LEDdata, uint16_t startLED, uint8_t LEDcount);
 
 
 

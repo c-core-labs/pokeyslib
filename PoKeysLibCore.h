@@ -34,6 +34,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 	uint8_t getChecksum(uint8_t * data);
 	int32_t SendRequest(sPoKeysDevice * device);
 	int32_t SendRequest_multiPart(sPoKeysDevice* device);
+    int32_t SendRequest_NoResponse(sPoKeysDevice* device);
 
 
 	int32_t PK_FillPWMPinNumbers(sPoKeysDevice * device);

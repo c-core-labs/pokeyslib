@@ -710,10 +710,10 @@ int32_t SendEthRequest_NoResponse(sPoKeysDevice* device)
 {    
     uint32_t retries1 = 0;
     uint32_t retries2 = 0;
-    int result;
+    //int result;
 
-    fd_set fds;
-    struct timeval stimeout;
+    //fd_set fds;
+    //struct timeval stimeout;
 
     if (device == NULL) return PK_ERR_GENERIC;
     if (device->connectionType != PK_DeviceType_NetworkDevice) return PK_ERR_GENERIC;

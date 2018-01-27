@@ -222,7 +222,7 @@ const sPoKeys_PinCapabilities pinCaps[] = {
 
 int32_t CompareName(int8_t *device, int8_t *search)
 {
-    int32_t len = strlen(search);
+    int32_t len = (int32_t)strlen(search);
     int32_t i;
 
     for (i = 0; i < len; i++)

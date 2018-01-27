@@ -64,8 +64,6 @@ The host system is assumed to be little-endian.
 Example code: 
 http://www.mypokeys.com/new-cross-platform-library-for-all-pokeys-devices
 
----- PoKeys56U device rules setup (Linux) ----
-(coming soon)
 
 ---- Library status - verified commands ----
 [x] Enumerating USB devices
@@ -100,6 +98,7 @@ Author: Matevž Bošnak (matevz@poscope.com)
 
 
 ---- Change log ----
+27.01.2018: Added support for failsafe settings
 17.02.2017: Support for new firmware features, UART, CAN, updated wrappers, prebuilt binaries
 18.07.2016: Support for various configuration of PoKeys57 series USB interfaces
 08.06.2016: Addition of simplest IO functions (for applications that struggle with using structures)
