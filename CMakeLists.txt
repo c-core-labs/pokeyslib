@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 3.2)
 
 include(FindPkgConfig)
 
+find_package(Threads REQUIRED)
+
 pkg_check_modules(USB1 REQUIRED libusb-1.0>=1.0.16)
 
 add_library(PoKeys SHARED
@@ -29,4 +31,5 @@ add_library(PoKeys SHARED
             PoKeysLibWS2812.c)
 
 install(FILES PoKeysLib.h DESTINATION include)
+target_link_libraries(PoKeys ${CMAKE_THREAD_LIBS_INIT} ${USB1_LIBRARIES})
 install(TARGETS PoKeys DESTINATION lib)
